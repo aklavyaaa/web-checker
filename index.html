@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant HTML Code Previewer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+
+        header {
+            background-color: #1e1e2f;
+            color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        button.secondary {
+            background-color: #4b5563;
+        }
+
+        button.secondary:hover {
+            background-color: #374151;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .editor-pane {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            background-color: #ffffff;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            background-color: #f9fafb;
+        }
+
+        textarea:focus {
+            border-color: #3b82f6;
+            background-color: #fff;
+        }
+
+        .preview-pane {
+            width: 60%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #e5e7eb;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 4px;
+        }
+
+        /* Mobile View Mode */
+        .preview-pane.mobile-mode iframe {
+            width: 375px;
+            height: 667px;
+            border: 12px solid #1e1e2f;
+            border-radius: 24px;
+        }
+
+        /* Full Screen Preview Mode */
+        body.fullscreen-mode .editor-pane,
+        body.fullscreen-mode header {
+            display: none;
+        }
+
+        body.fullscreen-mode .preview-pane {
+            width: 100%;
+            height: 100vh;
+            padding: 0;
+        }
+
+        body.fullscreen-mode iframe {
+            border: none;
+            border-radius: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .exit-fs-btn {
+            display: none;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 9999;
+            background-color: rgba(30, 30, 47, 0.85);
+            backdrop-filter: blur(4px);
+        }
+
+        body.fullscreen-mode .exit-fs-btn {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">&lt;CodePreview /&gt;</div>
+        <div class="controls">
+            <button id="runBtn">Go / Render</button>
+            <button id="mobileBtn" class="secondary">Mobile View</button>
+            <button id="fullBtn" class="secondary">Full Screen</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="editor-pane">
+            <textarea id="codeEditor" placeholder="Paste your HTML code here (CSS inside <style> tags works too!)..."></textarea>
+        </div>
+        
+        <div class="preview-pane" id="previewPane">
+            <button id="exitFsBtn" class="exit-fs-btn">Exit Full Screen</button>
+            <iframe id="outputFrame"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const codeEditor = document.getElementById('codeEditor');
+        const runBtn = document.getElementById('runBtn');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const fullBtn = document.getElementById('fullBtn');
+        const exitFsBtn = document.getElementById('exitFsBtn');
+        const previewPane = document.getElementById('previewPane');
+        const outputFrame = document.getElementById('outputFrame');
+        const body = document.body;
+
+        // Function to render HTML inside the iframe
+        function renderCode() {
+            const code = codeEditor.value;
+            const iframeDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(code);
+            iframeDoc.close();
+        }
+
+        // Event Listeners
+        runBtn.addEventListener('click', renderCode);
+
+        mobileBtn.addEventListener('click', () => {
+            previewPane.classList.toggle('mobile-mode');
+            if (previewPane.classList.contains('mobile-mode')) {
+                mobileBtn.textContent = 'Desktop View';
+                mobileBtn.style.backgroundColor = '#10b981'; // Green active state
+            } else {
+                mobileBtn.textContent = 'Mobile View';
+                mobileBtn.style.backgroundColor = ''; // Reset
+            }
+        });
+
+        function toggleFullScreen() {
+            body.classList.toggle('fullscreen-mode');
+            // Force a quick refresh on fullscreen toggle if mobile view was active to reset layout bounds nicely
+            if(previewPane.classList.contains('mobile-mode') && body.classList.contains('fullscreen-mode')) {
+                 previewPane.classList.remove('mobile-mode');
+                 mobileBtn.textContent = 'Mobile View';
+                 mobileBtn.style.backgroundColor = '';
+            }
+        }
+
+        fullBtn.addEventListener('click', toggleFullScreen);
+        exitFsBtn.addEventListener('click', toggleFullScreen);
+
+        // Optional: Run on Ctrl+Enter / Cmd+Enter inside textarea
+        codeEditor.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                renderCode();
+            }
+        });
+    </script>
+</body>
+</html>
