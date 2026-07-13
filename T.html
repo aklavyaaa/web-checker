@@ -201,19 +201,27 @@
 
   .modal-submit { width: 100%; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; background: var(--gold); color: #fff; margin-top: 8px; }
 
-  /* AI Assistant Tab Configurations */
-  .ai-interface-container { display: none; text-align: center; padding: 10px 0; }
+  /* AI Assistant Interface Layout Chat Rules */
+  .ai-interface-container { display: none; text-align: center; padding: 5px 0; }
   .ai-mic-trigger-btn {
-    width: 76px; height: 74px; border-radius: 50%; background: var(--rust); color: #fff;
-    font-size: 28px; display: flex; align-items: center; justify-content: center; margin: 20px auto;
+    width: 64px; height: 64px; border-radius: 50%; background: var(--rust); color: #fff;
+    font-size: 24px; display: flex; align-items: center; justify-content: center; margin: 12px auto;
     box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
   }
   .ai-mic-trigger-btn.recording { animation: micPulse 1.4s infinite ease-in-out; background: #ff4747; }
-  .ai-status-label { font-size: 14px; color: var(--muted); font-weight: 500; min-height: 20px; margin-bottom: 12px; }
-  .ai-transcript-box { background: var(--bg-main); border: 1px solid var(--line); padding: 12px; border-radius: 8px; font-size: 13.5px; color: var(--ink); text-align: left; min-height: 50px; margin-bottom: 15px; max-height: 100px; overflow-y: auto; }
+  .ai-status-label { font-size: 13px; color: var(--muted); font-weight: 600; min-height: 18px; margin-bottom: 8px; }
   
-  .ai-text-input-field { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-main); color: var(--ink); outline: none; font-size: 14px; margin-bottom: 10px; }
-  .ai-text-input-field:focus { border-color: var(--teal); }
+  .ai-chat-history-node {
+    background: var(--bg-main); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px; min-height: 140px; max-height: 200px; overflow-y: auto;
+    text-align: left; font-size: 13.5px; line-height: 1.4; margin-bottom: 12px;
+  }
+  .ai-msg-bubble { margin-bottom: 10px; padding: 8px 12px; border-radius: 8px; max-width: 85%; }
+  .ai-msg-bubble.user { background: rgba(229,184,105,0.15); color: var(--gold); margin-left: auto; border-bottom-right-radius: 2px; }
+  .ai-msg-bubble.assistant { background: rgba(255,255,255,0.04); color: var(--ink); border-bottom-left-radius: 2px; }
+
+  .ai-chat-input-row { display: flex; gap: 8px; }
+  .ai-chat-input-row input { flex: 1; padding: 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-main); color: var(--ink); outline: none; font-size: 13.5px; }
 
   .auth-gate { position: fixed; inset: 0; background: var(--bg-main); z-index: 250; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.4s ease; }
   .auth-box { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow); }
@@ -375,12 +383,12 @@
             <div class="value num" id="statBalance">₹0</div>
           </div>
           <div class="card">
-            <div class="label">This Month Net change</div>
-            <div class="value num" id="statMonthNet">₹0</div>
+            <div class="label">Today's Spent</div>
+            <div class="value num" id="statTodaySpent" style="color:var(--rust);">₹0</div>
           </div>
           <div class="card">
-            <div class="label">Month Breakdown</div>
-            <div class="value num" id="statMonthSub" style="font-size:14px; margin-top:10px; color:var(--muted);">₹0 in / ₹0 out</div>
+            <div class="label">Total Income</div>
+            <div class="value num" id="statTotalIncome" style="color:var(--teal);">₹0</div>
           </div>
         </div>
 
@@ -413,7 +421,7 @@
           <select id="filterMethod">
             <option value="all">All Payment Modes</option>
           </select>
-          <input type="text" id="filterSearch" placeholder="Search notes...">
+          <input type="text" id="filterSearch" placeholder="Search notes description...">
         </div>
         <div class="panel" id="allTxPanel"></div>
       </section>
@@ -527,23 +535,17 @@
       </form>
 
       <div class="ai-interface-container" id="aiInterfaceNode">
-        <p style="font-size:13px; color:var(--muted); line-height:1.4; margin-bottom:10px;">Speak into the microphone OR type out your entry below in plain terms.</p>
-        
-        <div class="field" style="text-align:left;">
-          <label>Type your sentence here</label>
-          <input type="text" class="ai-text-input-field" id="aiTextInput" placeholder="e.g. bought a burger for 60 in cash">
-          <button type="button" class="btn btn-ghost" id="aiTextSubmitBtn" style="width:100%; justify-content:center; font-size:13px; padding:8px;">✍️ Process Written Text</button>
+        <div class="ai-chat-history-node" id="aiChatHistoryScroll">
+          <div class="ai-msg-bubble assistant">Hello! I am your omnipresent tracking assistant. Ask me questions about your ledger from any date, or type an entry natively (e.g. <b>"bought burger for 60 in cash"</b>).</div>
         </div>
-
-        <div style="border-top:1px dashed var(--line); margin:15px 0; padding-top:5px;">
-          <span style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase;">Or Use Voice Mode</span>
-        </div>
-
-        <button type="button" class="ai-mic-trigger-btn" id="aiMicBtn">🎤</button>
-        <div class="ai-status-label" id="aiStatusNode">Ready to listen</div>
         
-        <div style="text-align:left; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Processed sentence text</div>
-        <div class="ai-transcript-box" id="aiTranscriptNode">Waiting for voice context input...</div>
+        <div class="ai-status-label" id="aiStatusNode">Ready for queries</div>
+        
+        <div class="ai-chat-input-row">
+          <input type="text" id="aiChatTextBar" placeholder="Type transaction or query ledger metrics...">
+          <button type="button" class="btn btn-gold" id="aiTextSubmitBtn" style="padding: 10px 14px;">Ask</button>
+          <button type="button" class="btn btn-primary" id="aiVoiceMicBtn" style="padding: 10px;">🎤</button>
+        </div>
       </div>
     </div>
   </div>
@@ -615,7 +617,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// OpenRouter API Configuration Matrix
 const OPENROUTER_SECRET_KEY = "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"; 
 
 let currentSessionUser = null;
@@ -924,292 +925,222 @@ window.deleteTx = async (id) => {
   showToast("Deleted.");
 };
 
-// ===== OPENROUTER & NATIVE WEB SPEECH CONFIGURATION ENGINE =====
-let browserSpeechRecognizerInstance = null;
+// ===== FINANCIAL OMNIPRESENT CHAT ASSISTANT & SPEECH RECOGNITION =====
 let isVoiceRecordingActive = false;
+const BrowserSpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+let browserSpeechRecognizerInstance = null;
 
 function resetAIInterfaceUI() {
-  document.getElementById('aiStatusNode').textContent = 'Ready to listen';
+  document.getElementById('aiStatusNode').textContent = 'Ready to assist';
   document.getElementById('aiStatusNode').style.color = 'var(--muted)';
-  document.getElementById('aiTranscriptNode').textContent = 'Waiting for voice or text context...';
-  document.getElementById('aiTextInput').value = '';
+  document.getElementById('aiChatTextBar').value = '';
+  document.getElementById('aiChatHistoryScroll').innerHTML = `
+    <div class="ai-msg-bubble assistant">Hello! I am your omnipresent tracking assistant. Ask me questions about your ledger from any date, or type an entry natively (e.g. <b>"bought burger for 60 in cash"</b>).</div>
+  `;
   
-  const btn = document.getElementById('aiMicBtn');
+  const btn = document.getElementById('aiVoiceMicBtn');
   btn.classList.remove('recording');
   btn.textContent = '🎤';
   isVoiceRecordingActive = false;
 }
 
-document.getElementById('aiTextSubmitBtn').addEventListener('click', async () => {
-  const userWrittenPhrase = document.getElementById('aiTextInput').value.trim();
-  if(!userWrittenPhrase) return showToast("Please type something first.");
-  await runCoreAIParserPipeline(userWrittenPhrase);
-});
-
-// High-compatibility Speech SDK Wrapper Matrix
-const BrowserSpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-
 if (BrowserSpeechRecognitionClass) {
   browserSpeechRecognizerInstance = new BrowserSpeechRecognitionClass();
   browserSpeechRecognizerInstance.continuous = false;
   browserSpeechRecognizerInstance.interimResults = false;
-  browserSpeechRecognizerInstance.lang = 'en-IN'; // Optimized for standard Indian voice accents
+  browserSpeechRecognizerInstance.lang = 'en-IN';
 
   browserSpeechRecognizerInstance.onstart = () => {
     isVoiceRecordingActive = true;
-    const btn = document.getElementById('aiMicBtn');
+    const btn = document.getElementById('aiVoiceMicBtn');
     btn.classList.add('recording');
     btn.textContent = '🛑';
-    document.getElementById('aiStatusNode').textContent = 'Listening directly to your voice...';
+    document.getElementById('aiStatusNode').textContent = 'Listening to speech...';
     document.getElementById('aiStatusNode').style.color = 'var(--rust)';
   };
 
   browserSpeechRecognizerInstance.onresult = async (event) => {
     const rawSpeechTranscriptResultString = event.results[0][0].transcript;
     stopVoiceAudioRecording();
-    await runCoreAIParserPipeline(rawSpeechTranscriptResultString);
+    document.getElementById('aiChatTextBar').value = rawSpeechTranscriptResultString;
+    await triggerMainAIStreamPipeline();
   };
 
-  browserSpeechRecognizerInstance.onerror = (e) => {
-    console.error("Speech Recognition Engine Exception Matrix: ", e);
-    stopVoiceAudioRecording();
-    if(e.error === 'not-allowed') {
-      showToast("System microphone access permission prompt rejected.");
-    } else {
-      showToast(`Audio Recognition Error: ${e.error}`);
-    }
-  };
-
-  browserSpeechRecognizerInstance.onend = () => {
-    stopVoiceAudioRecording();
-  };
+  browserSpeechRecognizerInstance.onerror = () => { stopVoiceAudioRecording(); };
+  browserSpeechRecognizerInstance.onend = () => { stopVoiceAudioRecording(); };
 }
 
-document.getElementById('aiMicBtn').addEventListener('click', () => {
-  if (!BrowserSpeechRecognitionClass) {
-    return showToast("System missing Speech APIs. Please use text entry box below.");
-  }
-
+document.getElementById('aiVoiceMicBtn').addEventListener('click', () => {
+  if (!BrowserSpeechRecognitionClass) return showToast("Device running missing Speech APIs.");
   if (!isVoiceRecordingActive) {
-    try {
-      browserSpeechRecognizerInstance.start();
-    } catch (e) {
-      console.error(e);
-    }
+    try { browserSpeechRecognizerInstance.start(); } catch(e){}
   } else {
     stopVoiceAudioRecording();
   }
 });
 
 function stopVoiceAudioRecording() {
-  if (browserSpeechRecognizerInstance && isVoiceRecordingActive) {
-    browserSpeechRecognizerInstance.stop();
-  }
+  if (browserSpeechRecognizerInstance && isVoiceRecordingActive) browserSpeechRecognizerInstance.stop();
   isVoiceRecordingActive = false;
-  const btn = document.getElementById('aiMicBtn');
-  if(btn) {
-    btn.classList.remove('recording');
-    btn.textContent = '🎤';
-  }
+  const btn = document.getElementById('aiVoiceMicBtn');
+  if(btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
 }
 
-// Global Core OpenRouter Parser System Matrix
-async function runCoreAIParserPipeline(sentenceStringText) {
+document.getElementById('aiTextSubmitBtn').addEventListener('click', triggerMainAIStreamPipeline);
+document.getElementById('aiChatTextBar').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') triggerMainAIStreamPipeline();
+});
+
+async function triggerMainAIStreamPipeline() {
+  const textBar = document.getElementById('aiChatTextBar');
+  const userQuery = textBar.value.trim();
+  if(!userQuery) return;
+
+  textBar.value = '';
+  appendMessageToBubble('user', userQuery);
+  
   const statusNode = document.getElementById('aiStatusNode');
-  document.getElementById('aiTranscriptNode').textContent = `"${sentenceStringText}"`;
-  statusNode.textContent = 'Processing parameters with OpenRouter...';
+  statusNode.textContent = 'Analyzing parameters...';
   statusNode.style.color = 'var(--gold)';
 
   try {
-    const systemicLLMPromptContext = `You are a financial tracker assistant. Analyze the incoming user sentence transaction phrase and parse it into an explicitly structured JSON format matching the parameters.
+    const historicalStatsSnapshot = computeStats();
     
-    Current existing active allowed Categories arrays are:
-    Income: ${JSON.stringify(CATEGORIES_INCOME)}
-    Expense: ${JSON.stringify(CATEGORIES_EXPENSE)}
+    const contextLedgerPayload = {
+      currentDate: todayISO(),
+      availableCustomPaymentAccounts: paymentModes,
+      calculatedRunningBalances: historicalStatsSnapshot.modeBalances,
+      grandTotalLedgerBalance: historicalStatsSnapshot.total,
+      rawTransactionDatabaseRecords: transactions.map(t => ({
+        type: t.type, amount: t.amount, date: t.date, method: t.method || 'transfer',
+        from: t.fromMethod || null, to: t.toMethod || null, category: t.category || null, note: t.note || ''
+      }))
+    };
+
+    const coreOmnipresentPromptSystemContext = `You are a dynamic personal ledger assistant system called "A Manager". You are connected to live user data arrays.
     
-    Current existing active allowed Payment Modes accounts are:
-    ${JSON.stringify(paymentModes)}
+    Here is the exact real-time live database status snapshot payload data:
+    ${JSON.stringify(contextLedgerPayload)}
     
-    Rules:
-    1. Identify transaction type: "income" or "expense" or "transfer".
-    2. Extract number format value for amount.
-    3. Match closest matching payment mode from the allowed array list for the "method" parameter field. If no exact match is detected default to the first string item index in the payment mode accounts.
-    4. Match closest category from the matching category arrays for the "category" field. Default to "Other" if no classification is obvious.
-    5. Note description field tracks contextual metadata notes.
-    6. Return ONLY a valid structural minified JSON schema without markdown block formatting text or prefixes. Do not include backticks like \`\`\`json.
+    Your job is to read this payload data and assist the user in two ways:
     
-    JSON Schema structural blueprint format to strictly output:
-    {"type":"income/expense/transfer","amount":0.00,"method":"MatchedModeName","category":"MatchedCategoryName","note":"Notes text content"} `;
+    WAY 1: IF the user is telling you about a new entry they made (e.g. "spent 60 on pizza via cash", "received 500 salary in upi"), extract the fields into a flat JSON format schema.
+    Strict dynamic parse format schema to return for entry matching:
+    {"action":"save_entry","type":"income/expense/transfer","amount":0.00,"method":"MatchedModeName","category":"MatchedCategoryName","note":"Context text description"}
+    
+    WAY 2: IF the user is asking a conversational mathematical question regarding balances, historical dates, calculations, or reports, answer them in standard human terms inside a friendly single conversational paragraph. Do not use complex tables or corporate summaries. 
+    Strict dynamic parse format schema to return for questions:
+    {"action":"chat_response","reply":"Your textual friendly financial breakdown analysis goes here."}
+    
+    Always return ONLY a raw minified valid JSON output block matching one of the fields above. Do not include markdown code wrappers or backticks.`;
 
     const openRouterResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${OPENROUTER_SECRET_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost", 
-        "X-Title": "A Manager Android App"
+        "HTTP-Referer": "http://localhost",
+        "X-Title": "A Manager Smart Matrix Console"
       },
       body: JSON.stringify({
-        model: "openrouter/free", // Routes immediately to the top performance active free open source models
+        model: "openrouter/free",
         messages: [
-          { role: "system", content: systemicLLMPromptContext },
-          { role: "user", content: `Parse sentence string text input context: "${sentenceStringText}"` }
+          { role: "system", content: coreOmnipresentPromptSystemContext },
+          { role: "user", content: `User query phrase text: "${userQuery}"` }
         ],
         temperature: 0.1
       })
     });
 
-    if (!openRouterResponse.ok) throw new Error("OpenRouter cloud API network failure error.");
-    const chatResult = await openRouterResponse.json();
-    let payloadRawString = chatResult.choices[0].message.content.trim();
+    if(!openRouterResponse.ok) throw new Error("OpenRouter cloud API network request fault.");
+    const jsonOutput = await openRouterResponse.json();
+    let cleanRawContentString = jsonOutput.choices[0].message.content.trim();
 
-    // Clean backticks structural markdown wrappers if generated by open models fallback
-    if(payloadRawString.includes("```")) {
-      payloadRawString = payloadRawString.replace(/```json/g, "").replace(/```/g, "").trim();
+    if(cleanRawContentString.includes("```")) {
+      cleanRawContentString = cleanRawContentString.replace(/```json/g, "").replace(/```/g, "").trim();
     }
 
-    const structuredParsedDataObj = JSON.parse(payloadRawString);
-    
-    structuredParsedDataObj.date = todayISO();
-    structuredParsedDataObj.createdAtMs = Date.now();
+    const aiParsedActionResponse = JSON.parse(cleanRawContentString);
 
-    if(!structuredParsedDataObj.amount || structuredParsedDataObj.amount <= 0) {
-      throw new Error("AI failed to extract any computational amount values.");
+    if(aiParsedActionResponse.action === 'save_entry') {
+      aiParsedActionResponse.date = todayISO();
+      aiParsedActionResponse.createdAtMs = Date.now();
+      
+      await push(ref(db, `${databaseStreamPath}/transactions`), aiParsedActionResponse);
+      appendMessageToBubble('assistant', `Understood! Logged entry of ₹${aiParsedActionResponse.amount} under ${aiParsedActionResponse.category || 'Transfer'} successfully.`);
+      statusNode.textContent = 'Committed to Firebase!';
+      statusNode.style.color = 'var(--teal)';
+      
+      setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
+    } else {
+      appendMessageToBubble('assistant', aiParsedActionResponse.reply);
+      statusNode.textContent = 'Ready for queries';
+      statusNode.style.color = 'var(--muted)';
     }
 
-    await push(ref(db, `${databaseStreamPath}/transactions`), structuredParsedDataObj);
-    
-    statusNode.textContent = 'Committed successfully to Firebase!';
-    statusNode.style.color = 'var(--teal)';
-    showToast("AI entry saved successfully!");
-    
-    setTimeout(() => {
-      txOverlay.classList.remove('active');
-    }, 1200);
-
-  } catch (err) {
-    statusNode.textContent = 'OpenRouter processing parsing failure.';
+  } catch(errX) {
+    statusNode.textContent = 'AI processing loop exception.';
     statusNode.style.color = 'var(--rust)';
-    showToast(`AI Fault: ${err.message}`);
-    console.error(err);
+    appendMessageToBubble('assistant', "Apologies, I encountered a minor processing fault analyzing your ledger context parameters.");
+    console.error(errX);
   }
 }
 
-document.getElementById("addModeForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const name = document.getElementById("newModeName").value.trim();
-  if(!name) return;
-  if(paymentModes.includes(name)) return showToast("Mode name already exists.");
-
-  paymentModes.push(name);
-  await set(ref(db, `${databaseStreamPath}/modes`), paymentModes);
-  document.getElementById("addModeForm").reset();
-  showToast("Payment account added.");
-});
-
-window.deleteCustomMode = async (modeName) => {
-  if(paymentModes.length <= 1) return showToast("You must keep at least one payment mode.");
-  if(!confirm(`Delete account "${modeName}"?`)) return;
-
-  paymentModes = paymentModes.filter(m => m !== modeName);
-  await set(ref(db, `${databaseStreamPath}/modes`), paymentModes);
-  showToast("Mode removed.");
-};
-
-function renderModesView() {
-  const panel = document.getElementById("customModesListPanel");
-  panel.innerHTML = paymentModes.map(m => `
-    <div class="tx-row" style="grid-template-columns: 1fr auto;">
-      <div style="font-weight:600;">${escapeHTML(m)}</div>
-      <button class="mini-btn del" onclick="deleteCustomMode('${escapeHTML(m)}')">Delete Mode</button>
-    </div>
-  `).join('');
+function appendMessageToBubble(sender, text) {
+  const historyScroll = document.getElementById('aiChatHistoryScroll');
+  const bubble = document.createElement('div');
+  bubble.className = `ai-msg-bubble ${sender}`;
+  bubble.innerHTML = text;
+  historyScroll.appendChild(bubble);
+  historyScroll.scrollTop = historyScroll.scrollHeight;
 }
 
-const creditOverlay = document.getElementById('creditOverlay');
-let creditType = 'lent';
-
-document.getElementById('creditTypeToggle').addEventListener('click', (e) => {
-  const b = e.target.closest('button'); if(!b) return;
-  creditType = b.dataset.val;
-  document.querySelectorAll('#creditTypeToggle button').forEach(x => x.classList.remove('sel-lent','sel-borrowed'));
-  b.classList.add(creditType === 'lent' ? 'sel-lent' : 'sel-borrowed');
-});
-
-document.getElementById('openCreditModal').addEventListener('click', () => {
-  document.getElementById('creditForm').reset();
-  document.getElementById('creditTaken').value = todayISO();
-  creditType = 'lent';
-  document.querySelectorAll('#creditTypeToggle button').forEach(x => x.classList.remove('sel-lent','sel-borrowed'));
-  document.querySelector('#creditTypeToggle button[data-val="lent"]').classList.add('sel-lent');
-  creditOverlay.classList.add('active');
-});
-document.getElementById('closeCreditModal').addEventListener('click', () => creditOverlay.classList.remove('active'));
-
-document.getElementById('creditForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const amount = parseFloat(document.getElementById('creditAmount').value);
-  const payload = {
-    type: creditType,
-    person: document.getElementById('creditPerson').value.trim(),
-    amount,
-    takenDate: document.getElementById('creditTaken').value || null,
-    dueDate: document.getElementById('creditDue').value || null,
-    note: document.getElementById('creditNote').value.trim(),
-    status: 'pending',
-    createdAtMs: Date.now()
-  };
-  await push(ref(db, `${databaseStreamPath}/credits`), payload);
-  creditOverlay.classList.remove('active');
-  showToast("Loan logged successfully.");
-});
-
-window.settleCredit = async (id) => {
-  await update(ref(db, `${databaseStreamPath}/credits/${id}`), { status: 'paid' });
-  showToast("Marked as paid.");
-};
-window.deleteCredit = async (id) => {
-  if(!confirm("Delete this loan record?")) return;
-  await remove(ref(db, `${databaseStreamPath}/credits/${id}`));
-  showToast("Removed.");
-};
-
+// ===== CORE MATHEMATICAL RUNNING BALANCE ENGINE =====
 function computeStats() {
   let incomeTotal = 0, expenseTotal = 0;
-  const now = new Date();
-  let mIn = 0, mOut = 0;
+  let todaySpentTotal = 0;
+  
+  const todayStringISO = todayISO();
 
   let modeBalances = {};
   paymentModes.forEach(m => modeBalances[m] = 0);
 
-  transactions.forEach(t => {
+  // Read transactions chronologically across ALL records to preserve balance metrics history carry-overs
+  const chronologicalTransactionStream = [...transactions].reverse();
+
+  chronologicalTransactionStream.forEach(t => {
     const amt = Number(t.amount) || 0;
-    if(t.type === 'transfer') {
-      if(modeBalances[t.fromMethod] !== undefined) modeBalances[t.fromMethod] -= amt;
-      if(modeBalances[t.toMethod] !== undefined) modeBalances[t.toMethod] += amt;
+    
+    if (t.type === 'transfer') {
+      if (modeBalances[t.fromMethod] !== undefined) modeBalances[t.fromMethod] -= amt;
+      if (modeBalances[t.toMethod] !== undefined) modeBalances[t.toMethod] += amt;
       return;
     }
-    const sign = t.type === 'income' ? 1 : -1;
-    if(modeBalances[t.method] !== undefined) modeBalances[t.method] += sign * amt;
     
-    if(t.type === 'income') incomeTotal += amt; else expenseTotal += amt;
-
-    const d = new Date(t.date);
-    if(d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-      if(t.type === 'income') mIn += amt; else mOut += amt;
+    const sign = t.type === 'income' ? 1 : -1;
+    if (modeBalances[t.method] !== undefined) {
+      modeBalances[t.method] += sign * amt;
+    }
+    
+    if (t.type === 'income') {
+      incomeTotal += amt;
+    } else {
+      expenseTotal += amt;
+      if (t.date === todayStringISO) {
+        todaySpentTotal += amt;
+      }
     }
   });
 
-  let grandTotal = Object.values(modeBalances).reduce((a,b)=>a+b, 0);
-
-  return { total: grandTotal, mIn, mOut, modeBalances };
+  let grandTotal = Object.values(modeBalances).reduce((a,b) => a + b, 0);
+  return { total: grandTotal, incomeTotal, todaySpentTotal, modeBalances };
 }
 
 function renderAll() {
   const s = computeStats();
   document.getElementById('statBalance').textContent = fmt(s.total);
-  document.getElementById('statMonthNet').textContent = fmt(s.mIn - s.mOut);
-  document.getElementById('statMonthSub').textContent = `${fmt(s.mIn)} in / ${fmt(s.mOut)} out`;
+  document.getElementById('statTodaySpent').textContent = fmt(s.todaySpentTotal);
+  document.getElementById('statTotalIncome').textContent = fmt(s.incomeTotal);
 
   const dGrid = document.getElementById("dashboardModesGrid");
   dGrid.innerHTML = Object.keys(s.modeBalances).map(modeKey => `
@@ -1264,7 +1195,7 @@ function renderTransactionsList() {
       if(t.type === 'transfer') { if(t.fromMethod !== methodF && t.toMethod !== methodF) return false; }
       else if(t.method !== methodF) return false;
     }
-    if(searchF && !(t.note||'').toLowerCase().includes(searchF) && !(t.category||'').toLowerCase().includes(searchF)) return false;
+    if(searchF && !(t.note||'').toLowerCase().includes(searchF) && !(t.category||'').toLowerCase().includes(searchF) && !(t.date||'').toLowerCase().includes(searchF)) return false;
     return true;
   });
 
