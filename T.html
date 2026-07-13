@@ -10,71 +10,74 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
   :root, body.dark {
-    --bg-main: #0B0F12;
-    --bg-side: #12181D;
-    --card: #18222A;
-    --card-hover: #1E2B35;
-    --ink: #F3F5F7;
-    --muted: #8796A5;
-    --line: #263541;
-    --gold: #E5B869;
-    --teal: #38E5B9;
-    --rust: #FF6B6B;
-    --violet: #A288E3;
-    --shadow: 0 8px 30px rgba(0,0,0,0.5);
+    --bg-main: #06090C;
+    --bg-side: #0B0F13;
+    --card: #10161C;
+    --card-hover: #162027;
+    --ink: #FFFFFF;
+    --muted: #7E93A2;
+    --line: #1E2B35;
+    --gold: #66FF00; /* Neon Green */
+    --teal: #00FFCC;
+    --rust: #FF3366;
+    --violet: #CC66FF;
+    --shadow: 0 0 25px rgba(102,255,0,0.12);
   }
   
   body.light {
-    --bg-main: #F4F6F8;
+    --bg-main: #F0F4F8;
     --bg-side: #FFFFFF;
     --card: #FFFFFF;
     --card-hover: #F8FAFC;
-    --ink: #1E293B;
+    --ink: #0F172A;
     --muted: #64748B;
-    --line: #E2E8F0;
-    --gold: #D97706;
+    --line: #CBD5E1;
+    --gold: #4BE000;
     --teal: #0D9488;
     --rust: #DC2626;
     --violet: #7C3AED;
-    --shadow: 0 8px 24px rgba(0,0,0,0.06);
+    --shadow: 0 8px 30px rgba(75,224,0,0.08);
   }
   
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; }
+  html, body { height: 100%; overflow-x: hidden; }
   body {
     font-family: 'Inter', sans-serif;
-    background: var(--bg-main);
+    background: radial-gradient(circle at 50% 0%, #111a12 0%, var(--bg-main) 70%);
     color: var(--ink);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     transition: background 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.4s ease;
   }
 
+  .shell, .auth-gate, .loading-gate { position: relative; z-index: 5; }
   .num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
   
-  button, input, select { transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); }
+  button, input, select { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
   button { cursor: pointer; border: none; background: none; color: inherit; font-family: inherit; }
-  button:active { transform: scale(0.95); }
+  
+  /* Micro Click Bounce Animations */
+  button:active { transform: scale(0.92) !important; filter: brightness(1.2); }
+  
   input, select { font-family: inherit; color: inherit; }
-  input:focus, select:focus { border-color: var(--gold) !important; transform: translateY(-1px); }
+  input:focus, select:focus { border-color: var(--gold) !important; transform: translateY(-2px); box-shadow: 0 0 12px rgba(102,255,0,0.3); }
 
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); filter: blur(4px); }
+    from { opacity: 0; transform: translateY(24px); filter: blur(4px); }
     to { opacity: 1; transform: translateY(0); filter: blur(0); }
   }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes zoomPulse {
-    0%, 100% { transform: scale(1); opacity: 0.9; }
-    50% { transform: scale(1.06); opacity: 1; box-shadow: 0 0 30px rgba(229,184,105,0.4); }
+  @keyframes slideUpModal { 
+    from { transform: translateY(60px) scale(0.95); opacity: 0; } 
+    to { transform: translateY(0) scale(1); opacity: 1; } 
   }
-  @keyframes slideUpModal { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   @keyframes micPulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); transform: scale(1); }
-    70% { box-shadow: 0 0 0 15px rgba(255, 107, 107, 0); transform: scale(1.05); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); transform: scale(1); }
+    0% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.5); transform: scale(1); }
+    70% { box-shadow: 0 0 0 18px rgba(255, 51, 102, 0); transform: scale(1.08); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0); transform: scale(1); }
   }
 
-  .card, .tx-row, .credit-card, .chart-card { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .card, .tx-row, .credit-card, .chart-card { animation: fadeUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) both; }
   .grid-cards .card:nth-child(1) { animation-delay: 0.05s; }
   .grid-cards .card:nth-child(2) { animation-delay: 0.1s; }
   .grid-cards .card:nth-child(3) { animation-delay: 0.15s; }
@@ -86,30 +89,23 @@
     display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
     padding: 30px 20px; border-right: 1px solid var(--line);
   }
-  .brand { display: flex; align-items: center; gap: 12px; padding-bottom: 25px; }
-  .brand-mark {
-    width: 36px; height: 36px; border-radius: 8px;
-    background: linear-gradient(135deg, #E5B869, #B88E44);
-    display: flex; align-items: center; justify-content: center;
-    color: #0B0F12; font-weight: 700; font-size: 20px;
-    animation: zoomPulse 3s infinite ease-in-out;
-  }
-  .brand-text .name { font-size: 18px; font-weight: 700; }
-  .brand-text .tag { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .brand { padding-bottom: 25px; }
+  .brand-text .name { font-size: 22px; font-weight: 800; letter-spacing: -1px; color: var(--gold); text-shadow: 0 0 15px rgba(102,255,0,0.3); }
+  .brand-text .tag { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-top: 2px; }
 
   .nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
   .nav button {
     display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px;
     font-size: 14.5px; font-weight: 500; color: var(--muted); text-align: left;
   }
-  .nav button:hover { background: rgba(125,125,125,0.08); color: var(--ink); padding-left: 16px; }
-  .nav button.active { background: rgba(229, 184, 105, 0.15); color: var(--gold); font-weight: 600; }
+  .nav button:hover { background: rgba(102,255,0,0.06); color: var(--gold); padding-left: 18px; }
+  .nav button.active { background: rgba(102, 255, 0, 0.1); color: var(--gold); font-weight: 700; border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; }
 
   .user-badge {
-    background: rgba(125,125,125,0.05); border: 1px solid var(--line); border-radius: 8px;
+    background: rgba(125,125,125,0.03); border: 1px solid var(--line); border-radius: 8px;
     padding: 10px 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
   }
-  .user-badge .indicator { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); }
+  .user-badge .indicator { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
   .user-badge .username-display { font-weight: 600; }
 
   .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -125,9 +121,9 @@
 
   .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; }
   .btn-primary { background: var(--ink); color: var(--bg-main); }
-  .btn-gold { background: var(--gold); color: #fff; }
+  .btn-gold { background: var(--gold); color: #000000; font-weight: 700; box-shadow: 0 4px 15px rgba(102,255,0,0.25); }
   .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-  .btn-ghost:hover { background: rgba(125,125,125,0.08); }
+  .btn-ghost:hover { background: rgba(102,255,0,0.06); border-color: var(--gold); }
 
   .content { padding: 40px; flex: 1; }
   .view { display: none; }
@@ -136,27 +132,27 @@
   .grid-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
   .dynamic-modes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
   
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); }
-  .card:hover { transform: translateY(-2px); border-color: rgba(229,184,105,0.3); background: var(--card-hover); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; box-shadow: none; }
+  .card:hover { transform: translateY(-4px); border-color: var(--gold); background: var(--card-hover); box-shadow: var(--shadow); }
   .card .label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
   .card .value { font-size: 24px; font-weight: 600; margin-top: 10px; }
-  .card.balance .value { font-size: 28px; color: var(--gold); }
+  .card.balance .value { font-size: 28px; color: var(--gold); text-shadow: 0 0 10px rgba(102,255,0,0.2); }
 
-  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 
   .tx-row { display: grid; grid-template-columns: 38px 1fr auto auto; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--line); }
-  .tx-row:hover { background: rgba(125,125,125,0.03); }
+  .tx-row:hover { background: rgba(102,255,0,0.03); border-left: 2px solid var(--gold); }
   .tx-row:last-child { border-bottom: none; }
   .tx-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 600; }
-  .tx-icon.income { background: rgba(56, 229, 185, 0.1); color: var(--teal); }
-  .tx-icon.expense { background: rgba(255, 107, 107, 0.1); color: var(--rust); }
-  .tx-icon.transfer { background: rgba(162, 136, 227, 0.1); color: var(--violet); }
+  .tx-icon.income { background: rgba(0, 255, 204, 0.1); color: var(--teal); }
+  .tx-icon.expense { background: rgba(255, 51, 102, 0.1); color: var(--rust); }
+  .tx-icon.transfer { background: rgba(204, 102, 255, 0.1); color: var(--violet); }
   .tx-amt { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; }
   .tx-amt.income { color: var(--teal); }
   .tx-amt.expense { color: var(--rust); }
   .tx-amt.transfer { color: var(--violet); }
   .tx-del { opacity: 0.3; padding: 6px; color: var(--rust); font-size: 18px; line-height: 1; }
-  .tx-del:hover { opacity: 1; transform: scale(1.1); }
+  .tx-del:hover { opacity: 1; transform: scale(1.2); }
 
   .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
   .filters select, .filters input[type="text"], .filters input[type="date"] {
@@ -166,9 +162,9 @@
 
   .ledger-table-wrap { width: 100%; overflow-x: auto; margin-top: 15px; }
   .ledger-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-  .ledger-table th { background: rgba(125,125,125,0.06); padding: 12px 16px; border-bottom: 2px solid var(--line); font-weight: 600; color: var(--muted); }
+  .ledger-table th { background: rgba(125,125,125,0.04); padding: 12px 16px; border-bottom: 2px solid var(--line); font-weight: 600; color: var(--muted); }
   .ledger-table td { padding: 12px 16px; border-bottom: 1px solid var(--line); }
-  .ledger-table tr:hover { background: rgba(125,125,125,0.02); }
+  .ledger-table tr:hover { background: rgba(102,255,0,0.02); }
 
   .charts-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-bottom: 30px; }
   .chart-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
@@ -176,17 +172,17 @@
 
   .credit-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   .credit-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; }
-  .credit-card:hover { border-color: var(--line); background: var(--card-hover); }
+  .credit-card:hover { border-color: var(--gold); background: var(--card-hover); }
   .credit-top { display: flex; justify-content: space-between; align-items: center; }
   .credit-meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
   .credit-actions { margin-top: 12px; display: flex; gap: 8px; }
   .mini-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; }
-  .mini-btn.settle { background: var(--gold); color: #fff; }
+  .mini-btn.settle { background: var(--gold); color: #000000; font-weight: 700; }
   .mini-btn.del { border: 1px solid var(--line); color: var(--rust); }
 
-  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fadeIn 0.25s ease; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fadeIn 0.2s ease; }
   .overlay.active { display: flex; }
-  .modal { background: var(--card); border: 1px solid var(--line); border-radius: 16px; width: 100%; max-width: 460px; overflow: hidden; max-height: 90vh; overflow-y: auto; animation: slideUpModal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .modal { background: var(--card); border: 1px solid var(--line); border-radius: 16px; width: 100%; max-width: 460px; overflow: hidden; max-height: 90vh; overflow-y: auto; animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
   .modal-head { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
   .modal-body { padding: 24px; }
 
@@ -197,19 +193,19 @@
   
   .toggle-group { display: flex; gap: 8px; }
   .toggle-group button { flex: 1; padding: 11px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--muted); background: var(--bg-main); }
-  .toggle-group button.sel-income { border-color: var(--teal); color: var(--teal); background: rgba(56,229,185,0.05); }
-  .toggle-group button.sel-expense { border-color: var(--rust); color: var(--rust); background: rgba(255,107,107,0.05); }
-  .toggle-group button.sel-transfer { border-color: var(--violet); color: var(--violet); background: rgba(162,136,227,0.05); }
+  .toggle-group button.sel-income { border-color: var(--teal); color: var(--teal); background: rgba(0,255,204,0.05); }
+  .toggle-group button.sel-expense { border-color: var(--rust); color: var(--rust); background: rgba(255,51,102,0.05); }
+  .toggle-group button.sel-transfer { border-color: var(--violet); color: var(--violet); background: rgba(204,102,255,0.05); }
 
   .amt-input-wrap { position: relative; }
   .amt-input-wrap input { padding-left: 24px; }
   .amt-input-wrap .cur { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 
-  .modal-submit { width: 100%; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; background: var(--gold); color: #fff; margin-top: 8px; }
+  .modal-submit { width: 100%; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; background: var(--gold); color: #000000; margin-top: 8px; }
 
-  /* AI Assistant Layout Chat Components */
+  /* AI Assistant Layout Chat Styling Matrix */
   .ai-interface-container { display: none; text-align: center; padding: 5px 0; }
-  .ai-status-label { font-size: 13px; color: var(--muted); font-weight: 600; min-height: 18px; margin-bottom: 8px; }
+  .ai-status-label { font-size: 13px; color: var(--gold); font-weight: 600; min-height: 18px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
   
   .ai-chat-history-node {
     background: var(--bg-main); border: 1px solid var(--line); border-radius: 8px;
@@ -217,42 +213,35 @@
     text-align: left; font-size: 13.5px; line-height: 1.4; margin-bottom: 12px;
   }
   .ai-msg-bubble { margin-bottom: 10px; padding: 8px 12px; border-radius: 8px; max-width: 85%; }
-  .ai-msg-bubble.user { background: rgba(229,184,105,0.15); color: var(--gold); margin-left: auto; border-bottom-right-radius: 2px; }
-  .ai-msg-bubble.assistant { background: rgba(255,255,255,0.04); color: var(--ink); border-bottom-left-radius: 2px; }
+  .ai-msg-bubble.user { background: rgba(102,255,0,0.12); color: var(--gold); margin-left: auto; border-bottom-right-radius: 2px; border: 1px solid rgba(102,255,0,0.2); }
+  .ai-msg-bubble.assistant { background: rgba(255,255,255,0.03); color: var(--ink); border-bottom-left-radius: 2px; }
 
   .ai-chat-input-row { display: flex; gap: 8px; }
   .ai-chat-input-row input { flex: 1; padding: 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-main); color: var(--ink); outline: none; font-size: 13.5px; }
+  .ai-chat-input-row input:focus { border-color: var(--gold); }
+  #aiVoiceMicBtn.recording { animation: micPulse 1.2s infinite ease-in-out; background: var(--rust); color: #fff; }
 
   .auth-gate { position: fixed; inset: 0; background: var(--bg-main); z-index: 250; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.4s ease; }
   .auth-box { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow); }
   .auth-switch { font-size: 14px; color: var(--muted); margin-top: 20px; }
   .auth-switch span { color: var(--gold); cursor: pointer; font-weight: 600; }
-  .auth-error { font-size: 13px; color: var(--rust); background: rgba(255,107,107,0.1); padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+  .auth-error { font-size: 13px; color: var(--rust); background: rgba(255,51,102,0.1); padding: 10px; border-radius: 8px; margin-bottom: 12px; }
 
-  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--bg-main); padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; display: none; z-index: 300; box-shadow: var(--shadow); transition: all 0.2s ease; }
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--gold); color: #000000; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; display: none; z-index: 300; box-shadow: var(--shadow); transition: all 0.2s ease; }
   
   .loading-gate {
-    position: fixed; inset: 0; background: #0B0F12; z-index: 500;
+    position: fixed; inset: 0; background: #06090C; z-index: 500;
     display: flex; align-items: center; justify-content: center; flex-direction: column;
-    transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.6s;
   }
   .splash-container { text-align: center; }
-  .splash-logo {
-    width: 70px; height: 70px; border-radius: 16px;
-    background: linear-gradient(135deg, #E5B869, #B88E44);
-    display: flex; align-items: center; justify-content: center;
-    color: #0B0F12; font-size: 36px; font-weight: 800; margin: 0 auto 20px auto;
-    box-shadow: 0 0 40px rgba(229,184,105,0.3);
-    animation: zoomPulse 2.5s infinite ease-in-out;
-  }
-  .splash-title { font-size: 24px; font-weight: 700; color: #F3F5F7; letter-spacing: -0.5px; opacity: 0; transform: translateY(10px); animation: fadeUp 0.6s 0.2s forwards; }
-  .splash-subtitle { font-size: 13px; color: #8796A5; margin-top: 6px; opacity: 0; transform: translateY(10px); animation: fadeUp 0.6s 0.4s forwards; }
+  .splash-title-text { font-size: 38px; font-weight: 900; color: var(--gold); letter-spacing: -1.5px; text-shadow: 0 0 20px rgba(102,255,0,0.4); }
+  .splash-subtitle { font-size: 13px; color: #7E93A2; margin-top: 8px; font-weight: 500; letter-spacing: 0.05em; }
   
   .splash-loader-bar {
-    width: 140px; height: 3px; background: #263541; border-radius: 2px; margin: 24px auto 0 auto; overflow: hidden; position: relative;
+    width: 140px; height: 3px; background: #1E2B35; border-radius: 2px; margin: 24px auto 0 auto; overflow: hidden; position: relative;
   }
   .splash-loader-progress {
-    width: 60%; height: 100%; background: #E5B869; position: absolute; left: -100%; border-radius: 2px;
+    width: 60%; height: 100%; background: #66FF00; position: absolute; left: -100%; border-radius: 2px;
     animation: splashLoad 1.8s infinite ease-in-out;
   }
   @keyframes splashLoad {
@@ -275,14 +264,14 @@
       display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
       background: var(--bg-side); border-top: 1px solid var(--line);
       z-index: 100; justify-content: space-around; align-items: center;
-      padding: 0 10px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+      padding: 0 10px; box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
     }
     .mobile-nav-bar button {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       font-size: 11px; color: var(--muted); font-weight: 500; gap: 4px; flex: 1; height: 100%;
     }
     .mobile-nav-bar button.active { color: var(--gold); font-weight: 700; }
-    .mobile-nav-bar .nav-icon { font-size: 18px; transition: transform 0.2s ease; }
+    .mobile-nav-bar .nav-icon { font-size: 18px; }
     .mobile-nav-bar button:active .nav-icon { transform: scale(1.2); }
 
     .grid-cards { grid-template-columns: 1fr; gap: 12px; }
@@ -296,9 +285,9 @@
 
 <div class="loading-gate" id="loadingGate">
   <div class="splash-container">
-    <div class="splash-logo">A</div>
-    <h2 class="splash-title">A Manager</h2>
-    <p class="splash-subtitle">Your Personal Ledger Workspace</p>
+    <!-- REMOVED THE EMBEDDED BOX IMAGE ICON LOGO FROM SPLASH -->
+    <h1 class="splash-title-text">A MANAGER</h1>
+    <p class="splash-subtitle">System Online Engine</p>
     <div class="splash-loader-bar">
       <div class="splash-loader-progress"></div>
     </div>
@@ -308,23 +297,23 @@
 <div class="auth-gate" id="authGate" style="display:none;">
   <div class="auth-box">
     <h2 id="authTitle" style="margin-bottom:8px;">Sign In</h2>
-    <p id="authSubtitle" style="color:var(--muted); margin-bottom:24px;">Enter your username and password to enter your ledger.</p>
+    <p id="authSubtitle" style="color:var(--muted); margin-bottom:24px;">Enter credentials matrix to decrypt session workspace.</p>
     
     <form id="authForm">
       <div class="field">
         <label>Username</label>
-        <input type="text" id="authUsername" placeholder="Enter username" autocomplete="username" required>
+        <input type="text" id="authUsername" placeholder="Enter identity string" autocomplete="username" required>
       </div>
       <div class="field">
         <label>Password</label>
-        <input type="password" id="authPassword" placeholder="Enter password" autocomplete="current-password" required>
+        <input type="password" id="authPassword" placeholder="Enter secure lock key" autocomplete="current-password" required>
       </div>
       <div class="auth-error" id="authError" style="display:none;"></div>
       <button type="submit" class="btn modal-submit" id="authSubmitBtn">Sign In</button>
     </form>
     
     <div class="auth-switch" id="authSwitchContainer">
-      New user? <span id="authSwitchModeBtn">Create Account</span>
+      New node? <span id="authSwitchModeBtn">Create Account</span>
     </div>
   </div>
 </div>
@@ -332,10 +321,10 @@
 <div class="shell" id="appShell" style="display:none;">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-mark">A</div>
+      <!-- REMOVED THE BOX BRAND LOGO ACCENT IN SIDEBAR HEADER -->
       <div class="brand-text">
         <div class="name">A Manager</div>
-        <div class="tag">Ledger System</div>
+        <div class="tag">Active Workspace</div>
       </div>
     </div>
     <div class="user-badge">
@@ -524,7 +513,6 @@
     </div>
     
     <div class="modal-body">
-      <!-- MANUAL VIEW -->
       <form id="txForm" style="display:none;">
         <div class="field">
           <label>Type</label>
@@ -578,16 +566,15 @@
         <button type="submit" class="btn modal-submit">Save Entry</button>
       </form>
 
-      <!-- AI ASSISTANT LAYOUT CHAT INTERFACE (NOW DEFAULT ACTIVE) -->
       <div class="ai-interface-container" id="aiInterfaceNode" style="display:block;">
         <div class="ai-chat-history-node" id="aiChatHistoryScroll">
-          <div class="ai-msg-bubble assistant">Hello! I am your omnipresent tracking assistant. Ask me questions about your ledger from any date, type an entry natively (e.g. <b>"spent 60 on burger in cash"</b>), OR log a loan (e.g. <b>"lent 500 to Amit"</b> or <b>"borrowed 1000 from Dad"</b>).</div>
+          <div class="ai-msg-bubble assistant">Console decrypted. Ask metrics questions, type natural entries (e.g. <b>"spent 60 on burger in cash"</b>), or push loans metrics straight into records.</div>
         </div>
         
         <div class="ai-status-label" id="aiStatusNode">Ready for queries</div>
         
         <div class="ai-chat-input-row">
-          <input type="text" id="aiChatTextBar" placeholder="Type entry, loan details, or history queries...">
+          <input type="text" id="aiChatTextBar" placeholder="Type data command matrix or transaction syntax...">
           <button type="button" class="btn btn-gold" id="aiTextSubmitBtn" style="padding: 10px 14px;">Ask</button>
           <button type="button" class="btn btn-primary" id="aiVoiceMicBtn" style="padding: 10px;">🎤</button>
         </div>
@@ -725,14 +712,14 @@ function setAuthMode(mode) {
 
   if (mode === "login") {
     t.textContent = "Sign In";
-    s.textContent = "Enter your username and password to enter your ledger.";
+    s.textContent = "Enter identity parameters to unlock session matrix.";
     b.textContent = "Sign In";
-    sw.innerHTML = `New user? <span id="authSwitchModeBtn">Create Account</span>`;
+    sw.innerHTML = `New node? <span id="authSwitchModeBtn">Create Account</span>`;
   } else {
     t.textContent = "Create Account";
-    s.textContent = "Sign up for a fresh personal expense tracker space.";
+    s.textContent = "Allocate fresh storage pathway configuration block.";
     b.textContent = "Create Account";
-    sw.innerHTML = `Already registered? <span id="authSwitchModeBtn">Sign In</span>`;
+    sw.innerHTML = `Already mapped? <span id="authSwitchModeBtn">Sign In</span>`;
   }
   
   document.getElementById("authSwitchModeBtn").addEventListener("click", () => {
@@ -748,7 +735,7 @@ document.getElementById("authForm").addEventListener("submit", async (e) => {
   err.style.display = "none";
 
   if(!/^[a-z0-9_]{3,15}$/.test(u)) {
-    err.textContent = "Username must be 3-15 normal letters or numbers.";
+    err.textContent = "Username format constraint validation failure.";
     err.style.display = "block";
     return;
   }
@@ -761,24 +748,24 @@ document.getElementById("authForm").addEventListener("submit", async (e) => {
 
     if (authMode === "login") {
       if (!exist || accountSnapshot.val().password !== p) {
-        err.textContent = "Wrong username or password.";
+        err.textContent = "Wrong username or password key.";
         err.style.display = "block";
         return;
       }
       initializeUserSession(u, userMangleKey);
     } else {
       if (exist) {
-        err.textContent = "Username already taken.";
+        err.textContent = "Matrix destination route already taken.";
         err.style.display = "block";
         return;
       }
       await set(ref(db, `users/${userMangleKey}/profile`), { username: u, password: p, timestamp: Date.now() });
       await set(ref(db, `users/${userMangleKey}/modes`), ["Cash", "UPI"]);
-      showToast("Account Created!");
+      showToast("Account Allocated!");
       initializeUserSession(u, userMangleKey);
     }
   } catch (eX) {
-    err.textContent = "Database Error: " + eX.message;
+    err.textContent = "Database Matrix Error: " + eX.message;
     err.style.display = "block";
   }
 });
@@ -929,7 +916,6 @@ document.getElementById('openTxModal').addEventListener('click', () => {
   txType = 'expense';
   setTxTypeUI();
   
-  // MODIFIED CRUCIAL FLOW FLAG: Default dynamically to the AI Assistant tab on modal popups
   document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
   document.querySelector('#inputInterfaceTabToggle button[data-tab="ai"]').classList.add('sel-income');
   document.getElementById('txForm').style.display = 'none';
@@ -941,16 +927,6 @@ document.getElementById('openTxModal').addEventListener('click', () => {
 document.getElementById('closeTxModal').addEventListener('click', () => {
   stopVoiceAudioRecording();
   txOverlay.classList.remove('active');
-});
-
-document.getElementById('openCreditModal').addEventListener('click', () => {
-  // If user opens manual loan modal explicitly, handle normally
-  document.getElementById('creditForm').reset();
-  document.getElementById('creditTaken').value = todayISO();
-  creditType = 'lent';
-  document.querySelectorAll('#creditTypeToggle button').forEach(x => x.classList.remove('sel-lent','sel-borrowed'));
-  document.querySelector('#creditTypeToggle button[data-val="lent"]').classList.add('sel-lent');
-  creditOverlay.classList.add('active');
 });
 
 document.getElementById('txForm').addEventListener('submit', async (e) => {
@@ -1059,17 +1035,17 @@ window.deleteCredit = async (id) => {
   showToast("Removed.");
 };
 
-// ===== OMNIPRESENT CHAT ASSISTANT & SPEECH RECOGNITION (UPGRADED FOR LOANS) =====
+// ===== OMNIPRESENT CHAT ASSISTANT & SPEECH RECOGNITION =====
 let isVoiceRecordingActive = false;
 const BrowserSpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
 let browserSpeechRecognizerInstance = null;
 
 function resetAIInterfaceUI() {
   document.getElementById('aiStatusNode').textContent = 'Ready to assist';
-  document.getElementById('aiStatusNode').style.color = 'var(--muted)';
+  document.getElementById('aiStatusNode').style.color = 'var(--gold)';
   document.getElementById('aiChatTextBar').value = '';
   document.getElementById('aiChatHistoryScroll').innerHTML = `
-    <div class="ai-msg-bubble assistant">Hello! I am your omnipresent tracking assistant. Ask me questions about your ledger from any date, type an entry natively (e.g. <b>"spent 60 on burger in cash"</b>), OR log a loan (e.g. <b>"lent 500 to Amit"</b> or <b>"borrowed 1000 from Dad"</b>).</div>
+    <div class="ai-msg-bubble assistant">Console decrypted. Ask metrics questions, type natural entries (e.g. <b>"spent 60 on burger in cash"</b>), or push loans metrics straight into records.</div>
   `;
   
   const btn = document.getElementById('aiVoiceMicBtn');
@@ -1090,7 +1066,6 @@ if (BrowserSpeechRecognitionClass) {
     btn.classList.add('recording');
     btn.textContent = '🛑';
     document.getElementById('aiStatusNode').textContent = 'Listening to speech...';
-    document.getElementById('aiStatusNode').style.color = 'var(--rust)';
   };
 
   browserSpeechRecognizerInstance.onresult = async (event) => {
@@ -1135,7 +1110,6 @@ async function triggerMainAIStreamPipeline() {
   
   const statusNode = document.getElementById('aiStatusNode');
   statusNode.textContent = 'Analyzing parameters...';
-  statusNode.style.color = 'var(--gold)';
 
   try {
     const historicalStatsSnapshot = computeStats();
@@ -1154,7 +1128,6 @@ async function triggerMainAIStreamPipeline() {
       }))
     };
 
-    // UPGRADED CONTEXT PROMPT MATRIX: Integrates strict parsing pathways for WAY 3 (Loans & Credit entries)
     const coreOmnipresentPromptSystemContext = `You are a dynamic personal ledger assistant system called "A Manager". You are connected to live user data arrays.
     
     Here is the exact real-time live database status snapshot payload data:
@@ -1162,19 +1135,19 @@ async function triggerMainAIStreamPipeline() {
     
     Your job is to read this payload data and assist the user in three ways:
     
-    WAY 1: IF the user is telling you about a standard entry they made (e.g. "spent 60 on pizza via cash", "received 500 salary in upi"), extract the fields into a flat JSON format schema.
-    Strict parse format schema to return for transaction matching:
-    {"action":"save_entry","type":"income/expense/transfer","amount":0.00,"method":"MatchedModeName","category":"MatchedCategoryName","note":"Context description"}
+    WAY 1: IF the user is telling you about a new entry they made (e.g. "spent 60 on pizza via cash", "received 500 salary in upi"), extract the fields into a flat JSON format schema.
+    Strict parse format schema to return for entry matching:
+    {"action":"save_entry","type":"income/expense/transfer","amount":0.00,"method":"MatchedModeName","category":"MatchedCategoryName","note":"Context text description"}
     
-    WAY 2: IF the user is telling you about a loan record (e.g. "lent 500 to Amit", "borrowed 1200 from Rahul cash", "gave 200 to Rohit"), extract the fields into a flat JSON format schema.
+    WAY 2: IF the user is telling you about a loan record (e.g. "lent 500 to Amit", "borrowed 1200 from Rahul cash"), extract the fields into a flat JSON format schema.
     Strict parse format schema to return for loan record matching:
     {"action":"save_loan","type":"lent/borrowed","person":"PersonName","amount":0.00,"note":"Context description"}
     
     WAY 3: IF the user is asking a conversational mathematical question regarding balances, history dates, records, or calculations, answer them in standard human terms inside a friendly single conversational paragraph. Do not use markdown charts.
-    Strict parse format schema to return for general chat questions:
-    {"action":"chat_response","reply":"Your textual friendly financial analysis summary goes here."}
+    Strict parse format schema to return for general chat responses:
+    {"action":"chat_response","reply":"Your textual friendly financial breakdown analysis goes here."}
     
-    Always return ONLY a raw minified valid JSON output block matching one of the specifications above. Do not include markdown wraps or backticks.`;
+    Always return ONLY a raw minified valid JSON output block matching one of the fields above. Do not include markdown code wrappers or backticks.`;
 
     const openRouterResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -1204,18 +1177,16 @@ async function triggerMainAIStreamPipeline() {
 
     const aiParsedActionResponse = JSON.parse(cleanRawContentString);
 
-    if (aiParsedActionResponse.action === 'save_entry') {
+    if(aiParsedActionResponse.action === 'save_entry') {
       aiParsedActionResponse.date = todayISO();
       aiParsedActionResponse.createdAtMs = Date.now();
       
       await push(ref(db, `${databaseStreamPath}/transactions`), aiParsedActionResponse);
       appendMessageToBubble('assistant', `Understood! Logged entry of ₹${aiParsedActionResponse.amount} under ${aiParsedActionResponse.category || 'Transfer'} successfully.`);
-      statusNode.textContent = 'Committed to Ledger!';
-      statusNode.style.color = 'var(--teal)';
-      setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
+      statusNode.textContent = 'Committed to Firebase!';
       
+      setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
     } else if (aiParsedActionResponse.action === 'save_loan') {
-      // DYNAMIC PIPELINE ROUTING: Safely intercepts and logs the record to the credit database tree path instead
       const loanPayload = {
         type: aiParsedActionResponse.type,
         person: aiParsedActionResponse.person || 'Unknown',
@@ -1228,20 +1199,16 @@ async function triggerMainAIStreamPipeline() {
       };
       
       await push(ref(db, `${databaseStreamPath}/credits`), loanPayload);
-      appendMessageToBubble('assistant', `Loan recorded! You logged that you **${loanPayload.type === 'lent' ? 'lent money to' : 'borrowed money from'} ${loanPayload.person}** totaling ₹${loanPayload.amount}.`);
+      appendMessageToBubble('assistant', `Loan recorded! Logged that you **${loanPayload.type === 'lent' ? 'lent money to' : 'borrowed money from'} ${loanPayload.person}** totaling ₹${loanPayload.amount}.`);
       statusNode.textContent = 'Committed to Loans!';
-      statusNode.style.color = 'var(--teal)';
       setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
-      
     } else {
       appendMessageToBubble('assistant', aiParsedActionResponse.reply);
       statusNode.textContent = 'Ready for queries';
-      statusNode.style.color = 'var(--muted)';
     }
 
   } catch(errX) {
-    statusNode.textContent = 'AI processing loop exception.';
-    statusNode.style.color = 'var(--rust)';
+    statusNode.textContent = 'Loop exception logged.';
     appendMessageToBubble('assistant', "Apologies, I encountered a minor processing fault analyzing your ledger context parameters.");
     console.error(errX);
   }
@@ -1328,10 +1295,10 @@ function generateAccountBalanceSheet() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${formatDate(row.date)}</td>
-      <td><span class="label">${escapeHTML(row.type)}</span></td>
+      <td><span class="label" style="color:var(--gold); border: 1px solid rgba(102,255,0,0.2); padding: 2px 6px; border-radius:4px; font-size:11px;">${escapeHTML(row.type)}</span></td>
       <td>${escapeHTML(row.desc)}</td>
-      <td class="num" style="color:var(--rust);">${row.out}</td>
-      <td class="num" style="color:var(--teal);">${row.in}</td>
+      <td class="num" style="color:var(--rust); font-weight:600;">${row.out}</td>
+      <td class="num" style="color:var(--teal); font-weight:600;">${row.in}</td>
       <td class="num" style="font-weight:600; color:var(--gold);">${row.bal}</td>
     `;
     tBody.appendChild(tr);
@@ -1387,7 +1354,7 @@ function computeStats() {
   return { total: grandTotal, incomeTotal, todaySpentTotal, modeBalances };
 }
 
-function renderAll() {
+function mergeAllState() {
   const s = computeStats();
   document.getElementById('statBalance').textContent = fmt(s.total);
   document.getElementById('statTodaySpent').textContent = fmt(s.todaySpentTotal);
@@ -1502,8 +1469,8 @@ function renderCharts(stats) {
   const flowIn = months.map(m => transactions.filter(t => t.type === 'income' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
   const flowOut = months.map(m => transactions.filter(t => t.type === 'expense' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
 
-  const textModeColor = document.body.classList.contains("light") ? "#64748B" : "#8796A5";
-  const gridLineColor = document.body.classList.contains("light") ? "#E2E8F0" : "#263541";
+  const textModeColor = document.body.classList.contains("light") ? "#000000" : "#FFFFFF";
+  const gridLineColor = document.body.classList.contains("light") ? "#CBD5E1" : "#1E2B35";
 
   if(cFlow) cFlow.destroy();
   cFlow = new Chart(ctxFlow, {
@@ -1511,8 +1478,8 @@ function renderCharts(stats) {
     data: {
       labels: months.map(m => m.label),
       datasets: [
-        { label: 'Income', data: flowIn, borderColor: '#38E5B9', tension: 0.2, pointRadius: 2 },
-        { label: 'Expense', data: flowOut, borderColor: '#FF6B6B', tension: 0.2, pointRadius: 2 }
+        { label: 'Income', data: flowIn, borderColor: '#00FFCC', tension: 0.2, pointRadius: 2 },
+        { label: 'Expense', data: flowOut, borderColor: '#FF3366', tension: 0.2, pointRadius: 2 }
       ]
     },
     options: { 
@@ -1534,7 +1501,7 @@ function renderCharts(stats) {
     type: 'doughnut',
     data: {
       labels: Object.keys(catMap).length ? Object.keys(catMap) : ['None'],
-      datasets: [{ data: Object.values(catMap).length ? Object.values(catMap) : [1], backgroundColor: ['#E5B869', '#38E5B9', '#FF6B6B', '#A288E3', '#8796A5'], borderWidth: 0 }]
+      datasets: [{ data: Object.values(catMap).length ? Object.values(catMap) : [1], backgroundColor: ['#66FF00', '#00FFCC', '#FF3366', '#CC66FF', '#7E93A2'], borderWidth: 0 }]
     },
     options: { 
       responsive: true, 
@@ -1543,6 +1510,7 @@ function renderCharts(stats) {
     }
   });
 }
+window.renderAll = mergeAllState;
 </script>
 </body>
 </html>
