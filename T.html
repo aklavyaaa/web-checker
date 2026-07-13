@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>A Manager — Personal Expense Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root, body.dark {
+    --bg-main: #0B0F12;
+    --bg-side: #12181D;
+    --card: #18222A;
+    --card-hover: #1E2B35;
+    --ink: #F3F5F7;
+    --muted: #8796A5;
+    --line: #263541;
+    --gold: #E5B869;
+    --teal: #38E5B9;
+    --rust: #FF6B6B;
+    --violet: #A288E3;
+    --shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  
+  body.light {
+    --bg-main: #F4F6F8;
+    --bg-side: #FFFFFF;
+    --card: #FFFFFF;
+    --card-hover: #F8FAFC;
+    --ink: #1E293B;
+    --muted: #64748B;
+    --line: #E2E8F0;
+    --gold: #D97706;
+    --teal: #0D9488;
+    --rust: #DC2626;
+    --violet: #7C3AED;
+    --shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-main);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.4s ease;
+  }
+
+  .num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+  
+  button, input, select { transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); }
+  button { cursor: pointer; border: none; background: none; color: inherit; font-family: inherit; }
+  button:active { transform: scale(0.95); }
+  input, select { font-family: inherit; color: inherit; }
+  input:focus, select:focus { border-color: var(--gold) !important; transform: translateY(-1px); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); filter: blur(4px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes zoomPulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.06); opacity: 1; box-shadow: 0 0 30px rgba(229,184,105,0.4); }
+  }
+  @keyframes slideUpModal { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes micPulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); transform: scale(1); }
+    70% { box-shadow: 0 0 0 15px rgba(255, 107, 107, 0); transform: scale(1.05); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); transform: scale(1); }
+  }
+
+  .card, .tx-row, .credit-card, .chart-card { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .grid-cards .card:nth-child(1) { animation-delay: 0.05s; }
+  .grid-cards .card:nth-child(2) { animation-delay: 0.1s; }
+  .grid-cards .card:nth-child(3) { animation-delay: 0.15s; }
+
+  .shell { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 260px; flex-shrink: 0; background: var(--bg-side);
+    display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
+    padding: 30px 20px; border-right: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; padding-bottom: 25px; }
+  .brand-mark {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, #E5B869, #B88E44);
+    display: flex; align-items: center; justify-content: center;
+    color: #0B0F12; font-weight: 700; font-size: 20px;
+    animation: zoomPulse 3s infinite ease-in-out;
+  }
+  .brand-text .name { font-size: 18px; font-weight: 700; }
+  .brand-text .tag { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+
+  .nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .nav button {
+    display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px;
+    font-size: 14.5px; font-weight: 500; color: var(--muted); text-align: left;
+  }
+  .nav button:hover { background: rgba(125,125,125,0.08); color: var(--ink); padding-left: 16px; }
+  .nav button.active { background: rgba(229, 184, 105, 0.15); color: var(--gold); font-weight: 600; }
+
+  .user-badge {
+    background: rgba(125,125,125,0.05); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .user-badge .indicator { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); }
+  .user-badge .username-display { font-weight: 600; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 40px; border-bottom: 1px solid var(--line); background: var(--bg-side);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .topbar h1 { font-size: 24px; font-weight: 700; }
+  .topbar .date { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .topbar-actions { display: flex; gap: 12px; align-items: center; }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+  .btn-primary { background: var(--ink); color: var(--bg-main); }
+  .btn-gold { background: var(--gold); color: #fff; }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn-ghost:hover { background: rgba(125,125,125,0.08); }
+
+  .content { padding: 40px; flex: 1; }
+  .view { display: none; }
+  .view.active { display: block; animation: fadeIn 0.4s ease both; }
+
+  .grid-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+  .dynamic-modes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+  
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); }
+  .card:hover { transform: translateY(-2px); border-color: rgba(229,184,105,0.3); background: var(--card-hover); }
+  .card .label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .card .value { font-size: 24px; font-weight: 600; margin-top: 10px; }
+  .card.balance .value { font-size: 28px; color: var(--gold); }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+
+  .tx-row { display: grid; grid-template-columns: 38px 1fr auto auto; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--line); }
+  .tx-row:hover { background: rgba(125,125,125,0.03); }
+  .tx-row:last-child { border-bottom: none; }
+  .tx-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+  .tx-icon.income { background: rgba(56, 229, 185, 0.1); color: var(--teal); }
+  .tx-icon.expense { background: rgba(255, 107, 107, 0.1); color: var(--rust); }
+  .tx-icon.transfer { background: rgba(162, 136, 227, 0.1); color: var(--violet); }
+  .tx-amt { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; }
+  .tx-amt.income { color: var(--teal); }
+  .tx-amt.expense { color: var(--rust); }
+  .tx-amt.transfer { color: var(--violet); }
+  .tx-del { opacity: 0.3; padding: 6px; color: var(--rust); font-size: 18px; line-height: 1; }
+  .tx-del:hover { opacity: 1; transform: scale(1.1); }
+
+  .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filters select, .filters input[type="text"] {
+    padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+    font-size: 13.5px; color: var(--ink); outline: none; flex: 1; min-width: 150px;
+  }
+
+  .charts-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-bottom: 30px; }
+  .chart-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+  .chart-wrap { position: relative; height: 240px; }
+
+  .credit-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .credit-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; }
+  .credit-card:hover { border-color: var(--line); background: var(--card-hover); }
+  .credit-top { display: flex; justify-content: space-between; align-items: center; }
+  .credit-meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .credit-actions { margin-top: 12px; display: flex; gap: 8px; }
+  .mini-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; }
+  .mini-btn.settle { background: var(--gold); color: #fff; }
+  .mini-btn.del { border: 1px solid var(--line); color: var(--rust); }
+
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fadeIn 0.25s ease; }
+  .overlay.active { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--line); border-radius: 16px; width: 100%; max-width: 460px; overflow: hidden; max-height: 90vh; overflow-y: auto; animation: slideUpModal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .modal-head { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .modal-body { padding: 24px; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  .field input, .field select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-main); color: var(--ink); outline: none; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  
+  .toggle-group { display: flex; gap: 8px; }
+  .toggle-group button { flex: 1; padding: 11px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--muted); background: var(--bg-main); }
+  .toggle-group button.sel-income { border-color: var(--teal); color: var(--teal); background: rgba(56,229,185,0.05); }
+  .toggle-group button.sel-expense { border-color: var(--rust); color: var(--rust); background: rgba(255,107,107,0.05); }
+  .toggle-group button.sel-transfer { border-color: var(--violet); color: var(--violet); background: rgba(162,136,227,0.05); }
+
+  .amt-input-wrap { position: relative; }
+  .amt-input-wrap input { padding-left: 24px; }
+  .amt-input-wrap .cur { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
+  .modal-submit { width: 100%; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; background: var(--gold); color: #fff; margin-top: 8px; }
+
+  /* AI Assistant Tab Configurations */
+  .ai-interface-container { display: none; text-align: center; padding: 10px 0; }
+  .ai-mic-trigger-btn {
+    width: 76px; height: 74px; border-radius: 50%; background: var(--rust); color: #fff;
+    font-size: 28px; display: flex; align-items: center; justify-content: center; margin: 20px auto;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  }
+  .ai-mic-trigger-btn.recording { animation: micPulse 1.4s infinite ease-in-out; background: #ff4747; }
+  .ai-status-label { font-size: 14px; color: var(--muted); font-weight: 500; min-height: 20px; margin-bottom: 12px; }
+  .ai-transcript-box { background: var(--bg-main); border: 1px solid var(--line); padding: 12px; border-radius: 8px; font-size: 13.5px; color: var(--ink); text-align: left; min-height: 50px; margin-bottom: 15px; max-height: 100px; overflow-y: auto; }
+  
+  .ai-text-input-field { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-main); color: var(--ink); outline: none; font-size: 14px; margin-bottom: 10px; }
+  .ai-text-input-field:focus { border-color: var(--teal); }
+
+  .auth-gate { position: fixed; inset: 0; background: var(--bg-main); z-index: 250; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.4s ease; }
+  .auth-box { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow); }
+  .auth-switch { font-size: 14px; color: var(--muted); margin-top: 20px; }
+  .auth-switch span { color: var(--gold); cursor: pointer; font-weight: 600; }
+  .auth-error { font-size: 13px; color: var(--rust); background: rgba(255,107,107,0.1); padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--bg-main); padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; display: none; z-index: 300; box-shadow: var(--shadow); transition: all 0.2s ease; }
+  
+  .loading-gate {
+    position: fixed; inset: 0; background: #0B0F12; z-index: 500;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.6s;
+  }
+  .splash-container { text-align: center; }
+  .splash-logo {
+    width: 70px; height: 70px; border-radius: 16px;
+    background: linear-gradient(135deg, #E5B869, #B88E44);
+    display: flex; align-items: center; justify-content: center;
+    color: #0B0F12; font-size: 36px; font-weight: 800; margin: 0 auto 20px auto;
+    box-shadow: 0 0 40px rgba(229,184,105,0.3);
+    animation: zoomPulse 2.5s infinite ease-in-out;
+  }
+  .splash-title { font-size: 24px; font-weight: 700; color: #F3F5F7; letter-spacing: -0.5px; opacity: 0; transform: translateY(10px); animation: fadeUp 0.6s 0.2s forwards; }
+  .splash-subtitle { font-size: 13px; color: #8796A5; margin-top: 6px; opacity: 0; transform: translateY(10px); animation: fadeUp 0.6s 0.4s forwards; }
+  
+  .splash-loader-bar {
+    width: 140px; height: 3px; background: #263541; border-radius: 2px; margin: 24px auto 0 auto; overflow: hidden; position: relative;
+  }
+  .splash-loader-progress {
+    width: 60%; height: 100%; background: #E5B869; position: absolute; left: -100%; border-radius: 2px;
+    animation: splashLoad 1.8s infinite ease-in-out;
+  }
+  @keyframes splashLoad {
+    0% { left: -100%; width: 30%; }
+    50% { width: 60%; }
+    100% { left: 100%; width: 30%; }
+  }
+
+  .mobile-nav-bar { display: none; }
+
+  @media (max-width: 980px) {
+    .shell { flex-direction: column; padding-bottom: 70px; }
+    .sidebar { display: none; }
+    .topbar { padding: 16px 20px; position: sticky; top: 0; background: var(--bg-side); }
+    .topbar h1 { font-size: 20px; }
+    .topbar .date { display: none; }
+    .content { padding: 16px; }
+
+    .mobile-nav-bar {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
+      background: var(--bg-side); border-top: 1px solid var(--line);
+      z-index: 100; justify-content: space-around; align-items: center;
+      padding: 0 10px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+    }
+    .mobile-nav-bar button {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--muted); font-weight: 500; gap: 4px; flex: 1; height: 100%;
+    }
+    .mobile-nav-bar button.active { color: var(--gold); font-weight: 700; }
+    .mobile-nav-bar .nav-icon { font-size: 18px; transition: transform 0.2s ease; }
+    .mobile-nav-bar button:active .nav-icon { transform: scale(1.2); }
+
+    .grid-cards { grid-template-columns: 1fr; gap: 12px; }
+    .charts-grid, .credit-cols { grid-template-columns: 1fr; gap: 20px; }
+    .field-row { grid-template-columns: 1fr; gap: 0; }
+    .tx-row { padding: 12px 14px; gap: 10px; }
+  }
+</style>
+</head>
+<body class="dark">
+
+<div class="loading-gate" id="loadingGate">
+  <div class="splash-container">
+    <div class="splash-logo">A</div>
+    <h2 class="splash-title">A Manager</h2>
+    <p class="splash-subtitle">Your Personal Ledger Workspace</p>
+    <div class="splash-loader-bar">
+      <div class="splash-loader-progress"></div>
+    </div>
+  </div>
+</div>
+
+<div class="auth-gate" id="authGate" style="display:none;">
+  <div class="auth-box">
+    <h2 id="authTitle" style="margin-bottom:8px;">Sign In</h2>
+    <p id="authSubtitle" style="color:var(--muted); margin-bottom:24px;">Enter your username and password to enter your ledger.</p>
+    
+    <form id="authForm">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="authUsername" placeholder="Enter username" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="authPassword" placeholder="Enter password" autocomplete="current-password" required>
+      </div>
+      <div class="auth-error" id="authError" style="display:none;"></div>
+      <button type="submit" class="btn modal-submit" id="authSubmitBtn">Sign In</button>
+    </form>
+    
+    <div class="auth-switch" id="authSwitchContainer">
+      New user? <span id="authSwitchModeBtn">Create Account</span>
+    </div>
+  </div>
+</div>
+
+<div class="shell" id="appShell" style="display:none;">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <div class="brand-text">
+        <div class="name">A Manager</div>
+        <div class="tag">Ledger System</div>
+      </div>
+    </div>
+    <div class="user-badge">
+      <div class="indicator"></div>
+      <div class="username-display classUserNodeDesktop">guest</div>
+    </div>
+    
+    <nav class="nav mainNavBind">
+      <button data-view="dashboard" class="active">Dashboard</button>
+      <button data-view="transactions">All Entries</button>
+      <button data-view="credits">Loans</button>
+      <button data-view="modes">Payment Modes</button>
+    </nav>
+    
+    <div style="margin-top:20px;">
+      <button class="btn btn-ghost logOutActionBtn" style="width:100%; justify-content:center;">Log Out</button>
+    </div>
+  </aside>
+
+  <nav class="mobile-nav-bar mainNavBind">
+    <button data-view="dashboard" class="active"><span class="nav-icon">📊</span><span>Home</span></button>
+    <button data-view="transactions"><span class="nav-icon">📜</span><span>Entries</span></button>
+    <button data-view="credits"><span class="nav-icon">🤝</span><span>Loans</span></button>
+    <button data-view="modes"><span class="nav-icon">💳</span><span>Modes</span></button>
+    <button class="logOutActionBtn"><span class="nav-icon">🚪</span><span>Exit</span></button>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="viewTitle">Dashboard</h1>
+        <div class="date" id="todayDate"></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" id="themeToggleBtn">☀️ Light Mode</button>
+        <button class="btn btn-gold" id="openTxModal">Add Entry</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="view active" id="view-dashboard">
+        <div class="grid-cards">
+          <div class="card balance">
+            <div class="label">Total Balance</div>
+            <div class="value num" id="statBalance">₹0</div>
+          </div>
+          <div class="card">
+            <div class="label">This Month Net change</div>
+            <div class="value num" id="statMonthNet">₹0</div>
+          </div>
+          <div class="card">
+            <div class="label">Month Breakdown</div>
+            <div class="value num" id="statMonthSub" style="font-size:14px; margin-top:10px; color:var(--muted);">₹0 in / ₹0 out</div>
+          </div>
+        </div>
+
+        <div class="section-title">Balances across Accounts</div>
+        <div class="dynamic-modes-grid" id="dashboardModesGrid"></div>
+
+        <div class="charts-grid" style="margin-top:30px;">
+          <div class="chart-card">
+            <h3>Timeline</h3>
+            <div class="chart-wrap"><canvas id="chartFlow"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <h3>Categories</h3>
+            <div class="chart-wrap"><canvas id="chartCatMini"></canvas></div>
+          </div>
+        </div>
+
+        <div class="section-title">Recent Entries</div>
+        <div class="panel" id="recentTxPanel"></div>
+      </section>
+
+      <section class="view" id="view-transactions">
+        <div class="filters">
+          <select id="filterType">
+            <option value="all">All Entries</option>
+            <option value="income">Income Only</option>
+            <option value="expense">Expenses Only</option>
+            <option value="transfer">Transfers Only</option>
+          </select>
+          <select id="filterMethod">
+            <option value="all">All Payment Modes</option>
+          </select>
+          <input type="text" id="filterSearch" placeholder="Search notes...">
+        </div>
+        <div class="panel" id="allTxPanel"></div>
+      </section>
+
+      <section class="view" id="view-credits">
+        <div class="grid-cards" style="grid-template-columns: 1fr 1fr;">
+          <div class="card">
+            <div class="label">People Owe You</div>
+            <div class="value num" id="statLent" style="color:var(--teal);">₹0</div>
+          </div>
+          <div class="card">
+            <div class="label">You Owe People</div>
+            <div class="value num" id="statBorrowed" style="color:var(--rust);">₹0</div>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" id="openCreditModal" style="margin-bottom:20px; width:100%; justify-content:center;">Log New Loan Record</button>
+
+        <div class="credit-cols">
+          <div>
+            <h3 style="margin-bottom:10px;">Money Lent to Others</h3>
+            <div id="lentList"></div>
+          </div>
+          <div>
+            <h3 style="margin-bottom:10px;">Money Borrowed From Others</h3>
+            <div id="borrowedList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-modes">
+        <div class="card" style="max-width:400px; margin-bottom:24px;">
+          <h3 style="margin-bottom:12px;">Add Custom Payment Mode</h3>
+          <form id="addModeForm">
+            <div class="field">
+              <label>Mode Name</label>
+              <input type="text" id="newModeName" placeholder="e.g. HDFC Bank, Paytm Wallet" required>
+            </div>
+            <button type="submit" class="btn btn-gold" style="width:100%; justify-content:center;">Save Mode</button>
+          </form>
+        </div>
+        <div class="section-title">Active Payment Accounts</div>
+        <div class="panel" id="customModesListPanel"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="txOverlay">
+  <div class="modal">
+    <div class="modal-head" style="padding-bottom:10px;">
+      <div class="toggle-group" id="inputInterfaceTabToggle" style="width:100%; max-width:240px; margin-right:20px;">
+        <button type="button" data-tab="manual" class="sel-income">Manual Entry</button>
+        <button type="button" data-tab="ai">AI Assistant</button>
+      </div>
+      <button id="closeTxModal" style="font-size:18px;">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <form id="txForm">
+        <div class="field">
+          <label>Type</label>
+          <div class="toggle-group" id="txTypeToggle">
+            <button type="button" data-val="income" class="sel-income">Income</button>
+            <button type="button" data-val="expense" class="sel-expense">Expense</button>
+            <button type="button" data-val="transfer">Transfer</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Amount</label>
+            <div class="amt-input-wrap">
+              <span class="cur">₹</span>
+              <input type="number" step="0.01" id="txAmount" required placeholder="0.00">
+            </div>
+          </div>
+          <div class="field" id="txMethodField">
+            <label>Paid Via</label>
+            <select id="txMethod"></select>
+          </div>
+        </div>
+
+        <div id="transferFields" style="display:none;">
+          <div class="field-row">
+            <div class="field">
+              <label>From Account</label>
+              <select id="txFromMethod"></select>
+            </div>
+            <div class="field">
+              <label>To Account</label>
+              <select id="txToMethod"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field" id="txCategoryField">
+            <label>Category</label>
+            <select id="txCategory"></select>
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="txDate" required>
+          </div>
+        </div>
+        <div class="field">
+          <label>Note / Description</label>
+          <input type="text" id="txNote" placeholder="What was this for?">
+        </div>
+        <button type="submit" class="btn modal-submit">Save Entry</button>
+      </form>
+
+      <div class="ai-interface-container" id="aiInterfaceNode">
+        <p style="font-size:13px; color:var(--muted); line-height:1.4; margin-bottom:10px;">Speak into the microphone OR type out your entry below in plain terms.</p>
+        
+        <div class="field" style="text-align:left;">
+          <label>Type your sentence here</label>
+          <input type="text" class="ai-text-input-field" id="aiTextInput" placeholder="e.g. bought a burger for 60 in cash">
+          <button type="button" class="btn btn-ghost" id="aiTextSubmitBtn" style="width:100%; justify-content:center; font-size:13px; padding:8px;">✍️ Process Written Text</button>
+        </div>
+
+        <div style="border-top:1px dashed var(--line); margin:15px 0; padding-top:5px;">
+          <span style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase;">Or Use Voice Mode</span>
+        </div>
+
+        <button type="button" class="ai-mic-trigger-btn" id="aiMicBtn">🎤</button>
+        <div class="ai-status-label" id="aiStatusNode">Ready to listen</div>
+        
+        <div style="text-align:left; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Processed sentence text</div>
+        <div class="ai-transcript-box" id="aiTranscriptNode">Waiting for voice context input...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="creditOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Add Loan Entry</h2>
+      <button id="closeCreditModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="creditForm">
+        <div class="field">
+          <label>Type</label>
+          <div class="toggle-group" id="creditTypeToggle">
+            <button type="button" data-val="lent" class="sel-lent">I Lent Money</button>
+            <button type="button" data-val="borrowed" class="sel-borrowed">I Borrowed Money</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Person's Name</label>
+          <input type="text" id="creditPerson" required placeholder="Enter person name">
+        </div>
+        <div class="field">
+          <label>Amount</label>
+          <div class="amt-input-wrap">
+            <span class="cur">₹</span>
+            <input type="number" step="0.01" id="creditAmount" required placeholder="0.00">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Date Given</label>
+            <input type="date" id="creditTaken">
+          </div>
+          <div class="field">
+            <label>Due Return Date</label>
+            <input type="date" id="creditDue">
+          </div>
+        </div>
+        <div class="field">
+          <label>Note</label>
+          <input type="text" id="creditNote" placeholder="Optional details">
+        </div>
+        <button type="submit" class="btn modal-submit">Save Loan Record</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, update, set, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDTAqJaAabAlAfIuXa7BVs9kXBSUuLz_-Q",
+  authDomain: "money-manager-17460.firebaseapp.com",
+  databaseURL: "https://money-manager-17460-default-rtdb.firebaseio.com",
+  projectId: "money-manager-17460",
+  storageBucket: "money-manager-17460.firebasestorage.app",
+  messagingSenderId: "189021884412",
+  appId: "1:189021884412:web:3bbc2dc95ab7cab7d96c79",
+  measurementId: "G-ZDD5Y642QN"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// OpenRouter API Configuration Matrix
+const OPENROUTER_SECRET_KEY = "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"; 
+
+let currentSessionUser = null;
+let databaseStreamPath = "";
+let transactions = [];
+let credits = [];
+let paymentModes = ["Cash", "UPI"];
+let authMode = "login";
+
+let CATEGORIES_EXPENSE = ["Food","Transport","Rent","Shopping","Bills","Health","Entertainment","Education","Other"];
+let CATEGORIES_INCOME = ["Salary","Freelance","Gift","Interest","Refund","Other"];
+
+function computeRouteMangle(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  }
+  return "u_" + Math.abs(h);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    const gate = document.getElementById("loadingGate");
+    gate.style.opacity = "0";
+    setTimeout(() => {
+      gate.style.display = "none";
+      showAuthGate();
+    }, 600);
+  }, 1600);
+});
+
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+themeToggleBtn.addEventListener("click", () => {
+  if (document.body.classList.contains("dark")) {
+    document.body.classList.replace("dark", "light");
+    themeToggleBtn.textContent = "🌙 Dark Mode";
+  } else {
+    document.body.classList.replace("light", "dark");
+    themeToggleBtn.textContent = "☀️ Light Mode";
+  }
+  renderAll();
+});
+
+function showAuthGate() {
+  currentSessionUser = null;
+  databaseStreamPath = "";
+  document.getElementById("appShell").style.display = "none";
+  document.getElementById("authGate").style.display = "flex";
+  setAuthMode("login");
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const t = document.getElementById("authTitle");
+  const s = document.getElementById("authSubtitle");
+  const b = document.getElementById("authSubmitBtn");
+  const sw = document.getElementById("authSwitchContainer");
+  document.getElementById("authError").style.display = "none";
+  document.getElementById("authForm").reset();
+
+  if (mode === "login") {
+    t.textContent = "Sign In";
+    s.textContent = "Enter your username and password to enter your ledger.";
+    b.textContent = "Sign In";
+    sw.innerHTML = `New user? <span id="authSwitchModeBtn">Create Account</span>`;
+  } else {
+    t.textContent = "Create Account";
+    s.textContent = "Sign up for a fresh personal expense tracker space.";
+    b.textContent = "Create Account";
+    sw.innerHTML = `Already registered? <span id="authSwitchModeBtn">Sign In</span>`;
+  }
+  
+  document.getElementById("authSwitchModeBtn").addEventListener("click", () => {
+    setAuthMode(authMode === "login" ? "signup" : "login");
+  });
+}
+
+document.getElementById("authForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const u = document.getElementById("authUsername").value.trim().toLowerCase();
+  const p = document.getElementById("authPassword").value;
+  const err = document.getElementById("authError");
+  err.style.display = "none";
+
+  if(!/^[a-z0-9_]{3,15}$/.test(u)) {
+    err.textContent = "Username must be 3-15 normal letters or numbers.";
+    err.style.display = "block";
+    return;
+  }
+
+  const userMangleKey = computeRouteMangle(u);
+
+  try {
+    const accountSnapshot = await get(ref(db, `users/${userMangleKey}/profile`));
+    const exist = accountSnapshot.exists();
+
+    if (authMode === "login") {
+      if (!exist || accountSnapshot.val().password !== p) {
+        err.textContent = "Wrong username or password.";
+        err.style.display = "block";
+        return;
+      }
+      initializeUserSession(u, userMangleKey);
+    } else {
+      if (exist) {
+        err.textContent = "Username already taken.";
+        err.style.display = "block";
+        return;
+      }
+      await set(ref(db, `users/${userMangleKey}/profile`), { username: u, password: p, timestamp: Date.now() });
+      await set(ref(db, `users/${userMangleKey}/modes`), ["Cash", "UPI"]);
+      showToast("Account Created!");
+      initializeUserSession(u, userMangleKey);
+    }
+  } catch (eX) {
+    err.textContent = "Database Error: " + eX.message;
+    err.style.display = "block";
+  }
+});
+
+function initializeUserSession(username, userKey) {
+  currentSessionUser = username;
+  databaseStreamPath = `users/${userKey}`;
+  
+  document.querySelectorAll(".classUserNodeDesktop").forEach(el => el.textContent = username);
+  document.getElementById("authGate").style.display = "none";
+  document.getElementById("appShell").style.display = "flex";
+  
+  startSyncListeners();
+}
+
+document.querySelectorAll(".logOutActionBtn").forEach(btn => {
+  btn.addEventListener("click", showAuthGate);
+});
+
+function startSyncListeners() {
+  onValue(ref(db, `${databaseStreamPath}/modes`), (snap) => {
+    const val = snap.val();
+    paymentModes = val ? Object.values(val) : ["Cash", "UPI"];
+    updatePaymentModeDropdowns();
+    renderModesView();
+    if(transactions.length > 0) renderAll();
+  });
+
+  onValue(ref(db, `${databaseStreamPath}/transactions`), (snap) => {
+    const val = snap.val();
+    transactions = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+    transactions.sort((a,b) => b.date.localeCompare(a.date) || b.createdAtMs - a.createdAtMs);
+    renderAll();
+  });
+
+  onValue(ref(db, `${databaseStreamPath}/credits`), (snap) => {
+    const val = snap.val();
+    credits = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+    credits.sort((a,b) => b.createdAtMs - a.createdAtMs);
+    renderCredits();
+  });
+}
+
+function updatePaymentModeDropdowns() {
+  const tSel = document.getElementById("txMethod");
+  const fSel = document.getElementById("txFromMethod");
+  const toSel = document.getElementById("txToMethod");
+  const filterSel = document.getElementById("filterMethod");
+
+  const optionsHTML = paymentModes.map(m => `<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
+  tSel.innerHTML = optionsHTML;
+  fSel.innerHTML = optionsHTML;
+  toSel.innerHTML = optionsHTML;
+
+  filterSel.innerHTML = '<option value="all">All Payment Modes</option>' + paymentModes.map(m => `<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
+}
+
+const fmt = (n) => "₹" + Number(n||0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const todayISO = () => new Date().toISOString().slice(0,10);
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = "block";
+  t.style.transform = "translateX(-50%) translateY(0)";
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => {
+    t.style.display = "none";
+  }, 2200);
+}
+function formatDate(d) {
+  if(!d) return '';
+  return new Date(d+'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function escapeHTML(s) { 
+  return (s||'').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); 
+}
+
+const views = ['dashboard','transactions','credits','modes'];
+function goTo(view) {
+  views.forEach(v => document.getElementById('view-'+v).classList.toggle('active', v===view));
+  
+  document.querySelectorAll('.mainNavBind button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+  
+  const titles = { dashboard: 'Dashboard', transactions: 'All Entries', credits: 'Loans & Debts', modes: 'Payment Accounts' };
+  document.getElementById('viewTitle').textContent = titles[view];
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.mainNavBind button').forEach(b => {
+  if(b.dataset.view) {
+    b.addEventListener('click', () => goTo(b.dataset.view));
+  }
+});
+
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+const txOverlay = document.getElementById('txOverlay');
+let txType = 'expense';
+
+document.getElementById('inputInterfaceTabToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
+  b.classList.add('sel-income');
+  
+  const mode = b.dataset.tab;
+  if(mode === 'manual') {
+    document.getElementById('txForm').style.display = 'block';
+    document.getElementById('aiInterfaceNode').style.display = 'none';
+  } else {
+    document.getElementById('txForm').style.display = 'none';
+    document.getElementById('aiInterfaceNode').style.display = 'block';
+    resetAIInterfaceUI();
+  }
+});
+
+function populateCategorySelect() {
+  const sel = document.getElementById('txCategory');
+  const list = txType === 'income' ? CATEGORIES_INCOME : CATEGORIES_EXPENSE;
+  sel.innerHTML = list.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+}
+
+function setTxTypeUI() {
+  document.querySelectorAll('#txTypeToggle button').forEach(x => x.classList.remove('sel-income','sel-expense','sel-transfer'));
+  const btn = document.querySelector(`#txTypeToggle button[data-val="${txType}"]`);
+  if(btn) btn.classList.add(txType === 'income' ? 'sel-income' : txType === 'expense' ? 'sel-expense' : 'sel-transfer');
+
+  const isTransfer = txType === 'transfer';
+  document.getElementById('transferFields').style.display = isTransfer ? 'block' : 'none';
+  document.getElementById('txMethodField').style.display = isTransfer ? 'none' : 'block';
+  document.getElementById('txCategoryField').style.display = isTransfer ? 'none' : 'block';
+  if(!isTransfer) populateCategorySelect();
+}
+
+document.getElementById('txTypeToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if(!b) return;
+  txType = b.dataset.val;
+  setTxTypeUI();
+});
+
+document.getElementById('openTxModal').addEventListener('click', () => {
+  document.getElementById('txForm').reset();
+  document.getElementById('txDate').value = todayISO();
+  txType = 'expense';
+  setTxTypeUI();
+  
+  document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
+  document.querySelector('#inputInterfaceTabToggle button[data-tab="manual"]').classList.add('sel-income');
+  document.getElementById('txForm').style.display = 'block';
+  document.getElementById('aiInterfaceNode').style.display = 'none';
+  
+  txOverlay.classList.add('active');
+});
+document.getElementById('closeTxModal').addEventListener('click', () => {
+  stopVoiceAudioRecording();
+  txOverlay.classList.remove('active');
+});
+
+document.getElementById('txForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  if(!amount || amount <= 0) return showToast("Enter a valid amount.");
+  
+  let payload = {
+    type: txType,
+    amount,
+    date: document.getElementById('txDate').value,
+    note: document.getElementById('txNote').value.trim(),
+    createdAtMs: Date.now()
+  };
+
+  if(txType === 'transfer') {
+    payload.fromMethod = document.getElementById('txFromMethod').value;
+    payload.toMethod = document.getElementById('txToMethod').value;
+    if(payload.fromMethod === payload.toMethod) return showToast("Choose different accounts.");
+  } else {
+    payload.method = document.getElementById('txMethod').value;
+    payload.category = document.getElementById('txCategory').value;
+  }
+
+  await push(ref(db, `${databaseStreamPath}/transactions`), payload);
+  txOverlay.classList.remove('active');
+  showToast("Saved successfully.");
+});
+
+window.deleteTx = async (id) => {
+  if(!confirm("Delete this entry permanently?")) return;
+  await remove(ref(db, `${databaseStreamPath}/transactions/${id}`));
+  showToast("Deleted.");
+};
+
+// ===== OPENROUTER & NATIVE WEB SPEECH CONFIGURATION ENGINE =====
+let browserSpeechRecognizerInstance = null;
+let isVoiceRecordingActive = false;
+
+function resetAIInterfaceUI() {
+  document.getElementById('aiStatusNode').textContent = 'Ready to listen';
+  document.getElementById('aiStatusNode').style.color = 'var(--muted)';
+  document.getElementById('aiTranscriptNode').textContent = 'Waiting for voice or text context...';
+  document.getElementById('aiTextInput').value = '';
+  
+  const btn = document.getElementById('aiMicBtn');
+  btn.classList.remove('recording');
+  btn.textContent = '🎤';
+  isVoiceRecordingActive = false;
+}
+
+document.getElementById('aiTextSubmitBtn').addEventListener('click', async () => {
+  const userWrittenPhrase = document.getElementById('aiTextInput').value.trim();
+  if(!userWrittenPhrase) return showToast("Please type something first.");
+  await runCoreAIParserPipeline(userWrittenPhrase);
+});
+
+// High-compatibility Speech SDK Wrapper Matrix
+const BrowserSpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (BrowserSpeechRecognitionClass) {
+  browserSpeechRecognizerInstance = new BrowserSpeechRecognitionClass();
+  browserSpeechRecognizerInstance.continuous = false;
+  browserSpeechRecognizerInstance.interimResults = false;
+  browserSpeechRecognizerInstance.lang = 'en-IN'; // Optimized for standard Indian voice accents
+
+  browserSpeechRecognizerInstance.onstart = () => {
+    isVoiceRecordingActive = true;
+    const btn = document.getElementById('aiMicBtn');
+    btn.classList.add('recording');
+    btn.textContent = '🛑';
+    document.getElementById('aiStatusNode').textContent = 'Listening directly to your voice...';
+    document.getElementById('aiStatusNode').style.color = 'var(--rust)';
+  };
+
+  browserSpeechRecognizerInstance.onresult = async (event) => {
+    const rawSpeechTranscriptResultString = event.results[0][0].transcript;
+    stopVoiceAudioRecording();
+    await runCoreAIParserPipeline(rawSpeechTranscriptResultString);
+  };
+
+  browserSpeechRecognizerInstance.onerror = (e) => {
+    console.error("Speech Recognition Engine Exception Matrix: ", e);
+    stopVoiceAudioRecording();
+    if(e.error === 'not-allowed') {
+      showToast("System microphone access permission prompt rejected.");
+    } else {
+      showToast(`Audio Recognition Error: ${e.error}`);
+    }
+  };
+
+  browserSpeechRecognizerInstance.onend = () => {
+    stopVoiceAudioRecording();
+  };
+}
+
+document.getElementById('aiMicBtn').addEventListener('click', () => {
+  if (!BrowserSpeechRecognitionClass) {
+    return showToast("System missing Speech APIs. Please use text entry box below.");
+  }
+
+  if (!isVoiceRecordingActive) {
+    try {
+      browserSpeechRecognizerInstance.start();
+    } catch (e) {
+      console.error(e);
+    }
+  } else {
+    stopVoiceAudioRecording();
+  }
+});
+
+function stopVoiceAudioRecording() {
+  if (browserSpeechRecognizerInstance && isVoiceRecordingActive) {
+    browserSpeechRecognizerInstance.stop();
+  }
+  isVoiceRecordingActive = false;
+  const btn = document.getElementById('aiMicBtn');
+  if(btn) {
+    btn.classList.remove('recording');
+    btn.textContent = '🎤';
+  }
+}
+
+// Global Core OpenRouter Parser System Matrix
+async function runCoreAIParserPipeline(sentenceStringText) {
+  const statusNode = document.getElementById('aiStatusNode');
+  document.getElementById('aiTranscriptNode').textContent = `"${sentenceStringText}"`;
+  statusNode.textContent = 'Processing parameters with OpenRouter...';
+  statusNode.style.color = 'var(--gold)';
+
+  try {
+    const systemicLLMPromptContext = `You are a financial tracker assistant. Analyze the incoming user sentence transaction phrase and parse it into an explicitly structured JSON format matching the parameters.
+    
+    Current existing active allowed Categories arrays are:
+    Income: ${JSON.stringify(CATEGORIES_INCOME)}
+    Expense: ${JSON.stringify(CATEGORIES_EXPENSE)}
+    
+    Current existing active allowed Payment Modes accounts are:
+    ${JSON.stringify(paymentModes)}
+    
+    Rules:
+    1. Identify transaction type: "income" or "expense" or "transfer".
+    2. Extract number format value for amount.
+    3. Match closest matching payment mode from the allowed array list for the "method" parameter field. If no exact match is detected default to the first string item index in the payment mode accounts.
+    4. Match closest category from the matching category arrays for the "category" field. Default to "Other" if no classification is obvious.
+    5. Note description field tracks contextual metadata notes.
+    6. Return ONLY a valid structural minified JSON schema without markdown block formatting text or prefixes. Do not include backticks like \`\`\`json.
+    
+    JSON Schema structural blueprint format to strictly output:
+    {"type":"income/expense/transfer","amount":0.00,"method":"MatchedModeName","category":"MatchedCategoryName","note":"Notes text content"} `;
+
+    const openRouterResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_SECRET_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost", 
+        "X-Title": "A Manager Android App"
+      },
+      body: JSON.stringify({
+        model: "openrouter/free", // Routes immediately to the top performance active free open source models
+        messages: [
+          { role: "system", content: systemicLLMPromptContext },
+          { role: "user", content: `Parse sentence string text input context: "${sentenceStringText}"` }
+        ],
+        temperature: 0.1
+      })
+    });
+
+    if (!openRouterResponse.ok) throw new Error("OpenRouter cloud API network failure error.");
+    const chatResult = await openRouterResponse.json();
+    let payloadRawString = chatResult.choices[0].message.content.trim();
+
+    // Clean backticks structural markdown wrappers if generated by open models fallback
+    if(payloadRawString.includes("```")) {
+      payloadRawString = payloadRawString.replace(/```json/g, "").replace(/```/g, "").trim();
+    }
+
+    const structuredParsedDataObj = JSON.parse(payloadRawString);
+    
+    structuredParsedDataObj.date = todayISO();
+    structuredParsedDataObj.createdAtMs = Date.now();
+
+    if(!structuredParsedDataObj.amount || structuredParsedDataObj.amount <= 0) {
+      throw new Error("AI failed to extract any computational amount values.");
+    }
+
+    await push(ref(db, `${databaseStreamPath}/transactions`), structuredParsedDataObj);
+    
+    statusNode.textContent = 'Committed successfully to Firebase!';
+    statusNode.style.color = 'var(--teal)';
+    showToast("AI entry saved successfully!");
+    
+    setTimeout(() => {
+      txOverlay.classList.remove('active');
+    }, 1200);
+
+  } catch (err) {
+    statusNode.textContent = 'OpenRouter processing parsing failure.';
+    statusNode.style.color = 'var(--rust)';
+    showToast(`AI Fault: ${err.message}`);
+    console.error(err);
+  }
+}
+
+document.getElementById("addModeForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("newModeName").value.trim();
+  if(!name) return;
+  if(paymentModes.includes(name)) return showToast("Mode name already exists.");
+
+  paymentModes.push(name);
+  await set(ref(db, `${databaseStreamPath}/modes`), paymentModes);
+  document.getElementById("addModeForm").reset();
+  showToast("Payment account added.");
+});
+
+window.deleteCustomMode = async (modeName) => {
+  if(paymentModes.length <= 1) return showToast("You must keep at least one payment mode.");
+  if(!confirm(`Delete account "${modeName}"?`)) return;
+
+  paymentModes = paymentModes.filter(m => m !== modeName);
+  await set(ref(db, `${databaseStreamPath}/modes`), paymentModes);
+  showToast("Mode removed.");
+};
+
+function renderModesView() {
+  const panel = document.getElementById("customModesListPanel");
+  panel.innerHTML = paymentModes.map(m => `
+    <div class="tx-row" style="grid-template-columns: 1fr auto;">
+      <div style="font-weight:600;">${escapeHTML(m)}</div>
+      <button class="mini-btn del" onclick="deleteCustomMode('${escapeHTML(m)}')">Delete Mode</button>
+    </div>
+  `).join('');
+}
+
+const creditOverlay = document.getElementById('creditOverlay');
+let creditType = 'lent';
+
+document.getElementById('creditTypeToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if(!b) return;
+  creditType = b.dataset.val;
+  document.querySelectorAll('#creditTypeToggle button').forEach(x => x.classList.remove('sel-lent','sel-borrowed'));
+  b.classList.add(creditType === 'lent' ? 'sel-lent' : 'sel-borrowed');
+});
+
+document.getElementById('openCreditModal').addEventListener('click', () => {
+  document.getElementById('creditForm').reset();
+  document.getElementById('creditTaken').value = todayISO();
+  creditType = 'lent';
+  document.querySelectorAll('#creditTypeToggle button').forEach(x => x.classList.remove('sel-lent','sel-borrowed'));
+  document.querySelector('#creditTypeToggle button[data-val="lent"]').classList.add('sel-lent');
+  creditOverlay.classList.add('active');
+});
+document.getElementById('closeCreditModal').addEventListener('click', () => creditOverlay.classList.remove('active'));
+
+document.getElementById('creditForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const amount = parseFloat(document.getElementById('creditAmount').value);
+  const payload = {
+    type: creditType,
+    person: document.getElementById('creditPerson').value.trim(),
+    amount,
+    takenDate: document.getElementById('creditTaken').value || null,
+    dueDate: document.getElementById('creditDue').value || null,
+    note: document.getElementById('creditNote').value.trim(),
+    status: 'pending',
+    createdAtMs: Date.now()
+  };
+  await push(ref(db, `${databaseStreamPath}/credits`), payload);
+  creditOverlay.classList.remove('active');
+  showToast("Loan logged successfully.");
+});
+
+window.settleCredit = async (id) => {
+  await update(ref(db, `${databaseStreamPath}/credits/${id}`), { status: 'paid' });
+  showToast("Marked as paid.");
+};
+window.deleteCredit = async (id) => {
+  if(!confirm("Delete this loan record?")) return;
+  await remove(ref(db, `${databaseStreamPath}/credits/${id}`));
+  showToast("Removed.");
+};
+
+function computeStats() {
+  let incomeTotal = 0, expenseTotal = 0;
+  const now = new Date();
+  let mIn = 0, mOut = 0;
+
+  let modeBalances = {};
+  paymentModes.forEach(m => modeBalances[m] = 0);
+
+  transactions.forEach(t => {
+    const amt = Number(t.amount) || 0;
+    if(t.type === 'transfer') {
+      if(modeBalances[t.fromMethod] !== undefined) modeBalances[t.fromMethod] -= amt;
+      if(modeBalances[t.toMethod] !== undefined) modeBalances[t.toMethod] += amt;
+      return;
+    }
+    const sign = t.type === 'income' ? 1 : -1;
+    if(modeBalances[t.method] !== undefined) modeBalances[t.method] += sign * amt;
+    
+    if(t.type === 'income') incomeTotal += amt; else expenseTotal += amt;
+
+    const d = new Date(t.date);
+    if(d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      if(t.type === 'income') mIn += amt; else mOut += amt;
+    }
+  });
+
+  let grandTotal = Object.values(modeBalances).reduce((a,b)=>a+b, 0);
+
+  return { total: grandTotal, mIn, mOut, modeBalances };
+}
+
+function renderAll() {
+  const s = computeStats();
+  document.getElementById('statBalance').textContent = fmt(s.total);
+  document.getElementById('statMonthNet').textContent = fmt(s.mIn - s.mOut);
+  document.getElementById('statMonthSub').textContent = `${fmt(s.mIn)} in / ${fmt(s.mOut)} out`;
+
+  const dGrid = document.getElementById("dashboardModesGrid");
+  dGrid.innerHTML = Object.keys(s.modeBalances).map(modeKey => `
+    <div class="card" style="padding:15px 20px;">
+      <div class="label" style="color:var(--gold); font-size:12px;">${escapeHTML(modeKey)}</div>
+      <div class="value num" style="font-size:20px; margin-top:8px;">${fmt(s.modeBalances[modeKey])}</div>
+    </div>
+  `).join('');
+
+  const recent = transactions.slice(0, 5);
+  document.getElementById('recentTxPanel').innerHTML = txListHTML(recent);
+  
+  renderTransactionsList();
+  renderCharts(s);
+}
+
+function txListHTML(list) {
+  if(!list.length) return `<div class="empty-state">No entries logged yet.</div>`;
+  return list.map((t, idx) => {
+    const customDelay = `style="animation-delay: ${idx * 0.04}s"`;
+    if(t.type === 'transfer') {
+      return `<div class="tx-row" ${customDelay}>
+        <div class="tx-icon transfer">⇄</div>
+        <div class="tx-main">
+          <div class="cat" style="font-weight:600;">Transfer: ${escapeHTML(t.fromMethod)} ➔ ${escapeHTML(t.toMethod)}</div>
+          <div class="meta">${formatDate(t.date)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
+        </div>
+        <div class="tx-amt transfer">${fmt(t.amount)}</div>
+        <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
+      </div>`;
+    }
+    return `<div class="tx-row" ${customDelay}>
+      <div class="tx-icon ${t.type}">${t.type === 'income' ? '↙' : '↗'}</div>
+      <div class="tx-main">
+        <div class="cat" style="font-weight:600;">${escapeHTML(t.category)}</div>
+        <div class="meta">${formatDate(t.date)} • via ${escapeHTML(t.method)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
+      </div>
+      <div class="tx-amt ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</div>
+      <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderTransactionsList() {
+  const typeF = document.getElementById('filterType').value;
+  const methodF = document.getElementById('filterMethod').value;
+  const searchF = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+  let filtered = transactions.filter(t => {
+    if(typeF !== 'all' && t.type !== typeF) return false;
+    if(methodF !== 'all') {
+      if(t.type === 'transfer') { if(t.fromMethod !== methodF && t.toMethod !== methodF) return false; }
+      else if(t.method !== methodF) return false;
+    }
+    if(searchF && !(t.note||'').toLowerCase().includes(searchF) && !(t.category||'').toLowerCase().includes(searchF)) return false;
+    return true;
+  });
+
+  document.getElementById('allTxPanel').innerHTML = txListHTML(filtered);
+}
+['filterType','filterMethod','filterSearch'].forEach(id => document.getElementById(id).addEventListener('input', renderTransactionsList));
+
+function renderCredits() {
+  const lent = credits.filter(c => c.type === 'lent');
+  const borrowed = credits.filter(c => c.type === 'borrowed');
+
+  const totalLent = lent.filter(c => c.status === 'pending').reduce((a,b) => a + Number(b.amount||0), 0);
+  const totalBorrowed = borrowed.filter(c => c.status === 'pending').reduce((a,b) => a + Number(b.amount||0), 0);
+
+  document.getElementById('statLent').textContent = fmt(totalLent);
+  document.getElementById('statBorrowed').textContent = fmt(totalBorrowed);
+
+  document.getElementById('lentList').innerHTML = creditListHTML(lent);
+  document.getElementById('borrowedList').innerHTML = creditListHTML(borrowed);
+}
+
+function creditListHTML(list) {
+  if(!list.length) return `<div class="empty-state">No loan lists found.</div>`;
+  return list.map((c, idx) => `
+    <div class="credit-card" style="animation-delay: ${idx * 0.05}s">
+      <div class="credit-top">
+        <div style="font-weight:600;">${escapeHTML(c.person)}</div>
+        <div class="credit-amt ${c.type}">${fmt(c.amount)}</div>
+      </div>
+      <div class="credit-meta">
+        <span style="font-weight:bold; color:var(--gold);">${c.status.toUpperCase()}</span>
+        ${c.dueDate ? '• Due: '+formatDate(c.dueDate) : ''}
+        ${c.note ? '• '+escapeHTML(c.note) : ''}
+      </div>
+      <div class="credit-actions">
+        ${c.status === 'pending' ? `<button class="mini-btn settle" onclick="settleCredit('${c.id}')">Mark Settled</button>` : ''}
+        <button class="mini-btn del" onclick="deleteCredit('${c.id}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+let cFlow, cCat;
+function renderCharts(stats) {
+  const ctxFlow = document.getElementById('chartFlow');
+  const ctxCat = document.getElementById('chartCatMini');
+  
+  const months = Array.from({length: 6}, (_, i) => {
+    const d = new Date(); d.setMonth(d.getMonth() - i);
+    return { label: d.toLocaleString('en-IN', {month: 'short'}), m: d.getMonth(), y: d.getFullYear() };
+  }).reverse();
+
+  const flowIn = months.map(m => transactions.filter(t => t.type === 'income' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
+  const flowOut = months.map(m => transactions.filter(t => t.type === 'expense' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
+
+  const textModeColor = document.body.classList.contains("light") ? "#64748B" : "#8796A5";
+  const gridLineColor = document.body.classList.contains("light") ? "#E2E8F0" : "#263541";
+
+  if(cFlow) cFlow.destroy();
+  cFlow = new Chart(ctxFlow, {
+    type: 'line',
+    data: {
+      labels: months.map(m => m.label),
+      datasets: [
+        { label: 'Income', data: flowIn, borderColor: '#38E5B9', tension: 0.2, pointRadius: 2 },
+        { label: 'Expense', data: flowOut, borderColor: '#FF6B6B', tension: 0.2, pointRadius: 2 }
+      ]
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { legend: { display: false } }, 
+      scales: { 
+        y: { grid: { color: gridLineColor }, ticks: { color: textModeColor } }, 
+        x: { grid: { display: false }, ticks: { color: textModeColor } } 
+      } 
+    }
+  });
+
+  const catMap = {};
+  transactions.filter(t => t.type === 'expense').forEach(t => catMap[t.category] = (catMap[t.category]||0) + Number(t.amount));
+
+  if(cCat) cCat.destroy();
+  cCat = new Chart(ctxCat, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(catMap).length ? Object.keys(catMap) : ['None'],
+      datasets: [{ data: Object.values(catMap).length ? Object.values(catMap) : [1], backgroundColor: ['#E5B869', '#38E5B9', '#FF6B6B', '#A288E3', '#8796A5'], borderWidth: 0 }]
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { legend: { display: false } } 
+    }
+  });
+}
+</script>
+</body>
+</html>
