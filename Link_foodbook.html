@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoodBook - Secure Cafe OS</title>
+    <title>FoodBook.</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -91,6 +91,28 @@
             outline: none;
         }
         .input-box:focus { border-color: var(--accent); }
+
+        /* Eye Reveal Input Wrapper Container */
+        .password-input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .eye-toggle-btn {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            z-index: 10;
+        }
 
         header {
             display: flex;
@@ -398,15 +420,30 @@
         <div id="lockScreen" class="hidden" style="position:fixed; inset:0; background:#0c111d; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
             <div style="text-align:center; margin-bottom:24px;">
                 <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" style="width:85px; height:80px; border-radius:18px; border:2px solid #ff9f00; margin-bottom:12px; object-fit:cover;">
-                <h2 style="color:white; font-size:28px; font-weight:900;">FoodBook Multi-OS</h2>
-                <p style="color:#9ca3af; font-size:13px; font-weight:600; margin-top:2px;">Enter Cafe Account Token Below</p>
+                <h2 style="color:white; font-size:28px; font-weight:900;">FoodBook<span>.</span></h2>
+                <p id="lockScreenSubtitle" style="color:#9ca3af; font-size:13px; font-weight:600; margin-top:2px;">Enter Cafe Account Token Below</p>
             </div>
             
-            <input type="text" id="passcodeInput" placeholder="e.g. THEMOONCAFE4040" style="width:100%; max-width:280px; text-align:center; font-size:16px; padding:16px; border-radius:14px; border:3px solid #374151; background:#1f2a37; color:white; outline:none; margin-bottom:14px; font-weight:900; text-transform: uppercase;">
-            
-            <button onclick="verifyPasscode()" style="width:100%; max-width:280px; padding:16px; font-weight:900; background:#ff9f00; color:#0c111d; border:none; border-radius:14px; cursor:pointer; font-size:14px; margin-bottom:12px;">ACCESS ACCOUNT</button>
-            
-            <button onclick="openAdminVerificationWizard()" style="width:100%; max-width:280px; padding:14px; font-weight:800; background:rgba(255,255,255,0.06); color:#9ca3af; border:2px dashed #374151; border-radius:14px; cursor:pointer; font-size:12px;">✨ GENERATE NEW ACCOUNT ID</button>
+            <div id="stageLoginView" style="width:100%; max-width:280px; display:flex; flex-direction:column; gap:12px;">
+                <input type="text" id="passcodeInput" placeholder="" class="input-box" style="text-align:center; font-weight:900; text-transform: uppercase;">
+                <button onclick="verifyPasscode()" style="width:100%; padding:16px; font-weight:900; background:#ff9f00; color:#0c111d; border:none; border-radius:14px; cursor:pointer; font-size:14px;">ACCESS ACCOUNT</button>
+                <button onclick="showAdminVerificationScreen()" style="width:100%; padding:14px; font-weight:800; background:rgba(255,255,255,0.06); color:#9ca3af; border:2px dashed #374151; border-radius:14px; cursor:pointer; font-size:12px;">✨ GENERATE NEW ACCOUNT ID</button>
+            </div>
+
+            <div id="stageAdminVerifyView" class="hidden" style="width:100%; max-width:280px; display:flex; flex-direction:column; gap:12px;">
+                <div class="password-input-wrapper">
+                    <input type="password" id="adminSecretInput" placeholder="ENTER ADMIN PIN" class="input-box" style="text-align:center; padding-right:48px;">
+                    <button type="button" class="eye-toggle-btn" onclick="toggleAdminPasswordView()">👁️</button>
+                </div>
+                <button onclick="verifyAdminMasterCode()" style="width:100%; padding:16px; font-weight:900; background:#ff9f00; color:#0c111d; border:none; border-radius:14px; cursor:pointer; font-size:14px;">VERIFY ADMIN KEY</button>
+                <button onclick="backToLoginStage()" style="width:100%; padding:12px; font-weight:700; background:transparent; color:#9ca3af; border:none; cursor:pointer; font-size:13px;">← Back</button>
+            </div>
+
+            <div id="stageCreateCafeView" class="hidden" style="width:100%; max-width:280px; display:flex; flex-direction:column; gap:12px;">
+                <input type="text" id="newCafeIdInput" placeholder="NEW CAFE ID CODE" class="input-box" style="text-align:center; text-transform:uppercase; font-weight:900;">
+                <button onclick="commitNewCafeToFirebase()" style="width:100%; padding:16px; font-weight:900; background:#10b981; color:white; border:none; border-radius:14px; cursor:pointer; font-size:14px;">CREATE ACCOUNT</button>
+                <button onclick="backToLoginStage()" style="width:100%; padding:12px; font-weight:700; background:transparent; color:#9ca3af; border:none; cursor:pointer; font-size:13px;">Cancel</button>
+            </div>
             
             <p id="loginError" style="color:#f87171; font-size:13px; font-weight:700; margin-top:14px; display:none;">Error loading target account branch parameters.</p>
         </div>
@@ -535,36 +572,6 @@
         <button id="navInvBtn" onclick="switchMainTab('inventory')" class="nav-btn"><span>📦</span><span>Stock</span></button>
         <button id="navHelpBtn" onclick="switchMainTab('help')" class="nav-btn"><span>💬</span><span>Support</span></button>
     </nav>
-
-    <div id="adminAuthOverlay" class="overlay" style="align-items:center;">
-        <div class="overlay-body" style="max-width:320px; border-radius:24px; padding:20px; gap:14px;">
-            <div style="text-align:center;">
-                <span style="font-size:32px;">🔐</span>
-                <h3 style="font-size:18px; font-weight:900; margin-top:4px;">Admin Access Pin</h3>
-                <p style="font-size:12px; color:var(--text-muted);">Provide master confirmation key to create accounts</p>
-            </div>
-            <input type="password" id="adminSecretInput" placeholder="••••••••" class="input-box" style="text-align:center;">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <button onclick="closeAdminAuthOverlay()" class="input-box" style="cursor:pointer; font-size:13px; text-align:center; font-weight:700;">Cancel</button>
-                <button onclick="verifyAdminMasterCode()" style="border:none; background:var(--accent); color:#0b0f19; border-radius:14px; font-weight:900; cursor:pointer; font-size:13px;">Verify</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="newCafeSetupOverlay" class="overlay" style="align-items:center;">
-        <div class="overlay-body" style="max-width:320px; border-radius:24px; padding:20px; gap:14px;">
-            <div style="text-align:center;">
-                <span style="font-size:32px;">✨</span>
-                <h3 style="font-size:18px; font-weight:900; margin-top:4px;">Register Cafe ID</h3>
-                <p style="font-size:12px; color:var(--text-muted);">Define identifier string code parameter</p>
-            </div>
-            <input type="text" id="newCafeIdInput" placeholder="e.g. MOONCAFENEW" class="input-box" style="text-align:center; text-transform:uppercase; font-weight:900;">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <button onclick="closeNewCafeSetupOverlay()" class="input-box" style="cursor:pointer; font-size:13px; text-align:center; font-weight:700;">Cancel</button>
-                <button onclick="commitNewCafeToFirebase()" style="border:none; background:var(--success); color:white; border-radius:14px; font-weight:900; cursor:pointer; font-size:13px;">Create</button>
-            </div>
-        </div>
-    </div>
 
     <div id="wizardMenuDialog" class="overlay">
         <div class="overlay-body">
@@ -721,12 +728,29 @@
             });
         }
 
-        function openAdminVerificationWizard() {
+        function showAdminVerificationScreen() {
+            document.getElementById('lockScreenSubtitle').innerText = "Admin Pin Required";
+            document.getElementById('stageLoginView').classList.add('hidden');
+            document.getElementById('stageAdminVerifyView').classList.remove('hidden');
+            document.getElementById('stageCreateCafeView').classList.add('hidden');
             document.getElementById('adminSecretInput').value = '';
-            document.getElementById('adminAuthOverlay').classList.add('open');
         }
-        function closeAdminAuthOverlay() {
-            document.getElementById('adminAuthOverlay').classList.remove('open');
+
+        function backToLoginStage() {
+            document.getElementById('lockScreenSubtitle').innerText = "Enter Cafe Account Token Below";
+            document.getElementById('stageLoginView').classList.remove('hidden');
+            document.getElementById('stageAdminVerifyView').classList.add('hidden');
+            document.getElementById('stageCreateCafeView').classList.add('hidden');
+        }
+
+        /* TEXT REVEAL EYE BUTTON ENGINE */
+        function toggleAdminPasswordView() {
+            const field = document.getElementById('adminSecretInput');
+            if(field.type === 'password') {
+                field.type = 'text';
+            } else {
+                field.type = 'password';
+            }
         }
 
         function verifyAdminMasterCode() {
@@ -734,17 +758,14 @@
             database.ref('admin').once('value').then((snapshot) => {
                 const globalAdminPin = snapshot.val() || "aklavyaaaa4040";
                 if(inputSecret === globalAdminPin) {
-                    closeAdminAuthOverlay();
+                    document.getElementById('lockScreenSubtitle').innerText = "Register New Account";
+                    document.getElementById('stageAdminVerifyView').classList.add('hidden');
+                    document.getElementById('stageCreateCafeView').classList.remove('hidden');
                     document.getElementById('newCafeIdInput').value = '';
-                    document.getElementById('newCafeSetupOverlay').classList.add('open');
                 } else {
                     alert("Invalid Admin Authentication Pin Code!");
                 }
             });
-        }
-
-        function closeNewCafeSetupOverlay() {
-            document.getElementById('newCafeSetupOverlay').classList.remove('open');
         }
 
         function commitNewCafeToFirebase() {
@@ -770,10 +791,9 @@
                 };
 
                 database.ref(targetedId).set(cleanRegistrationSchema).then(() => {
-                    closeNewCafeSetupOverlay();
                     currentAccountID = targetedId;
                     localStorage.setItem('foodbook_cafe_id', currentAccountID);
-                    alert(`Account ${targetedId} Successfully Bootstrapped!`);
+                    alert(`Account ${targetedId} Successfully Created!`);
                     bypassLockGate();
                 });
             });
