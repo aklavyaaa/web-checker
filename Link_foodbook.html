@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FoodBook - Cafe OS</title>
     
-    <!-- Stable Compat Firebase Hooks -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
@@ -333,7 +332,6 @@
         .pay-action-btn.cash { background-color: var(--success); }
         .pay-action-btn.upi { background-color: var(--purple); }
 
-        /* Help Desk Contact Elements Layout */
         .contact-box {
             display: flex;
             flex-direction: column;
@@ -349,7 +347,10 @@
         .contact-link-btn.wa { background-color: #25d366; }
         .contact-link-btn.call { background-color: #3b82f6; }
 
-        /* Splash Screen Rules Layout */
+        /* Premium License Block Grid Styles */
+        .license-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; font-weight: 600; border-bottom: 1px dashed var(--border); }
+        .license-row:last-child { border: none; }
+
         #splashScreen {
             position: fixed;
             inset: 0;
@@ -378,7 +379,6 @@
 </head>
 <body class="theme-dark">
 
-    <!-- BRAND VISUAL SPLASH SCREEN -->
     <div id="splashScreen">
         <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" class="splash-logo">
         <h2 class="splash-title">FoodBook<span>.</span></h2>
@@ -386,7 +386,6 @@
 
     <div class="app-shell">
         
-        <!-- ONE-TIME PASSCODE GATE -->
         <div id="lockScreen" class="hidden" style="position:fixed; inset:0; background:#0c111d; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
             <div style="text-align:center; margin-bottom:28px;">
                 <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" style="width:80px; height:80px; border-radius:18px; border:2px solid #ff9f00; margin-bottom:12px; object-fit:cover;">
@@ -398,7 +397,6 @@
             <p id="loginError" style="color:#f87171; font-size:13px; font-weight:700; margin-top:14px; display:none;">Incorrect Passcode!</p>
         </div>
 
-        <!-- APP HEADER WITH LOGO INNER INTEGRATION -->
         <header id="appHeader" class="hidden">
             <div class="brand-header">
                 <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" class="brand-logo-img">
@@ -413,9 +411,6 @@
             </div>
         </header>
 
-        <!-- ========================================== -->
-        <!-- TAB 1: DASHBOARD LEDGER VIEW               -->
-        <!-- ========================================== -->
         <div id="dashboardView" class="tab-view hidden">
             <div class="stats-row">
                 <div class="card stat-card">
@@ -429,16 +424,11 @@
             </div>
 
             <div style="margin-bottom:10px; padding-left:2px;"><span class="stat-lbl">📜 Live Daily Streams</span></div>
-            <div id="ledgerContainer" class="list-container hide-scrollbar">
-                <!-- Data injections -->
-            </div>
+            <div id="ledgerContainer" class="list-container hide-scrollbar"></div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- TAB 2: SEPERATE ADVANCED REPORTS VIEW      -->
-        <!-- ========================================== -->
         <div id="reportsView" class="tab-view hidden">
-            <div class="card" style="space-y: 12px; padding: 16px;">
+            <div class="card" style="padding: 16px;">
                 <h3 style="font-size:16px; font-weight:900; color:var(--accent); margin-bottom:12px;">Reports..</h3>
                 
                 <div style="margin-bottom:12px;">
@@ -460,21 +450,15 @@
                 </div>
             </div>
 
-            <!-- Reports Summaries Output Nodes Matrices -->
             <div class="stats-row" style="grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom:14px;">
                 <div class="card stat-card" style="padding:10px;"><span class="stat-lbl">Filtered Sum</span><span id="repSum" style="font-size:15px; font-weight:900; color:var(--cyan);">₹0</span></div>
                 <div class="card stat-card" style="padding:10px;"><span class="stat-lbl">CASH Segment</span><span id="repCash" style="font-size:15px; font-weight:900; color:var(--success);">₹0</span></div>
                 <div class="card stat-card" style="padding:10px;"><span class="stat-lbl">UPI Segment</span><span id="repUpi" style="font-size:15px; font-weight:900; color:var(--purple);">₹0</span></div>
             </div>
 
-            <div id="reportLedgerContainer" class="list-container hide-scrollbar">
-                <!-- Data listings -->
-            </div>
+            <div id="reportLedgerContainer" class="list-container hide-scrollbar"></div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- TAB 3: INVENTORY STOCK MANAGEMENT VIEW     -->
-        <!-- ========================================== -->
         <div id="inventoryView" class="tab-view hidden">
             <div class="card" style="display:flex; flex-direction:column; gap:14px;">
                 <h3 style="font-size:16px; font-weight:900; color:var(--cyan);">Add new Item..</h3>
@@ -487,15 +471,26 @@
             </div>
 
             <div style="margin-bottom:10px; padding-left:2px;"><span class="stat-lbl">📦 Configured Inventory Matrix</span></div>
-            <div id="adminMenuGrid" style="display:flex; flex-direction:column; gap:12px; max-height:280px; overflow-y:auto;" class="hide-scrollbar">
-                <!-- Injected elements -->
-            </div>
+            <div id="adminMenuGrid" style="display:flex; flex-direction:column; gap:12px; max-height:280px; overflow-y:auto;" class="hide-scrollbar"></div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- TAB 4: DEVELOPER HELP DESK VIEW            -->
-        <!-- ========================================== -->
         <div id="helpView" class="tab-view hidden">
+            <div class="card" style="padding: 18px; margin-bottom: 16px;">
+                <h4 style="font-size:14px; font-weight:900; color:var(--accent); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">👑 System Premium License</h4>
+                <div class="license-row">
+                    <span style="opacity:0.7;">Premium Status:</span>
+                    <span id="licDaysLeft" style="color:var(--success); font-weight:900;">Calculating..</span>
+                </div>
+                <div class="license-row">
+                    <span style="opacity:0.7;">Last Payment Date:</span>
+                    <span id="licLastPay" style="font-family:monospace; font-weight:700;">--</span>
+                </div>
+                <div class="license-row">
+                    <span style="opacity:0.7;">Last Month's Payment Date:</span>
+                    <span id="licPrevPay" style="font-family:monospace; font-weight:700;">--</span>
+                </div>
+            </div>
+
             <div class="card" style="padding: 24px;">
                 <div class="contact-box">
                     <span class="dev-avatar">🧑‍💻</span>
@@ -503,12 +498,8 @@
                     <p class="dev-phone">+91 74648 70444</p>
                     
                     <div class="contact-action-row">
-                        <a href="tel:7464870444" class="contact-link-btn call">
-                            <span>📞 Call Now</span>
-                        </a>
-                        <a href="https://api.whatsapp.com/send?phone=917464870444&text=Hello%20Aklavyaaa,%20I%20need%20support%20for%20FoodBook!" target="_blank" class="contact-link-btn wa">
-                            <span>💬 WhatsApp</span>
-                        </a>
+                        <a href="tel:7464870444" class="contact-link-btn call"><span>📞 Call Now</span></a>
+                        <a href="https://api.whatsapp.com/send?phone=917464870444&text=Hello%20Aklavyaaa,%20I%20need%20support%20for%20FoodBook!" target="_blank" class="contact-link-btn wa"><span>💬 WhatsApp</span></a>
                     </div>
                 </div>
             </div>
@@ -516,20 +507,14 @@
 
     </div>
 
-    <!-- PERSISTENT NAVIGATION SHELL STRIP (5 TABS) -->
     <nav id="appNavigation" class="hidden">
         <button id="navDashBtn" onclick="switchMainTab('dashboard')" class="nav-btn active"><span>📊</span><span>Ledger</span></button>
         <button id="navRepBtn" onclick="switchMainTab('reports')" class="nav-btn"><span>📈</span><span>Reports</span></button>
-        
         <button onclick="openMenuWizard()" class="add-action-btn">+</button>
-        
         <button id="navInvBtn" onclick="switchMainTab('inventory')" class="nav-btn"><span>📦</span><span>Stock</span></button>
         <button id="navHelpBtn" onclick="switchMainTab('help')" class="nav-btn"><span>💬</span><span>Support</span></button>
     </nav>
 
-    <!-- SYSTEM OVERLAY POPUPS -->
-
-    <!-- WIZARD MODULE 1: FOOD TILES GRID -->
     <div id="wizardMenuDialog" class="overlay">
         <div class="overlay-body">
             <div class="overlay-header">
@@ -539,9 +524,7 @@
                 </div>
                 <button onclick="closeWizardMenu()" class="close-btn">×</button>
             </div>
-            <div id="wizardItemGrid" class="menu-tiles-grid hide-scrollbar">
-                <!-- Programmatically filled -->
-            </div>
+            <div id="wizardItemGrid" class="menu-tiles-grid hide-scrollbar"></div>
             <div style="border-top:2px solid var(--border); padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <span id="wizardItemsCount" style="font-size:11px; display:block; opacity:0.6; font-weight:700;">Items Picked: 0</span>
@@ -552,7 +535,6 @@
         </div>
     </div>
 
-    <!-- WIZARD MODULE 2: VARIANT SWITCHER -->
     <div id="wizardModifierDialog" class="overlay" style="align-items:center;">
         <div class="overlay-body" style="max-width:300px; border-radius:24px;">
             <div style="text-align:center;">
@@ -582,7 +564,6 @@
         </div>
     </div>
 
-    <!-- WIZARD MODULE 3: BREAKDOWN AND CHECKOUT -->
     <div id="wizardCheckoutDialog" class="overlay">
         <div class="overlay-body">
             <div class="overlay-header">
@@ -591,17 +572,19 @@
             </div>
             <div style="display:flex; flex-direction:column; gap:10px;">
                 <input type="text" id="checkoutCustomerName" placeholder="Note Tag (e.g. Table 4)" class="input-box">
-                <input type="tel" id="checkoutCustomerPhone" placeholder="Mobile Number (Optional)" class="input-box">
+                
+                <div style="display: grid; grid-template-columns: 80px 1fr; gap: 8px; width: 100%;">
+                    <input type="text" id="checkoutCountryCode" value="+91" class="input-box" style="text-align: center; font-weight: 700;">
+                    <input type="tel" id="checkoutCustomerPhone" placeholder="10-Digit Mobile Number" class="input-box" maxlength="10">
+                </div>
             </div>
             
             <div style="background:var(--bg-main); border:2px solid var(--border); padding:14px; border-radius:16px;">
                 <div class="breakdown-row"><span>Items Subtotal:</span><span id="bdSubtotal">₹0</span></div>
-                
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; margin-bottom:8px;">
                     <span style="font-size:13px; font-weight:700; opacity:0.8;">Apply Discount (₹):</span>
                     <input type="number" id="checkoutDiscountInput" value="0" oninput="runLiveBreakdownMath()" style="max-width:90px; padding:6px; border-radius:8px; border:2px solid var(--border); background:var(--bg-input); color:var(--text-main); font-weight:900; text-align:center;">
                 </div>
-                
                 <div style="border-top:1px dashed var(--border); margin-top:8px; padding-top:8px; display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-size:14px; font-weight:900; color:var(--accent);">Net Total Due:</span>
                     <span id="checkoutTotalDisplay" style="font-size:26px; font-weight:900; color:var(--success);">₹0</span>
@@ -615,7 +598,6 @@
         </div>
     </div>
 
-    <!-- WIZARD MODULE 4: WHATSAPP PROMPT -->
     <div id="whatsappPromptDialog" class="overlay" style="align-items:center;">
         <div class="overlay-body" style="max-width:280px; border-radius:24px; text-align:center; gap:12px; padding:24px;">
             <span style="font-size:40px; color:#25d366; display:block;">💬</span>
@@ -628,7 +610,6 @@
         </div>
     </div>
 
-    <!-- CORE SCRIPT ENGINE RUN -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDOoHnij3Dzc2OXbv4YSbboIMVafn6CODw",
@@ -652,7 +633,6 @@
         let reportPaymentFilterMode = 'ALL';
         let currentActiveWhatsappPayload = null;
 
-        // Visual Splash Screen Timeout Handler Pipeline Execution Frame
         setTimeout(() => {
             const splash = document.getElementById('splashScreen');
             if(splash) {
@@ -660,8 +640,6 @@
                 splash.style.visibility = 'hidden';
                 setTimeout(() => splash.remove(), 500);
             }
-            
-            // Bring forward primary passcode lock window frame
             if (localStorage.getItem('foodbook_authorized') !== 'true') {
                 document.getElementById('lockScreen').classList.remove('hidden');
             }
@@ -698,11 +676,12 @@
         }
 
         function bypassLockGate() {
-            document.getElementById('lockScreen').style.add ? null : document.getElementById('lockScreen').classList.add('hidden');
+            document.getElementById('lockScreen').classList.add('hidden');
             document.getElementById('appHeader').classList.remove('hidden');
             document.getElementById('dashboardView').classList.remove('hidden');
             document.getElementById('appNavigation').classList.remove('hidden');
             bindCloudListeners();
+            syncLicenseCounters();
         }
 
         function logout() {
@@ -736,7 +715,36 @@
             } else if(targetKey === 'help') {
                 document.getElementById('helpView').classList.remove('hidden');
                 document.getElementById('navHelpBtn').classList.add('active');
+                syncLicenseCounters();
             }
+        }
+
+        // UPGRADED LICENSE MANAGER PIPELINE ENGINE
+        function syncLicenseCounters() {
+            database.ref('settings').once('value').then((snapshot) => {
+                const settings = snapshot.val() || {};
+                const lastPayStr = settings.last_payment_date || "2026-07-01";
+                const prevPayStr = settings.prev_payment_date || "2026-06-01";
+
+                document.getElementById('licLastPay').innerText = lastPayStr;
+                document.getElementById('licPrevPay').innerText = prevPayStr;
+
+                // Calculate date delta days remaining active metrics
+                const lastPayDate = new Date(lastPayStr);
+                const todayDate = new Date();
+                
+                const timeDiff = todayDate.getTime() - lastPayDate.getTime();
+                const daysPassed = Math.floor(timeDiff / (1000 * 3600 * 24));
+                let daysLeft = 30 - daysPassed;
+                if(daysLeft < 0) daysLeft = 0;
+
+                document.getElementById('licDaysLeft').innerText = `${daysLeft} Days Remaining`;
+                if(daysLeft <= 5) {
+                    document.getElementById('licDaysLeft').style.color = '#ef4444';
+                } else {
+                    document.getElementById('licDaysLeft').style.color = 'var(--success)';
+                }
+            });
         }
 
         function bindCloudListeners() {
@@ -794,7 +802,6 @@
                 return;
             }
 
-            // Descending Sort Arrangement Pipeline strictly parsing Bill ID sequences
             collections.sort((a, b) => b.bill_id.localeCompare(a.bill_id)).forEach((order) => {
                 const div = document.createElement('div');
                 div.className = "item-row";
@@ -955,7 +962,6 @@
             document.getElementById('wizardModifierDialog').classList.remove('open');
         }
 
-        // Numerical Math Counter
         function adjustWizardQty(amt) {
             temporaryQtyCount += amt;
             if(temporaryQtyCount < 1) temporaryQtyCount = 1;
@@ -1011,8 +1017,15 @@
 
         function executeFinalOrderSave(payMethod) {
             const name = document.getElementById('checkoutCustomerName').value.trim() || "Walk-in Customer";
-            const phone = document.getElementById('checkoutCustomerPhone').value.trim();
+            const code = document.getElementById('checkoutCountryCode').value.trim();
+            const rawPhone = document.getElementById('checkoutCustomerPhone').value.trim();
             
+            // Join country code parameter dynamically to secure links arrays execution
+            let finalPhoneMapping = "";
+            if(rawPhone.length >= 10) {
+                finalPhoneMapping = code + rawPhone;
+            }
+
             let subtotal = wizardCart.reduce((sum, i) => sum + i.subtotal, 0);
             let discount = parseFloat(document.getElementById('checkoutDiscountInput').value) || 0;
             let netTotal = subtotal - discount;
@@ -1034,7 +1047,7 @@
                     timestamp: rightNow.getTime(),
                     date_string: dString,
                     customer_details: name,
-                    customer_phone: phone,
+                    customer_phone: finalPhoneMapping,
                     items: wizardCart,
                     subtotal_amount: subtotal,
                     discount_amount: discount,
@@ -1044,8 +1057,8 @@
 
                 database.ref(`orders/${formattedBillId}`).set(payload).then(() => {
                     closeCheckoutDialog();
-                    if(phone.length >= 10) {
-                        currentActiveWhatsappPayload = payload;
+                    if(finalPhoneMapping.length >= 10) {
+                        currentActiveWorkspacePayload = payload;
                         document.getElementById('whatsappPromptDialog').classList.add('open');
                     } else {
                         switchMainTab('dashboard');
@@ -1056,10 +1069,10 @@
 
         function handleWhatsappDecision(agreed) {
             document.getElementById('whatsappPromptDialog').classList.remove('open');
-            if(agreed && currentActiveWhatsappPayload) {
-                dispatchWhatsAppTextBill(currentActiveWhatsappPayload);
+            if(agreed && currentActiveWorkspacePayload) {
+                dispatchWhatsAppTextBill(currentActiveWorkspacePayload);
             }
-            currentActiveWhatsappPayload = null;
+            currentActiveWorkspacePayload = null;
             switchMainTab('dashboard');
         }
 
