@@ -3,109 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instant HTML Code Previewer</title>
+    <title>Advanced Local Source Matrix Sandboxing</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background-color: #f4f6f9;
-            color: #333;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow: hidden;
         }
 
         header {
-            background-color: #1e1e2f;
-            color: #fff;
-            padding: 10px 20px;
+            background-color: #1e293b;
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-bottom: 1px solid #334155;
             z-index: 10;
         }
 
         .logo {
-            font-weight: bold;
+            font-weight: 800;
             font-size: 1.2rem;
-            letter-spacing: 0.5px;
+            color: #38bdf8;
         }
 
         .controls {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
         button {
-            background-color: #3b82f6;
+            background-color: #0284c7;
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            transition: background 0.2s;
+            font-size: 14px;
+            transition: all 0.2s ease;
         }
 
         button:hover {
-            background-color: #2563eb;
+            background-color: #0369a1;
         }
 
         button.secondary {
-            background-color: #4b5563;
+            background-color: #475569;
         }
 
         button.secondary:hover {
-            background-color: #374151;
+            background-color: #334155;
         }
 
         .main-container {
             display: flex;
             flex: 1;
             overflow: hidden;
-            position: relative;
+            background-color: #0f172a;
         }
 
         .editor-pane {
-            width: 40%;
+            width: 45%;
             display: flex;
             flex-direction: column;
             padding: 15px;
-            background-color: #ffffff;
-            border-right: 1px solid #e5e7eb;
+            background-color: #1e293b;
+            border-right: 1px solid #334155;
+        }
+
+        .pane-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
         }
 
         textarea {
             flex: 1;
             width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
+            padding: 16px;
+            border: 1px solid #475569;
+            border-radius: 8px;
             font-family: 'Courier New', Courier, monospace;
             font-size: 14px;
             resize: none;
             outline: none;
-            background-color: #f9fafb;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.5;
         }
 
         textarea:focus {
-            border-color: #3b82f6;
-            background-color: #fff;
+            border-color: #38bdf8;
         }
 
         .preview-pane {
-            width: 60%;
+            width: 55%;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #e5e7eb;
-            padding: 20px;
+            background-color: #334155;
+            padding: 24px;
             transition: all 0.3s ease;
             position: relative;
         }
@@ -115,17 +126,20 @@
             height: 100%;
             border: none;
             background-color: #ffffff;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 4px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
 
         /* Mobile View Mode */
+        .preview-pane.mobile-mode {
+            background-color: #1e293b;
+        }
+
         .preview-pane.mobile-mode iframe {
             width: 375px;
             height: 667px;
-            border: 12px solid #1e1e2f;
-            border-radius: 24px;
+            border: 14px solid #0f172a;
+            border-radius: 32px;
         }
 
         /* Full Screen Preview Mode */
@@ -141,7 +155,6 @@
         }
 
         body.fullscreen-mode iframe {
-            border: none;
             border-radius: 0;
             width: 100%;
             height: 100%;
@@ -150,11 +163,15 @@
         .exit-fs-btn {
             display: none;
             position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 9999;
-            background-color: rgba(30, 30, 47, 0.85);
-            backdrop-filter: blur(4px);
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            background-color: rgba(15, 23, 42, 0.9);
+            color: #fff;
+            border: 1px solid #475569;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
         }
 
         body.fullscreen-mode .exit-fs-btn {
@@ -165,9 +182,10 @@
 <body>
 
     <header>
-        <div class="logo">&lt;CodePreview /&gt;</div>
+        <div class="logo">Matrix Testing Frame</div>
+        <div id="virtualFileName" style="font-size: 13px; font-family: monospace; color: #a7f3d0;">File Node: Idle...</div>
         <div class="controls">
-            <button id="runBtn">Go / Render</button>
+            <button id="runBtn">Go / Render Code</button>
             <button id="mobileBtn" class="secondary">Mobile View</button>
             <button id="fullBtn" class="secondary">Full Screen</button>
         </div>
@@ -175,12 +193,13 @@
 
     <div class="main-container">
         <div class="editor-pane">
-            <textarea id="codeEditor" placeholder="Paste your HTML code here (CSS inside <style> tags works too!)..."></textarea>
+            <div class="pane-title">Paste Target App Code Below</div>
+            <textarea id="codeEditor" placeholder="Paste your HTML script here..."></textarea>
         </div>
         
         <div class="preview-pane" id="previewPane">
             <button id="exitFsBtn" class="exit-fs-btn">Exit Full Screen</button>
-            <iframe id="outputFrame"></iframe>
+            <iframe id="outputFrame" name="outputFrame"></iframe>
         </div>
     </div>
 
@@ -192,34 +211,54 @@
         const exitFsBtn = document.getElementById('exitFsBtn');
         const previewPane = document.getElementById('previewPane');
         const outputFrame = document.getElementById('outputFrame');
+        const virtualFileName = document.getElementById('virtualFileName');
         const body = document.body;
 
-        // Function to render HTML inside the iframe
-        function renderCode() {
-            const code = codeEditor.value;
-            const iframeDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
-            iframeDoc.open();
-            iframeDoc.write(code);
-            iframeDoc.close();
+        function renderActiveSnapshot() {
+            const codePayload = codeEditor.value;
+            if(!codePayload.trim()) return alert("Paste some code first!");
+
+            // 1. Generate the simulated timestamp string
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const timestamp = now.getFullYear() + 
+                              pad(now.getMonth() + 1) + 
+                              pad(now.getDate()) + "-" + 
+                              pad(now.getHours()) + 
+                              pad(now.getMinutes()) + 
+                              pad(now.getSeconds());
+            
+            const dynamicFileName = `webcheckfolder/webV1(${timestamp}).html`;
+            
+            // 2. Display the simulated filename in the header layout
+            virtualFileName.innerText = `Running: ${dynamicFileName}`;
+
+            // 3. Render directly using iframe window compilation method.
+            // This leaves the domain context open so external network pipelines (Firebase/Tailwind) function natively without security blocks.
+            const frameWindow = outputFrame.contentWindow || outputFrame.contentDocument.defaultView;
+            const frameDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
+
+            frameDoc.open();
+            frameDoc.write(codePayload);
+            frameDoc.close();
         }
 
-        // Event Listeners
-        runBtn.addEventListener('click', renderCode);
+        // Click Handler bindings
+        runBtn.addEventListener('click', renderActiveSnapshot);
 
         mobileBtn.addEventListener('click', () => {
             previewPane.classList.toggle('mobile-mode');
             if (previewPane.classList.contains('mobile-mode')) {
                 mobileBtn.textContent = 'Desktop View';
-                mobileBtn.style.backgroundColor = '#10b981'; // Green active state
+                mobileBtn.style.backgroundColor = '#0ea5e9';
             } else {
                 mobileBtn.textContent = 'Mobile View';
-                mobileBtn.style.backgroundColor = ''; // Reset
+                mobileBtn.style.backgroundColor = '';
             }
         });
 
-        function toggleFullScreen() {
+        function toggleFullScreenMode() {
             body.classList.toggle('fullscreen-mode');
-            // Force a quick refresh on fullscreen toggle if mobile view was active to reset layout bounds nicely
             if(previewPane.classList.contains('mobile-mode') && body.classList.contains('fullscreen-mode')) {
                  previewPane.classList.remove('mobile-mode');
                  mobileBtn.textContent = 'Mobile View';
@@ -227,14 +266,14 @@
             }
         }
 
-        fullBtn.addEventListener('click', toggleFullScreen);
-        exitFsBtn.addEventListener('click', toggleFullScreen);
+        fullBtn.addEventListener('click', toggleFullScreenMode);
+        exitFsBtn.addEventListener('click', toggleFullScreenMode);
 
-        // Optional: Run on Ctrl+Enter / Cmd+Enter inside textarea
+        // Editor key bindings shortcut tracking (Ctrl+Enter)
         codeEditor.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
-                renderCode();
+                renderActiveSnapshot();
             }
         });
     </script>
