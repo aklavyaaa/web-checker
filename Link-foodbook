@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodBook - Cafe OS</title>
+    
+    <!-- Stable Compat Firebase Hooks -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <style>
+        .theme-dark {
+            --bg-main: #0c111d;
+            --bg-card: #1f2a37;
+            --bg-input: #111827;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border: #374151;
+            --accent: #ff9f00;      
+            --accent-hover: #e08c00;
+            --accent-light: rgba(255, 159, 0, 0.15);
+            --success: #10b981;
+            --purple: #a855f7;
+            --nav-bg: #111827;
+        }
+        
+        .theme-light {
+            --bg-main: #f4f3ef;      
+            --bg-card: #ffffff;
+            --bg-input: #fcfbf7;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --accent: #ff9f00;      
+            --accent-hover: #e08c00;
+            --accent-light: rgba(255, 159, 0, 0.15);
+            --success: #059669;
+            --purple: #7e22ce;
+            --nav-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-bottom: 110px;
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 680px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+        }
+        .card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 8px 20px var(--accent-light);
+        }
+
+        .input-box {
+            background-color: var(--bg-input);
+            border: 2px solid var(--border);
+            color: var(--text-main);
+            border-radius: 14px;
+            padding: 14px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+        }
+        .input-box:focus { border-color: var(--accent); }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            width: 100%;
+        }
+        
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-logo-img {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+        }
+        
+        .logo-area h1 { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; }
+        .logo-area span { color: var(--accent); }
+        .logo-area p { font-size: 10px; text-transform: uppercase; opacity: 0.5; font-weight: bold; }
+
+        .action-btn-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            background-color: var(--bg-card);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .action-btn-circle:active { transform: scale(0.9); }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .stat-card { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .stat-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; opacity: 0.6; }
+        .stat-num { font-size: 24px; font-weight: 900; margin-top: 6px; }
+        .stat-num.c-total { color: var(--accent); }
+
+        .tabs-row {
+            display: flex;
+            background: rgba(128,128,128,0.08);
+            padding: 6px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 12px;
+        }
+        .tab-btn.active {
+            background-color: var(--accent);
+            color: #0b0f19;
+        }
+
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 55vh;
+            overflow-y: auto;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px;
+            border-radius: 16px;
+            background-color: var(--bg-card);
+            border: 2px solid var(--border);
+        }
+        .row-info h4 { font-size: 15px; font-weight: 800; }
+        .row-info p { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+        .row-right { display: flex; align-items: center; gap: 14px; }
+        .row-price { font-weight: 900; font-size: 16px; text-align: right; }
+        .row-badge { font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; border: 2px solid; display: inline-block; text-transform: uppercase; }
+        .row-badge.cash { color: var(--success); background: rgba(16,185,129,0.1); border-color: var(--success); }
+        .row-badge.upi { color: var(--purple); background: rgba(168,85,247,0.1); border-color: var(--purple); }
+
+        .wa-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 680px;
+            background-color: var(--nav-bg);
+            border-top: 2px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 26px 26px 0 0;
+            z-index: 999;
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 800;
+            width: 65px;
+        }
+        .nav-btn.active { color: var(--accent); }
+
+        .add-action-btn {
+            width: 58px;
+            height: 58px;
+            background: linear-gradient(135deg, var(--accent), #ff7c00);
+            color: #0b0f19;
+            border-radius: 50%;
+            border: 4px solid var(--bg-main);
+            position: relative;
+            top: -24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 900;
+            box-shadow: 0 8px 20px rgba(255,160,0,0.4);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(12,17,29,0.85);
+            backdrop-filter: blur(6px);
+            z-index: 2000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+        .overlay.open { opacity: 1; visibility: visible; }
+        .overlay-body {
+            background-color: var(--bg-card);
+            border-top: 3px solid var(--accent);
+            width: 100%;
+            max-width: 680px;
+            border-radius: 28px 28px 0 0;
+            padding: 24px;
+            transform: translateY(100%);
+            transition: transform 0.25s ease-out;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .overlay.open .overlay-body { transform: translateY(0); }
+
+        .overlay-header { display: flex; justify-content: space-between; align-items: center; }
+        .close-btn { background: rgba(128,128,128,0.15); border: none; color: var(--text-main); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+
+        .menu-tiles-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+        .tile-card {
+            background-color: var(--bg-main);
+            border: 2px solid var(--border);
+            padding: 20px;
+            border-radius: 18px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .tile-card h5 { font-size: 15px; font-weight: 800; margin-top: 6px; }
+        .tile-card p { font-size: 13px; color: var(--accent); font-weight: 800; margin-top: 2px; }
+
+        .variant-row {
+            display: flex;
+            background: var(--bg-main);
+            padding: 6px;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+        }
+        .var-btn { flex: 1; padding: 12px; background: transparent; border: none; color: var(--text-muted); font-weight: 800; font-size: 13px; cursor: pointer; border-radius: 10px; }
+        .var-btn.active { background: var(--accent); color: #0b0f19; font-weight: 900; }
+
+        .math-counter {
+            display: flex;
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .math-btn { flex: 1; padding: 14px; border: none; background: transparent; color: var(--text-main); font-size: 22px; font-weight: 900; cursor: pointer; }
+        .math-val { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; }
+
+        .breakdown-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; opacity: 0.8; margin-top: 4px; }
+        .settle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .pay-action-btn { padding: 18px; border-radius: 16px; border: none; color: white; font-weight: 900; cursor: pointer; font-size: 14px; }
+        .pay-action-btn.cash { background-color: var(--success); }
+        .pay-action-btn.upi { background-color: var(--purple); }
+
+        /* Help Desk Contact Elements Layout */
+        .contact-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 10px 0;
+        }
+        .dev-avatar { font-size: 50px; margin-bottom: 4px; }
+        .dev-name { font-size: 20px; font-weight: 900; color: var(--accent); }
+        .dev-phone { font-size: 14px; font-weight: 700; opacity: 0.6; font-family: monospace; margin-top: 2px; margin-bottom: 16px; }
+        .contact-action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+        .contact-link-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-radius: 14px; font-weight: 800; text-decoration: none; font-size: 14px; color: white; }
+        .contact-link-btn.wa { background-color: #25d366; }
+        .contact-link-btn.call { background-color: #3b82f6; }
+
+        /* Splash Screen Rules Layout */
+        #splashScreen {
+            position: fixed;
+            inset: 0;
+            background-color: #0c111d;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .splash-logo {
+            width: 140px;
+            height: 140px;
+            border-radius: 28px;
+            object-fit: cover;
+            border: 4px solid #ff9f00;
+            box-shadow: 0 10px 30px rgba(255,159,0,0.2);
+            margin-bottom: 16px;
+        }
+        .splash-title { font-size: 32px; font-weight: 900; color: white; letter-spacing: -0.5px; }
+        .splash-title span { color: #ff9f00; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="theme-dark">
+
+    <!-- BRAND VISUAL SPLASH SCREEN -->
+    <div id="splashScreen">
+        <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" class="splash-logo">
+        <h2 class="splash-title">FoodBook<span>.</span></h2>
+    </div>
+
+    <div class="app-shell">
+        
+        <!-- ONE-TIME PASSCODE GATE -->
+        <div id="lockScreen" class="hidden" style="position:fixed; inset:0; background:#0c111d; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+            <div style="text-align:center; margin-bottom:28px;">
+                <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" style="width:80px; height:80px; border-radius:18px; border:2px solid #ff9f00; margin-bottom:12px; object-fit:cover;">
+                <h2 style="color:white; font-size:32px; font-weight:900;">FoodBook App</h2>
+                <p style="color:#9ca3af; font-size:13px; font-weight:600;">Cafe Counter Terminal</p>
+            </div>
+            <input type="password" id="passcodeInput" placeholder="••••" style="max-width:240px; text-align:center; font-size:36px; letter-spacing:8px; padding:14px; border-radius:18px; border:3px solid #374151; background:#1f2a37; color:white; outline:none; margin-bottom:18px; font-weight:900;">
+            <button onclick="verifyPasscode()" style="width:240px; padding:16px; font-weight:900; background:#ff9f00; color:#0c111d; border:none; border-radius:18px; cursor:pointer;">OPEN SYSTEM</button>
+            <p id="loginError" style="color:#f87171; font-size:13px; font-weight:700; margin-top:14px; display:none;">Incorrect Passcode!</p>
+        </div>
+
+        <!-- APP HEADER WITH LOGO INNER INTEGRATION -->
+        <header id="appHeader" class="hidden">
+            <div class="brand-header">
+                <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" class="brand-logo-img">
+                <div class="logo-area">
+                    <p class="header-sub">Software Desk</p>
+                    <h1>FoodBook<span>.</span></h1>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button onclick="toggleAppTheme()" class="action-btn-circle">🎨</button>
+                <button onclick="logout()" class="action-btn-circle" style="color:#ef4444; border-color: rgba(239,68,68,0.3)">❌</button>
+            </div>
+        </header>
+
+        <!-- ========================================== -->
+        <!-- TAB 1: DASHBOARD LEDGER VIEW               -->
+        <!-- ========================================== -->
+        <div id="dashboardView" class="tab-view hidden">
+            <div class="stats-row">
+                <div class="card stat-card">
+                    <span class="stat-lbl">Today's Total Sales</span>
+                    <span id="statTotalSales" class="stat-num c-total">₹0</span>
+                </div>
+                <div class="card stat-card">
+                    <span class="stat-lbl">Today's Total Orders</span>
+                    <span id="statTotalOrdersCount" class="stat-num" style="color: var(--success);">0</span>
+                </div>
+            </div>
+
+            <div style="margin-bottom:10px; padding-left:2px;"><span class="stat-lbl">📜 Live Daily Streams</span></div>
+            <div id="ledgerContainer" class="list-container hide-scrollbar">
+                <!-- Data injections -->
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: SEPERATE ADVANCED REPORTS VIEW      -->
+        <!-- ========================================== -->
+        <div id="reportsView" class="tab-view hidden">
+            <div class="card" style="space-y: 12px; padding: 16px;">
+                <h3 style="font-size:16px; font-weight:900; color:var(--accent); margin-bottom:12px;">Reports..</h3>
+                
+                <div style="margin-bottom:12px;">
+                    <label class="stat-lbl" style="display:block; margin-bottom:4px;">Date..</label>
+                    <input type="date" id="filterDateInput" class="input-box" style="padding:10px;">
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <label class="stat-lbl" style="display:block; margin-bottom:4px;">Filter By Food Item</label>
+                    <select id="filterItemDropdown" onchange="applyReportFilters()" class="input-box" style="padding:10px; font-weight:bold;">
+                        <option value="ALL">ALL Menu Items</option>
+                    </select>
+                </div>
+
+                <div class="tabs-row" style="margin-bottom:0px; margin-top:14px;">
+                    <button id="reportTabAll" onclick="setReportPaymentFilter('ALL')" class="tab-btn active">ALL MODES</button>
+                    <button id="reportTabCash" onclick="setReportPaymentFilter('CASH')" class="tab-btn">CASH Drawer</button>
+                    <button id="reportTabUpi" onclick="setReportPaymentFilter('UPI')" class="tab-btn">UPI Vault</button>
+                </div>
+            </div>
+
+            <!-- Reports Summaries Output Nodes Matrices -->
+            <div class="stats-row" style="grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom:14px;">
+                <div class="card stat-card" style="padding:10px;"><span class="stat-lbl">Filtered Sum</span><span id="repSum" style="font-size:15px; font-weight:900; color:var(--cyan);">₹0</span></div>
+                <div class="card stat-card" style="padding:10px;"><span class="stat-lbl">CASH Segment</span><span id="repCash" style="font-size:15px; font-weight:900; color:var(--success);">₹0</span></div>
+                <div class="card stat-card" style="padding:10px;"><span class="stat-lbl">UPI Segment</span><span id="repUpi" style="font-size:15px; font-weight:900; color:var(--purple);">₹0</span></div>
+            </div>
+
+            <div id="reportLedgerContainer" class="list-container hide-scrollbar">
+                <!-- Data listings -->
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: INVENTORY STOCK MANAGEMENT VIEW     -->
+        <!-- ========================================== -->
+        <div id="inventoryView" class="tab-view hidden">
+            <div class="card" style="display:flex; flex-direction:column; gap:14px;">
+                <h3 style="font-size:16px; font-weight:900; color:var(--cyan);">Add new Item..</h3>
+                <div style="display:grid; grid-template-columns: 70px 1fr; gap:10px;">
+                    <input type="text" id="adminItemIcon" placeholder="🍔" class="input-box" style="text-align:center; font-size:20px;">
+                    <input type="text" id="adminItemName" placeholder="Item Identifier Name" class="input-box">
+                </div>
+                <input type="number" id="adminItemPrice" placeholder="Standard Portions Base Price (₹)" class="input-box">
+                <button onclick="saveItemToMenu()" style="width:100%; padding:16px; font-weight:900; background:var(--accent); color:#0b0f19; border:none; border-radius:14px; cursor:pointer;">Save</button>
+            </div>
+
+            <div style="margin-bottom:10px; padding-left:2px;"><span class="stat-lbl">📦 Configured Inventory Matrix</span></div>
+            <div id="adminMenuGrid" style="display:flex; flex-direction:column; gap:12px; max-height:280px; overflow-y:auto;" class="hide-scrollbar">
+                <!-- Injected elements -->
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: DEVELOPER HELP DESK VIEW            -->
+        <!-- ========================================== -->
+        <div id="helpView" class="tab-view hidden">
+            <div class="card" style="padding: 24px;">
+                <div class="contact-box">
+                    <span class="dev-avatar">🧑‍💻</span>
+                    <h3 class="dev-name">Aklavyaaa</h3>
+                    <p class="dev-phone">+91 74648 70444</p>
+                    
+                    <div class="contact-action-row">
+                        <a href="tel:7464870444" class="contact-link-btn call">
+                            <span>📞 Call Now</span>
+                        </a>
+                        <a href="https://api.whatsapp.com/send?phone=917464870444&text=Hello%20Aklavyaaa,%20I%20need%20support%20for%20FoodBook!" target="_blank" class="contact-link-btn wa">
+                            <span>💬 WhatsApp</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PERSISTENT NAVIGATION SHELL STRIP (5 TABS) -->
+    <nav id="appNavigation" class="hidden">
+        <button id="navDashBtn" onclick="switchMainTab('dashboard')" class="nav-btn active"><span>📊</span><span>Ledger</span></button>
+        <button id="navRepBtn" onclick="switchMainTab('reports')" class="nav-btn"><span>📈</span><span>Reports</span></button>
+        
+        <button onclick="openMenuWizard()" class="add-action-btn">+</button>
+        
+        <button id="navInvBtn" onclick="switchMainTab('inventory')" class="nav-btn"><span>📦</span><span>Stock</span></button>
+        <button id="navHelpBtn" onclick="switchMainTab('help')" class="nav-btn"><span>💬</span><span>Support</span></button>
+    </nav>
+
+    <!-- SYSTEM OVERLAY POPUPS -->
+
+    <!-- WIZARD MODULE 1: FOOD TILES GRID -->
+    <div id="wizardMenuDialog" class="overlay">
+        <div class="overlay-body">
+            <div class="overlay-header">
+                <div>
+                    <h3 style="font-size:18px; font-weight:900;">New Order Bill</h3>
+                    <p style="font-size:12px; color:var(--text-muted);">Tap options to stack inside invoice card</p>
+                </div>
+                <button onclick="closeWizardMenu()" class="close-btn">×</button>
+            </div>
+            <div id="wizardItemGrid" class="menu-tiles-grid hide-scrollbar">
+                <!-- Programmatically filled -->
+            </div>
+            <div style="border-top:2px solid var(--border); padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span id="wizardItemsCount" style="font-size:11px; display:block; opacity:0.6; font-weight:700;">Items Picked: 0</span>
+                    <span id="wizardRunningTotal" style="font-size:26px; font-weight:900; color:var(--success);">₹0</span>
+                </div>
+                <button onclick="advanceToCheckout()" style="padding:14px 28px; border:none; background:var(--success); color:white; border-radius:14px; font-weight:900; cursor:pointer;">PROCEED DUE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WIZARD MODULE 2: VARIANT SWITCHER -->
+    <div id="wizardModifierDialog" class="overlay" style="align-items:center;">
+        <div class="overlay-body" style="max-width:300px; border-radius:24px;">
+            <div style="text-align:center;">
+                <span id="modTargetIcon" style="font-size:44px; display:block;">🍔</span>
+                <h4 id="modTargetName" style="font-size:18px; font-weight:900; margin-top:4px;">Portion Modifier</h4>
+            </div>
+            <div class="variant-row">
+                <button id="portionFullBtn" onclick="selectPortionMode('FULL')" class="var-btn active">FULL</button>
+                <button id="portionHalfBtn" onclick="selectPortionMode('HALF')" class="var-btn">HALF</button>
+            </div>
+            <div>
+                <label style="font-size:11px; font-weight:800; opacity:0.5; display:block; margin-bottom:6px;">Portion Price Rate (₹)</label>
+                <input type="number" id="modTargetPrice" class="input-box" style="text-align:center; font-weight:900; font-size:18px;">
+            </div>
+            <div>
+                <label style="font-size:11px; font-weight:800; opacity:0.5; display:block; margin-bottom:6px;">Quantity Counter</label>
+                <div class="math-counter">
+                    <button onclick="adjustWizardQty(-1)" class="math-btn">-</button>
+                    <span id="modTargetQty" class="math-val">1</span>
+                    <button onclick="adjustWizardQty(1)" class="math-btn">+</button>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;">
+                <button onclick="closeModifierDialog()" class="input-box" style="cursor:pointer; font-weight:700; font-size:13px; text-align:center;">Cancel</button>
+                <button onclick="commitItemToWizardCart()" style="border:none; background:var(--accent); color:#0b0f19; border-radius:14px; font-weight:900; cursor:pointer;">STACK ROW</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WIZARD MODULE 3: BREAKDOWN AND CHECKOUT -->
+    <div id="wizardCheckoutDialog" class="overlay">
+        <div class="overlay-body">
+            <div class="overlay-header">
+                <h3 style="font-size:18px; font-weight:900;">Final Settle Slate</h3>
+                <button onclick="closeCheckoutDialog()" class="close-btn">×</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <input type="text" id="checkoutCustomerName" placeholder="Note Tag (e.g. Table 4)" class="input-box">
+                <input type="tel" id="checkoutCustomerPhone" placeholder="Mobile Number (Optional)" class="input-box">
+            </div>
+            
+            <div style="background:var(--bg-main); border:2px solid var(--border); padding:14px; border-radius:16px;">
+                <div class="breakdown-row"><span>Items Subtotal:</span><span id="bdSubtotal">₹0</span></div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; margin-bottom:8px;">
+                    <span style="font-size:13px; font-weight:700; opacity:0.8;">Apply Discount (₹):</span>
+                    <input type="number" id="checkoutDiscountInput" value="0" oninput="runLiveBreakdownMath()" style="max-width:90px; padding:6px; border-radius:8px; border:2px solid var(--border); background:var(--bg-input); color:var(--text-main); font-weight:900; text-align:center;">
+                </div>
+                
+                <div style="border-top:1px dashed var(--border); margin-top:8px; padding-top:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:14px; font-weight:900; color:var(--accent);">Net Total Due:</span>
+                    <span id="checkoutTotalDisplay" style="font-size:26px; font-weight:900; color:var(--success);">₹0</span>
+                </div>
+            </div>
+
+            <div class="settle-grid">
+                <button onclick="executeFinalOrderSave('CASH')" class="pay-action-btn cash">💵 SETTLE CASH</button>
+                <button onclick="executeFinalOrderSave('UPI')" class="pay-action-btn upi">📱 SETTLE UPI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WIZARD MODULE 4: WHATSAPP PROMPT -->
+    <div id="whatsappPromptDialog" class="overlay" style="align-items:center;">
+        <div class="overlay-body" style="max-width:280px; border-radius:24px; text-align:center; gap:12px; padding:24px;">
+            <span style="font-size:40px; color:#25d366; display:block;">💬</span>
+            <h4 style="font-size:18px; font-weight:900;">Send Receipt String?</h4>
+            <p style="font-size:12px; color:var(--text-muted); font-weight:500;">Launch WhatsApp gateway api redirect framework instantly.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <button onclick="handleWhatsappDecision(false)" class="input-box" style="cursor:pointer; font-weight:700; font-size:13px; text-align:center;">Skip</button>
+                <button onclick="handleWhatsappDecision(true)" style="border:none; background:#25d366; color:white; border-radius:14px; font-weight:900; cursor:pointer;">Send Bill</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CORE SCRIPT ENGINE RUN -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOoHnij3Dzc2OXbv4YSbboIMVafn6CODw",
+            authDomain: "foodbook-ea39d.firebaseapp.com",
+            databaseURL: "https://foodbook-ea39d-default-rtdb.firebaseio.com",
+            projectId: "foodbook-ea39d",
+            storageBucket: "foodbook-ea39d.firebasestorage.app",
+            messagingSenderId: "892105261772",
+            appId: "1:892105261772:web:efcc054ddf88b6ddf0b869"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let activeMenu = JSON.parse(localStorage.getItem('cached_menu')) || {};
+        let activeOrders = JSON.parse(localStorage.getItem('cached_orders')) || {};
+        let wizardCart = [];
+        let temporarySelectedKey = null;
+        let temporaryQtyCount = 1;
+        let selectedPortion = 'FULL'; 
+        let reportPaymentFilterMode = 'ALL';
+        let currentActiveWhatsappPayload = null;
+
+        // Visual Splash Screen Timeout Handler Pipeline Execution Frame
+        setTimeout(() => {
+            const splash = document.getElementById('splashScreen');
+            if(splash) {
+                splash.style.opacity = '0';
+                splash.style.visibility = 'hidden';
+                setTimeout(() => splash.remove(), 500);
+            }
+            
+            // Bring forward primary passcode lock window frame
+            if (localStorage.getItem('foodbook_authorized') !== 'true') {
+                document.getElementById('lockScreen').classList.remove('hidden');
+            }
+        }, 2500);
+
+        window.onload = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('filterDateInput').value = today;
+
+            renderDashboardLedger();
+            applyReportFilters();
+            populateWizardGrid();
+            populateAdminMenuRows();
+
+            if (localStorage.getItem('foodbook_authorized') === 'true') {
+                bypassLockGate();
+            }
+            document.getElementById('filterDateInput').addEventListener('change', applyReportFilters);
+        };
+
+        function verifyPasscode() {
+            const val = document.getElementById('passcodeInput').value;
+            database.ref('settings/app_passcode').once('value').then((snapshot) => {
+                const pin = snapshot.val() || "1234";
+                if(val === pin) {
+                    localStorage.setItem('foodbook_authorized', 'true');
+                    bypassLockGate();
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
+                    setTimeout(() => document.getElementById('loginError').style.display = 'none', 2000);
+                    document.getElementById('passcodeInput').value = '';
+                }
+            });
+        }
+
+        function bypassLockGate() {
+            document.getElementById('lockScreen').style.add ? null : document.getElementById('lockScreen').classList.add('hidden');
+            document.getElementById('appHeader').classList.remove('hidden');
+            document.getElementById('dashboardView').classList.remove('hidden');
+            document.getElementById('appNavigation').classList.remove('hidden');
+            bindCloudListeners();
+        }
+
+        function logout() {
+            localStorage.removeItem('foodbook_authorized');
+            location.reload();
+        }
+
+        function toggleAppTheme() {
+            const b = document.body;
+            b.className = (b.className === 'theme-dark') ? "theme-light" : "theme-dark";
+        }
+
+        function switchMainTab(targetKey) {
+            document.querySelectorAll('.tab-view').forEach(view => view.classList.add('hidden'));
+            document.getElementById('navDashBtn').classList.remove('active');
+            document.getElementById('navRepBtn').classList.remove('active');
+            document.getElementById('navInvBtn').classList.remove('active');
+            document.getElementById('navHelpBtn').classList.remove('active');
+
+            if(targetKey === 'dashboard') {
+                document.getElementById('dashboardView').classList.remove('hidden');
+                document.getElementById('navDashBtn').classList.add('active');
+                renderDashboardLedger();
+            } else if(targetKey === 'reports') {
+                document.getElementById('reportsView').classList.remove('hidden');
+                document.getElementById('navRepBtn').classList.add('active');
+                applyReportFilters();
+            } else if(targetKey === 'inventory') {
+                document.getElementById('inventoryView').classList.remove('hidden');
+                document.getElementById('navInvBtn').classList.add('active');
+            } else if(targetKey === 'help') {
+                document.getElementById('helpView').classList.remove('hidden');
+                document.getElementById('navHelpBtn').classList.add('active');
+            }
+        }
+
+        function bindCloudListeners() {
+            database.ref('menu').on('value', (snapshot) => {
+                activeMenu = snapshot.val() || {};
+                localStorage.setItem('cached_menu', JSON.stringify(activeMenu));
+                populateWizardGrid();
+                populateAdminMenuRows();
+                populateFilterDropdown();
+            });
+
+            database.ref('orders').on('value', (snapshot) => {
+                activeOrders = snapshot.val() || {};
+                localStorage.setItem('cached_orders', JSON.stringify(activeOrders));
+                renderDashboardLedger();
+                applyReportFilters();
+            });
+        }
+
+        function populateFilterDropdown() {
+            const dropdown = document.getElementById('filterItemDropdown');
+            if(!dropdown) return;
+            dropdown.innerHTML = '<option value="ALL">ALL Menu Items</option>';
+            for(let key in activeMenu) {
+                const opt = document.createElement('option');
+                opt.value = activeMenu[key].name;
+                opt.innerText = `${activeMenu[key].icon || '🍽️'} ${activeMenu[key].name}`;
+                dropdown.appendChild(opt);
+            }
+        }
+
+        function renderDashboardLedger() {
+            const container = document.getElementById('ledgerContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const todayKey = new Date().toISOString().split('T')[0]; 
+            let salesTotal = 0, orderCount = 0;
+            let collections = [];
+
+            for(let key in activeOrders) {
+                const order = activeOrders[key];
+                if(order.date_string !== todayKey) continue;
+                
+                salesTotal += order.total_amount;
+                orderCount++;
+                collections.push(order);
+            }
+
+            document.getElementById('statTotalSales').innerText = `₹${salesTotal}`;
+            document.getElementById('statTotalOrdersCount').innerText = orderCount;
+
+            if(collections.length === 0) {
+                container.innerHTML = `<p style="font-size:13px; text-align:center; opacity:0.4; padding:36px 0; font-style:italic;">No orders generated today yet.</p>`;
+                return;
+            }
+
+            // Descending Sort Arrangement Pipeline strictly parsing Bill ID sequences
+            collections.sort((a, b) => b.bill_id.localeCompare(a.bill_id)).forEach((order) => {
+                const div = document.createElement('div');
+                div.className = "item-row";
+                let summary = order.items.map(i => `${i.name} x${i.quantity}`).join(', ');
+                let tagClass = order.payment_method === 'UPI' ? 'row-badge upi' : 'row-badge cash';
+
+                div.innerHTML = `
+                    <div class="row-info">
+                        <h4>${order.bill_id} - ${order.customer_details || 'Counter'} <span style="font-size:10px; color:var(--cyan); margin-left:4px;">(${order.customer_id})</span></h4>
+                        <p>${summary}</p>
+                    </div>
+                    <div class="row-right">
+                        <div style="text-align:right;">
+                            <span class="row-price">₹${order.total_amount}</span><br>
+                            <span class="${tagClass}">${order.payment_method}</span>
+                        </div>
+                        <button class="wa-btn" onclick='dispatchWhatsAppTextBill(${JSON.stringify(order)})'>💬 Bill</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function setReportPaymentFilter(mode) {
+            reportPaymentFilterMode = mode;
+            document.getElementById('reportTabAll').classList.remove('active');
+            document.getElementById('reportTabCash').classList.remove('active');
+            document.getElementById('reportTabUpi').classList.remove('active');
+            
+            if(mode === 'ALL') document.getElementById('reportTabAll').classList.add('active');
+            if(mode === 'CASH') document.getElementById('reportTabCash').classList.add('active');
+            if(mode === 'UPI') document.getElementById('reportTabUpi').classList.add('active');
+            
+            applyReportFilters();
+        }
+
+        function applyReportFilters() {
+            const dateKey = document.getElementById('filterDateInput').value;
+            const selectedItemFilter = document.getElementById('filterItemDropdown').value;
+            const container = document.getElementById('reportLedgerContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            let filteredSum = 0, cashSum = 0, upiSum = 0;
+            let collections = [];
+
+            for(let key in activeOrders) {
+                const order = activeOrders[key];
+                
+                if(order.date_string !== dateKey) continue;
+                if(reportPaymentFilterMode !== 'ALL' && order.payment_method !== reportPaymentFilterMode) continue;
+                
+                if(selectedItemFilter !== 'ALL') {
+                    let verified = order.items && order.items.some(i => i.name.startsWith(selectedItemFilter));
+                    if(!verified) continue;
+                }
+
+                filteredSum += order.total_amount;
+                if(order.payment_method === 'CASH') cashSum += order.total_amount;
+                if(order.payment_method === 'UPI') upiSum += order.total_amount;
+
+                collections.push(order);
+            }
+
+            document.getElementById('repSum').innerText = `₹${filteredSum}`;
+            document.getElementById('repCash').innerText = `₹${cashSum}`;
+            document.getElementById('repUpi').innerText = `₹${upiSum}`;
+
+            if(collections.length === 0) {
+                container.innerHTML = `<p style="font-size:12px; text-align:center; opacity:0.4; padding:20px 0; font-style:italic;">No matched parameters listed on this day window.</p>`;
+                return;
+            }
+
+            collections.sort((a, b) => b.bill_id.localeCompare(a.bill_id)).forEach((order) => {
+                const div = document.createElement('div');
+                div.className = "item-row";
+                let summary = order.items.map(i => `${i.name} x${i.quantity}`).join(', ');
+                let tagClass = order.payment_method === 'UPI' ? 'row-badge upi' : 'row-badge cash';
+
+                div.innerHTML = `
+                    <div class="row-info">
+                        <h4>${order.bill_id} - ${order.customer_details || 'Counter'}</h4>
+                        <p>${summary}</p>
+                    </div>
+                    <div class="row-right">
+                        <div style="text-align:right;">
+                            <span class="row-price">₹${order.total_amount}</span><br>
+                            <span class="${tagClass}">${order.payment_method}</span>
+                        </div>
+                        <button class="wa-btn" onclick='dispatchWhatsAppTextBill(${JSON.stringify(order)})'>💬 Bill</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function openMenuWizard() {
+            wizardCart = [];
+            updateWizardUIRuntime();
+            document.getElementById('wizardMenuDialog').classList.add('open');
+        }
+
+        function closeWizardMenu() {
+            document.getElementById('wizardMenuDialog').classList.remove('open');
+        }
+
+        function populateWizardGrid() {
+            const grid = document.getElementById('wizardItemGrid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            for(let key in activeMenu) {
+                const item = activeMenu[key];
+                const tile = document.createElement('div');
+                tile.className = "tile-card";
+                tile.onclick = () => openModifierDialog(key);
+                tile.innerHTML = `
+                    <span style="font-size:36px; display:block;">${item.icon || '🍽️'}</span>
+                    <h5>${item.name}</h5>
+                    <p>₹${item.base_price}</p>
+                `;
+                grid.appendChild(tile);
+            }
+        }
+
+        function openModifierDialog(key) {
+            temporarySelectedKey = key;
+            const item = activeMenu[key];
+            temporaryQtyCount = 1;
+            selectedPortion = 'FULL';
+
+            document.getElementById('portionFullBtn').className = "var-btn active";
+            document.getElementById('portionHalfBtn').className = "var-btn";
+
+            document.getElementById('modTargetIcon').innerText = item.icon || '🍽️';
+            document.getElementById('modTargetName').innerText = item.name;
+            document.getElementById('modTargetPrice').value = item.base_price;
+            document.getElementById('modTargetQty').innerText = temporaryQtyCount;
+
+            document.getElementById('wizardModifierDialog').classList.add('open');
+        }
+
+        function selectPortionMode(mode) {
+            selectedPortion = mode;
+            const base = parseFloat(activeMenu[temporarySelectedKey].base_price);
+            document.getElementById('portionFullBtn').className = "var-btn";
+            document.getElementById('portionHalfBtn').className = "var-btn";
+            
+            if(mode === 'FULL') {
+                document.getElementById('portionFullBtn').classList.add('active');
+                document.getElementById('modTargetPrice').value = base;
+            } else {
+                document.getElementById('portionHalfBtn').classList.add('active');
+                document.getElementById('modTargetPrice').value = base / 2;
+            }
+        }
+
+        function closeModifierDialog() {
+            document.getElementById('wizardModifierDialog').classList.remove('open');
+        }
+
+        // Numerical Math Counter
+        function adjustWizardQty(amt) {
+            temporaryQtyCount += amt;
+            if(temporaryQtyCount < 1) temporaryQtyCount = 1;
+            document.getElementById('modTargetQty').innerText = temporaryQtyCount;
+        }
+
+        function commitItemToWizardCart() {
+            const item = activeMenu[temporarySelectedKey];
+            const p = parseFloat(document.getElementById('modTargetPrice').value) || item.base_price;
+            
+            wizardCart.push({
+                name: `${item.name} (${selectedPortion})`,
+                price: p,
+                quantity: temporaryQtyCount,
+                subtotal: p * temporaryQtyCount
+            });
+
+            updateWizardUIRuntime();
+            closeModifierDialog();
+        }
+
+        function updateWizardUIRuntime() {
+            let running = wizardCart.reduce((sum, i) => sum + i.subtotal, 0);
+            document.getElementById('wizardRunningTotal').innerText = `₹${running}`;
+            document.getElementById('wizardItemsCount').innerText = `Items Picked: ${wizardCart.length}`;
+        }
+
+        function advanceToCheckout() {
+            if(wizardCart.length === 0) return alert("Pick items first!");
+            closeWizardMenu();
+            
+            document.getElementById('checkoutDiscountInput').value = "0";
+            document.getElementById('checkoutCustomerName').value = '';
+            document.getElementById('checkoutCustomerPhone').value = '';
+            
+            runLiveBreakdownMath();
+            document.getElementById('wizardCheckoutDialog').classList.add('open');
+        }
+
+        function runLiveBreakdownMath() {
+            let subtotal = wizardCart.reduce((sum, i) => sum + i.subtotal, 0);
+            let discount = parseFloat(document.getElementById('checkoutDiscountInput').value) || 0;
+            let netTotal = subtotal - discount;
+            if(netTotal < 0) netTotal = 0;
+
+            document.getElementById('bdSubtotal').innerText = `₹${subtotal}`;
+            document.getElementById('checkoutTotalDisplay').innerText = `₹${netTotal}`;
+        }
+
+        function closeCheckoutDialog() {
+            document.getElementById('wizardCheckoutDialog').classList.remove('open');
+        }
+
+        function executeFinalOrderSave(payMethod) {
+            const name = document.getElementById('checkoutCustomerName').value.trim() || "Walk-in Customer";
+            const phone = document.getElementById('checkoutCustomerPhone').value.trim();
+            
+            let subtotal = wizardCart.reduce((sum, i) => sum + i.subtotal, 0);
+            let discount = parseFloat(document.getElementById('checkoutDiscountInput').value) || 0;
+            let netTotal = subtotal - discount;
+            if(netTotal < 0) netTotal = 0;
+            
+            const rightNow = new Date();
+            const dString = rightNow.toISOString().split('T')[0];
+
+            database.ref('orders').once('value').then((snapshot) => {
+                let ordersMap = snapshot.val() || {};
+                let nextIndexNumber = Object.keys(ordersMap).length + 1;
+                
+                let formattedBillId = "B" + String(nextIndexNumber).padStart(5, '0');
+                let formattedCustomerId = "C" + String(nextIndexNumber).padStart(5, '0');
+
+                const payload = {
+                    bill_id: formattedBillId,
+                    customer_id: formattedCustomerId,
+                    timestamp: rightNow.getTime(),
+                    date_string: dString,
+                    customer_details: name,
+                    customer_phone: phone,
+                    items: wizardCart,
+                    subtotal_amount: subtotal,
+                    discount_amount: discount,
+                    total_amount: netTotal,
+                    payment_method: payMethod
+                };
+
+                database.ref(`orders/${formattedBillId}`).set(payload).then(() => {
+                    closeCheckoutDialog();
+                    if(phone.length >= 10) {
+                        currentActiveWhatsappPayload = payload;
+                        document.getElementById('whatsappPromptDialog').classList.add('open');
+                    } else {
+                        switchMainTab('dashboard');
+                    }
+                }).catch(e => alert(e.message));
+            });
+        }
+
+        function handleWhatsappDecision(agreed) {
+            document.getElementById('whatsappPromptDialog').classList.remove('open');
+            if(agreed && currentActiveWhatsappPayload) {
+                dispatchWhatsAppTextBill(currentActiveWhatsappPayload);
+            }
+            currentActiveWhatsappPayload = null;
+            switchMainTab('dashboard');
+        }
+
+        function dispatchWhatsAppTextBill(order) {
+            let txt = `*📚 RECEIPT SUMMARY*\n`;
+            txt += `=========================\n`;
+            txt += `*Bill No:* ${order.bill_id}\n`;
+            txt += `*Customer ID:* ${order.customer_id}\n`;
+            txt += `*Details:* ${order.customer_details}\n`;
+            txt += `*Payment:* ${order.payment_method}\n`;
+            txt += `=========================\n`;
+            order.items.forEach(i => {
+                txt += `• ${i.name}\n   _${i.quantity} x ₹${i.price}_  ->  ₹${i.subtotal}\n`;
+            });
+            txt += `=========================\n`;
+            txt += `*Gross Subtotal:* ₹${order.subtotal_amount}\n`;
+            if(order.discount_amount > 0) {
+                txt += `*Discount Applied:* -₹${order.discount_amount}\n`;
+            }
+            txt += `*NET PAID SUMMARY: ₹${order.total_amount}*\n\n`;
+            txt += `Thank you! 🙏`;
+            
+            const url = `https://api.whatsapp.com/send?phone=${order.customer_phone || ''}&text=${encodeURIComponent(txt)}`;
+            window.open(url, '_blank');
+        }
+
+        function populateAdminMenuRows() {
+            const container = document.getElementById('adminMenuGrid');
+            if(!container) return;
+            container.innerHTML = '';
+            for(let key in activeMenu) {
+                const item = activeMenu[key];
+                const div = document.createElement('div');
+                div.className = "item-row";
+                div.style.marginBottom = "0px";
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:24px;">${item.icon || '🍽️'}</span>
+                        <div>
+                            <span style="font-size:14px; font-weight:800; display:block;">${item.name}</span>
+                            <span style="font-size:11px; opacity:0.6; font-family:monospace;">Rate: ₹${item.base_price}</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="wa-btn" style="color:var(--text-main); border: 2px solid var(--border); background:rgba(128,128,128,0.1); box-shadow:none;" onclick="editItemFromAdmin('${key}')">Edit</button>
+                        <button class="wa-btn" style="color:#ef4444; background:rgba(239,68,68,0.08); box-shadow:none;" onclick="deleteItemFromAdmin('${key}')">Delete</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        function saveItemToMenu() {
+            const icon = document.getElementById('adminItemIcon').value.trim() || '🍽️';
+            const name = document.getElementById('adminItemName').value.trim();
+            const price = parseFloat(document.getElementById('adminItemPrice').value);
+
+            if(!name || isNaN(price)) return alert("Please fill fields accurately.");
+            const targetKey = 'item_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+            database.ref(`menu/${targetKey}`).set({ name, icon, base_price: price }).then(() => {
+                document.getElementById('adminItemIcon').value = '';
+                document.getElementById('adminItemName').value = '';
+                document.getElementById('adminItemPrice').value = '';
+            });
+        }
+
+        function editItemFromAdmin(k) {
+            const i = activeMenu[k];
+            document.getElementById('adminItemIcon').value = i.icon || '';
+            document.getElementById('adminItemName').value = i.name || '';
+            document.getElementById('adminItemPrice').value = i.base_price || '';
+        }
+
+        function deleteItemFromAdmin(k) {
+            if(confirm("Delete item from list configuration parameters?")) {
+                database.ref(`menu/${k}`).remove();
+            }
+        }
+    </script>
+</body>
+</html>
