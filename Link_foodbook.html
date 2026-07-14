@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FoodBook - Cafe OS</title>
     
+    <!-- Stable Compat Firebase Hooks -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
@@ -172,8 +173,9 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            max-height: 55vh;
+            max-height: calc(100vh - 350px);
             overflow-y: auto;
+            padding-bottom: 20px;
         }
         .item-row {
             display: flex;
@@ -347,9 +349,18 @@
         .contact-link-btn.wa { background-color: #25d366; }
         .contact-link-btn.call { background-color: #3b82f6; }
 
-        /* Premium License Block Grid Styles */
         .license-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; font-weight: 600; border-bottom: 1px dashed var(--border); }
         .license-row:last-child { border: none; }
+
+        /* FIXED: Dynamic Responsive height tracking wrapper logic prevents cutoffs */
+        .admin-menu-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: calc(100vh - 430px);
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
 
         #splashScreen {
             position: fixed;
@@ -386,6 +397,7 @@
 
     <div class="app-shell">
         
+        <!-- ONE-TIME PASSCODE GATE -->
         <div id="lockScreen" class="hidden" style="position:fixed; inset:0; background:#0c111d; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
             <div style="text-align:center; margin-bottom:28px;">
                 <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" style="width:80px; height:80px; border-radius:18px; border:2px solid #ff9f00; margin-bottom:12px; object-fit:cover;">
@@ -411,6 +423,7 @@
             </div>
         </header>
 
+        <!-- TAB 1: LEDGER -->
         <div id="dashboardView" class="tab-view hidden">
             <div class="stats-row">
                 <div class="card stat-card">
@@ -427,6 +440,7 @@
             <div id="ledgerContainer" class="list-container hide-scrollbar"></div>
         </div>
 
+        <!-- TAB 2: REPORTS -->
         <div id="reportsView" class="tab-view hidden">
             <div class="card" style="padding: 16px;">
                 <h3 style="font-size:16px; font-weight:900; color:var(--accent); margin-bottom:12px;">Reports..</h3>
@@ -459,8 +473,9 @@
             <div id="reportLedgerContainer" class="list-container hide-scrollbar"></div>
         </div>
 
+        <!-- TAB 3: INVENTORY -->
         <div id="inventoryView" class="tab-view hidden">
-            <div class="card" style="display:flex; flex-direction:column; gap:14px;">
+            <div class="card" style="display:flex; flex-direction:column; gap:14px; margin-bottom:14px;">
                 <h3 style="font-size:16px; font-weight:900; color:var(--cyan);">Add new Item..</h3>
                 <div style="display:grid; grid-template-columns: 70px 1fr; gap:10px;">
                     <input type="text" id="adminItemIcon" placeholder="🍔" class="input-box" style="text-align:center; font-size:20px;">
@@ -470,10 +485,12 @@
                 <button onclick="saveItemToMenu()" style="width:100%; padding:16px; font-weight:900; background:var(--accent); color:#0b0f19; border:none; border-radius:14px; cursor:pointer;">Save</button>
             </div>
 
-            <div style="margin-bottom:10px; padding-left:2px;"><span class="stat-lbl">📦 Configured Inventory Matrix</span></div>
-            <div id="adminMenuGrid" style="display:flex; flex-direction:column; gap:12px; max-height:280px; overflow-y:auto;" class="hide-scrollbar"></div>
+            <div style="margin-bottom:8px; padding-left:2px;"><span class="stat-lbl">📦 Configured Inventory Matrix</span></div>
+            <!-- FIXED: Using upgraded class container definition allows vertical layout mapping -->
+            <div id="adminMenuGrid" class="admin-menu-list-container hide-scrollbar"></div>
         </div>
 
+        <!-- TAB 4: SUPPORT & PREMIUM METRICS -->
         <div id="helpView" class="tab-view hidden">
             <div class="card" style="padding: 18px; margin-bottom: 16px;">
                 <h4 style="font-size:14px; font-weight:900; color:var(--accent); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">👑 System Premium License</h4>
@@ -515,6 +532,7 @@
         <button id="navHelpBtn" onclick="switchMainTab('help')" class="nav-btn"><span>💬</span><span>Support</span></button>
     </nav>
 
+    <!-- WIZARD OVERLAYS -->
     <div id="wizardMenuDialog" class="overlay">
         <div class="overlay-body">
             <div class="overlay-header">
@@ -572,7 +590,6 @@
             </div>
             <div style="display:flex; flex-direction:column; gap:10px;">
                 <input type="text" id="checkoutCustomerName" placeholder="Note Tag (e.g. Table 4)" class="input-box">
-                
                 <div style="display: grid; grid-template-columns: 80px 1fr; gap: 8px; width: 100%;">
                     <input type="text" id="checkoutCountryCode" value="+91" class="input-box" style="text-align: center; font-weight: 700;">
                     <input type="tel" id="checkoutCustomerPhone" placeholder="10-Digit Mobile Number" class="input-box" maxlength="10">
@@ -631,7 +648,7 @@
         let temporaryQtyCount = 1;
         let selectedPortion = 'FULL'; 
         let reportPaymentFilterMode = 'ALL';
-        let currentActiveWhatsappPayload = null;
+        let currentActiveWorkspacePayload = null;
 
         setTimeout(() => {
             const splash = document.getElementById('splashScreen');
@@ -719,7 +736,6 @@
             }
         }
 
-        // UPGRADED LICENSE MANAGER PIPELINE ENGINE
         function syncLicenseCounters() {
             database.ref('settings').once('value').then((snapshot) => {
                 const settings = snapshot.val() || {};
@@ -729,7 +745,6 @@
                 document.getElementById('licLastPay').innerText = lastPayStr;
                 document.getElementById('licPrevPay').innerText = prevPayStr;
 
-                // Calculate date delta days remaining active metrics
                 const lastPayDate = new Date(lastPayStr);
                 const todayDate = new Date();
                 
@@ -1020,7 +1035,6 @@
             const code = document.getElementById('checkoutCountryCode').value.trim();
             const rawPhone = document.getElementById('checkoutCustomerPhone').value.trim();
             
-            // Join country code parameter dynamically to secure links arrays execution
             let finalPhoneMapping = "";
             if(rawPhone.length >= 10) {
                 finalPhoneMapping = code + rawPhone;
