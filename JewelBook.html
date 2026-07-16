@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jewelbook Premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --maroon-main: #4A0E17;
+            --maroon-dark: #2A050B;
+            --maroon-light: #6B1D28;
+            --gold-main: #DFBA6B;
+            --gold-dark: #C5A04E;
+            --gold-glow: rgba(223, 186, 107, 0.15);
+            --bg-light: #FAF8F5;
+            --card-light: #FFFFFF;
+            --text-light: #2D2224;
+            --text-muted-light: #6E6264;
+            
+            --bg-color: var(--bg-light);
+            --card-bg: var(--card-light);
+            --text-color: var(--text-light);
+            --text-muted: var(--text-muted-light);
+            --border-color: rgba(74, 14, 23, 0.08);
+            --shadow-sm: 0 2px 8px rgba(74, 14, 23, 0.04);
+            --shadow-md: 0 8px 20px rgba(74, 14, 23, 0.06);
+        }
+
+        .dark-theme {
+            --bg-color: #140305;
+            --card-bg: #22080B;
+            --text-color: #FDFBF7;
+            --text-muted: #A39698;
+            --border-color: rgba(223, 186, 107, 0.15);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+            --shadow-md: 0 8px 20px rgba(0,0,0,0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+            min-height: 100vh;
+            font-size: 0.85rem;
+        }
+
+        /* --- GLOBAL TOAST SYSTEM --- */
+        .toast {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--maroon-main) 0%, var(--maroon-dark) 100%);
+            border: 1px solid var(--gold-main); color: #FFF;
+            padding: 10px 20px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            z-index: 10000; font-weight: 500; font-size: 0.8rem;
+            display: flex; align-items: center; gap: 8px;
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast.show { top: 20px; }
+
+        /* --- CUSTOM MODAL POPUPS --- */
+        .custom-popup-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.6); z-index: 3000; justify-content: center; align-items: center; padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .popup-body {
+            background-color: var(--card-bg); border: 1px solid var(--border-color);
+            padding: 24px; border-radius: 16px; width: 100%; max-width: 340px;
+            box-shadow: var(--shadow-md); text-align: center;
+        }
+        .popup-body h3 { color: var(--maroon-main); font-size: 1.1rem; margin-bottom: 8px; font-weight: 700; }
+        .dark-theme .popup-body h3 { color: var(--gold-main); }
+        .popup-body p { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; line-height: 1.4; }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, var(--maroon-main) 0%, var(--maroon-dark) 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
+            transition: opacity 0.4s, visibility 0.4s;
+        }
+        #splash-screen.hidden { opacity: 0; visibility: hidden; }
+        .splash-logo {
+            width: 80px; height: 80px; border-radius: 20px; border: 2px solid var(--gold-main);
+            object-fit: cover; box-shadow: 0 0 30px var(--gold-glow);
+            animation: appPulse 2s infinite ease-in-out;
+        }
+        @keyframes appPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+
+        /* --- STYLISH AUTH SCREENS --- */
+        .auth-container {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px;
+            background: radial-gradient(circle at top right, var(--maroon-light) 0%, var(--maroon-dark) 100%);
+        }
+        .auth-card {
+            background: rgba(34, 8, 11, 0.8); border: 1px solid rgba(223, 186, 107, 0.2);
+            padding: 30px 24px; border-radius: 20px; width: 100%; max-width: 360px;
+            backdrop-filter: blur(15px); text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+        .auth-card h2 { color: var(--gold-main); margin-bottom: 24px; font-size: 1.3rem; font-weight: 700; }
+        
+        .input-group { margin-bottom: 16px; text-align: left; }
+        .input-group label { display: block; color: var(--gold-main); font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(223, 186, 107, 0.2);
+            background: rgba(255,255,255,0.06); color: #fff; font-size: 0.85rem; outline: none; transition: all 0.2s;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: var(--gold-main); background: rgba(255,255,255,0.1); }
+        .input-group select option { background: var(--maroon-dark); color: #fff; }
+
+        .btn-gold {
+            width: 100%; padding: 12px; font-weight: 600; font-size: 0.85rem;
+            background: linear-gradient(135deg, var(--gold-main) 0%, var(--gold-dark) 100%);
+            border: none; border-radius: 10px; color: var(--maroon-dark); cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(223, 186, 107, 0.25); }
+
+        header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 64px;
+            background-color: var(--card-bg); display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; box-shadow: var(--shadow-sm); z-index: 900; border-bottom: 1px solid var(--border-color);
+        }
+        .header-logo { color: var(--maroon-main); font-size: 1.25rem; font-weight: 800; }
+        .dark-theme .header-logo { color: var(--gold-main); }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .user-pill { background-color: var(--border-color); padding: 6px 12px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+
+        .main-content { padding: 84px 16px 100px 16px; max-width: 520px; margin: 0 auto; }
+        .app-view { display: none; animation: viewFade 0.3s ease forwards; }
+        .app-view.active { display: block; }
+        @keyframes viewFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .dashboard-hero {
+            background: linear-gradient(135deg, var(--maroon-main) 0%, var(--maroon-dark) 100%);
+            border-radius: 20px; padding: 20px; color: #fff; box-shadow: var(--shadow-md); margin-bottom: 20px;
+        }
+        .hero-lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gold-main); font-weight: 600; }
+        .hero-val { font-size: 2.4rem; font-weight: 800; margin: 4px 0; color: #FFF; }
+        
+        .section-title { font-size: 0.95rem; margin-bottom: 12px; color: var(--maroon-main); display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+        .dark-theme .section-title { color: var(--gold-main); }
+
+        .visit-card {
+            background-color: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-sm);
+        }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        .visit-id-badge { background: rgba(223,186,107,0.12); color: var(--gold-dark); font-weight: 700; font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; }
+        .card-title { font-size: 0.9rem; font-weight: 700; }
+        .card-meta { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
+        .card-msg { font-size: 0.8rem; line-height: 1.4; background-color: var(--border-color); padding: 8px 12px; border-radius: 8px; font-style: italic; }
+        
+        .status-pill { padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+        .status-pill.yes { background-color: rgba(46, 125, 50, 0.08); color: #2e7d32; }
+        .status-pill.no { background-color: rgba(198, 40, 40, 0.08); color: #c62828; }
+        
+        .card-actions-row { display: flex; gap: 8px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 8px; justify-content: flex-end; }
+        .action-icon-btn { background: none; border: none; font-size: 0.75rem; cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; transition: all 0.2s; }
+        .action-icon-btn.edit { color: var(--gold-dark); background: rgba(223,186,107,0.1); }
+        .action-icon-btn.delete { color: #c62828; background: rgba(198,40,40,0.05); }
+
+        .premium-form-card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; box-shadow: var(--shadow-md); margin-bottom: 16px; }
+        .app-input-field {
+            width: 100%; padding: 10px 12px; margin-bottom: 12px; border-radius: 8px;
+            border: 1px solid var(--border-color); background-color: var(--bg-color);
+            color: var(--text-color); font-size: 0.85rem; outline: none; transition: border-color 0.2s;
+        }
+        .app-input-field:focus { border-color: var(--gold-main); }
+        
+        .segmented-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .segment-btn { flex: 1; }
+        .segment-btn input[type="radio"] { display: none; }
+        .segment-btn label {
+            display: block; text-align: center; padding: 10px; border: 1px solid var(--border-color);
+            border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; background-color: var(--bg-color);
+        }
+        .segment-btn input[type="radio"]:checked + label { background-color: var(--maroon-main); color: #FFF; border-color: var(--maroon-main); }
+        .dark-theme .segment-btn input[type="radio"]:checked + label { background-color: var(--gold-main); color: var(--maroon-dark); border-color: var(--gold-main); }
+
+        .admin-sub-menu { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+        .sub-tab-btn { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: var(--text-muted); white-space: nowrap; }
+        .sub-tab-btn.active { background-color: var(--maroon-main); color: #FFF; border-color: var(--maroon-main); }
+        .dark-theme .sub-tab-btn.active { background-color: var(--gold-main); color: var(--maroon-dark); border-color: var(--gold-main); }
+        
+        .admin-view-panel { display: none; }
+        .admin-view-panel.active { display: block; }
+
+        .filter-panel { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 14px; border-radius: 14px; margin-bottom: 16px; }
+        .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .filter-item label { display: block; font-size: 0.7rem; font-weight: 600; margin-bottom: 2px; color: var(--text-muted); text-transform: uppercase; }
+        .filter-item input, .filter-item select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); font-size: 0.8rem; outline: none; }
+
+        /* --- FLOATING 5-BUTTON PILL NAV --- */
+        .nav-wrapper { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 460px; z-index: 950; }
+        .bottom-pill-nav {
+            background: rgba(42, 5, 11, 0.94); border: 1px solid rgba(223, 186, 107, 0.15);
+            height: 60px; border-radius: 16px; display: flex; justify-content: space-around; align-items: center; padding: 0 6px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); backdrop-filter: blur(10px);
+        }
+        .nav-pill-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.60rem; cursor: pointer; width: 44px; height: 44px; border-radius: 12px;
+        }
+        .nav-pill-item i { font-size: 1.05rem; margin-bottom: 1px; transition: transform 0.2s; }
+        .nav-pill-item.active { color: var(--gold-main); }
+        .nav-pill-item.active i { transform: translateY(-1px); }
+        
+        .nav-pill-item.center-action {
+            background: linear-gradient(135deg, var(--gold-main) 0%, var(--gold-dark) 100%);
+            color: var(--maroon-dark); width: 48px; height: 48px; border-radius: 50%;
+            transform: translateY(-12px); box-shadow: 0 4px 12px rgba(223, 186, 107, 0.3); border: 3px solid #2a050b;
+        }
+        .nav-pill-item.center-action i { font-size: 1.3rem; margin: 0; }
+        .nav-pill-item.center-action.active { transform: translateY(-14px); }
+
+        .salesman-manage-item {
+            background-color: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 10px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-toast" class="toast">
+        <i class="fa-solid fa-circle-info"></i> <span id="toast-text">Toast Alert Notification</span>
+    </div>
+
+    <div id="custom-alert-modal" class="custom-popup-modal">
+        <div class="popup-body">
+            <h3 id="custom-alert-title">Notification</h3>
+            <p id="custom-alert-msg" style="margin-top: 10px;"></p>
+            <button class="btn-gold" onclick="closeCustomAlert()">Dismiss</button>
+        </div>
+    </div>
+
+    <div id="custom-confirm-modal" class="custom-popup-modal">
+        <div class="popup-body">
+            <h3 id="custom-confirm-title">Are you sure?</h3>
+            <p id="custom-confirm-msg" style="margin-top: 10px;"></p>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-gold" style="background:#6E6264; color:#fff;" onclick="resolveCustomConfirm(false)">Cancel</button>
+                <button class="btn-gold" id="custom-confirm-agree-btn" onclick="resolveCustomConfirm(true)">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-change-sm-modal" class="custom-popup-modal">
+        <div class="popup-body">
+            <h3>Reassign Salesperson</h3>
+            <p id="admin-modal-cust-info"></p>
+            <input type="hidden" id="admin-modal-visit-id">
+            <div class="input-group">
+                <label style="color: var(--text-color); font-weight:600;">Select New Salesperson</label>
+                <select id="admin-modal-sm-select" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color);"></select>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:20px;">
+                <button class="btn-gold" style="background:#6E6264; color:#fff;" onclick="closeAdminChangeSmModal()">Cancel</button>
+                <button class="btn-gold" onclick="saveAdminSalespersonReassignment()">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="splash-screen">
+        <img class="splash-logo" src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784118474/Untitled_iyhklf.jpg" alt="Logo">
+    </div>
+
+    <div id="company-auth-view" class="auth-container" style="display: none;">
+        <div class="auth-card">
+            <h2>Activate Device</h2>
+            <div class="input-group">
+                <label>Company Activation Code</label>
+                <input type="text" id="company-code-input" placeholder="akjewel0202">
+            </div>
+            <button class="btn-gold" onclick="verifyCompanyCode()">Verify Configuration</button>
+        </div>
+    </div>
+
+    <div id="salesman-auth-view" class="auth-container" style="display: none;">
+        <div class="auth-card">
+            <h2>Salesman Sign In</h2>
+            <div class="input-group">
+                <label>Select Profile</label>
+                <select id="salesman-select"></select>
+            </div>
+            <div class="input-group">
+                <label>Security Password</label>
+                <input type="password" id="salesman-pass" placeholder="••••••••">
+            </div>
+            <button class="btn-gold" onclick="verifySalesman()">Authorize Login</button>
+        </div>
+    </div>
+
+    <div id="admin-gate-view" class="auth-container" style="display: none;">
+        <div class="auth-card">
+            <h2>Admin Verification</h2>
+            <p style="color: rgba(255,255,255,0.7); font-size:0.8rem; margin-bottom:16px;">Master keys required.</p>
+            <div class="input-group">
+                <label>Administrative Password</label>
+                <input type="password" id="admin-gate-pass" placeholder="••••••••">
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-gold" style="background:#6E6264; color:#fff;" onclick="abortAdminGate()">Cancel</button>
+                <button class="btn-gold" onclick="unlockAdminGateSubmit()">Unlock Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-workspace" style="display: none;">
+        <header>
+            <div class="header-logo">Jewelbook.</div>
+            <div class="header-actions">
+                <div class="user-pill" id="user-display-pill"><i class="fa-solid fa-user-tie"></i> Accessing...</div>
+                <button class="segment-btn" style="border:none; background:none; color:var(--gold-dark); font-size:1.1rem; cursor:pointer;" onclick="toggleAppTheme()">
+                    <i class="fa-solid fa-circle-half-stroke"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            
+            <section id="view-dashboard" class="app-view active">
+                <div class="dashboard-hero">
+                    <div class="hero-lbl">Total Customer Visits</div>
+                    <div class="hero-val" id="total-visits-counter">0</div>
+                </div>
+                <div class="section-title">Timeline Logs</div>
+                <div id="dashboard-timeline-container"></div>
+            </section>
+
+            <section id="view-my-logs" class="app-view">
+                <div class="dashboard-hero" style="background: linear-gradient(135deg, var(--maroon-light) 0%, #3A0910 100%);">
+                    <div class="hero-lbl">Personal Ledger</div>
+                    <div class="hero-val" style="font-size: 1.8rem; margin: 6px 0;" id="my-logs-title-name">My Customers</div>
+                </div>
+                <div class="section-title">Attended Customer Entries</div>
+                <div id="my-personal-logs-container"></div>
+            </section>
+
+            <section id="view-new-entry" class="app-view">
+                <div class="premium-form-card">
+                    <h3 style="margin-bottom:14px; font-weight:700; color:var(--maroon-main);" id="form-heading-title">Visitor Entry</h3>
+                    <form id="customer-form" onsubmit="handleFormSubmission(event)">
+                        <input type="hidden" id="edit-mode-active-key" value="">
+                        <input type="text" id="c-name" class="app-input-field" placeholder="Customer Name" required>
+                        <input type="tel" id="c-phone" class="app-input-field" placeholder="Contact Number" required>
+                        <input type="email" id="c-email" class="app-input-field" placeholder="Email Address (Optional)">
+                        
+                        <div class="segmented-row">
+                            <div class="segment-btn">
+                                <input type="radio" name="cust-type" id="type-new" value="new" checked>
+                                <label for="type-new">New Customer</label>
+                            </div>
+                            <div class="segment-btn">
+                                <input type="radio" name="cust-type" id="type-old" value="old">
+                                <label for="type-old">Old Profile</label>
+                            </div>
+                        </div>
+
+                        <div class="segmented-row">
+                            <div class="segment-btn">
+                                <input type="radio" name="cust-purc" id="purc-yes" value="true" checked>
+                                <label for="purc-yes"><i class="fa-solid fa-bag-shopping"></i> Purchased</label>
+                            </div>
+                            <div class="segment-btn">
+                                <input type="radio" name="cust-purc" id="purc-no" value="false">
+                                <label for="purc-no"><i class="fa-solid fa-xmark"></i> No Purchase</label>
+                            </div>
+                        </div>
+
+                        <textarea id="c-msg" class="app-input-field" rows="3" placeholder="Detailed logs regarding item selections or exit reasons..." required></textarea>
+                        <button type="submit" class="btn-gold" id="submit-form-action-btn">Commit Entry Log</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="view-self-editor" class="app-view">
+                <div class="dashboard-hero" style="background: linear-gradient(135deg, var(--gold-dark) 0%, #6E5314 100%);">
+                    <div class="hero-lbl">Correction Workspace</div>
+                    <div class="hero-val" style="font-size: 1.8rem; margin: 6px 0;">Self Entry Editor</div>
+                </div>
+                <div class="section-title">Modify Your Made Entries</div>
+                <div id="self-editor-list-container"></div>
+            </section>
+
+            <section id="view-admin" class="app-view">
+                <div class="admin-sub-menu">
+                    <button class="sub-tab-btn active" onclick="switchAdminSubPanel('admin-panel-filters', this)">Reports & Filters</button>
+                    <button class="sub-tab-btn" onclick="switchAdminSubPanel('admin-panel-salesmen', this)">Manage Salesmen</button>
+                    <button class="sub-tab-btn" onclick="switchAdminSubPanel('admin-panel-system', this)">Device System</button>
+                </div>
+
+                <div id="admin-panel-filters" class="admin-view-panel active">
+                    <div class="filter-panel">
+                        <div class="filter-grid">
+                            <div class="filter-item">
+                                <label>From Date</label>
+                                <input type="date" id="filter-start-date" onchange="applyAdvancedFilters()">
+                            </div>
+                            <div class="filter-item">
+                                <label>To Date</label>
+                                <input type="date" id="filter-end-date" onchange="applyAdvancedFilters()">
+                            </div>
+                        </div>
+                        <div class="filter-grid">
+                            <div class="filter-item">
+                                <label>Salesman</label>
+                                <select id="filter-salesman" onchange="applyAdvancedFilters()"></select>
+                            </div>
+                            <div class="filter-item">
+                                <label>Classification</label>
+                                <select id="filter-type" onchange="applyAdvancedFilters()">
+                                    <option value="all">All Statuses</option>
+                                    <option value="new">New Customer</option>
+                                    <option value="old">Old Customer</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-title">Master System Logs Output</div>
+                    <div id="admin-filtered-results"></div>
+                </div>
+
+                <div id="admin-panel-salesmen" class="admin-view-panel">
+                    <div class="premium-form-card">
+                        <h4 style="margin-bottom:12px; color:var(--maroon-main); font-weight:700;" id="sm-form-title">Register New Salesman</h4>
+                        <input type="hidden" id="edit-sm-mode-active-key" value="">
+                        
+                        <div class="input-group">
+                            <label style="color:var(--text-color)">Salesman Username Key ID</label>
+                            <input type="text" id="new-sm-key" class="app-input-field" placeholder="e.g. rohit" style="background:var(--bg-color); color:var(--text-color);">
+                        </div>
+                        <div class="input-group">
+                            <label style="color:var(--text-color)">Display Name</label>
+                            <input type="text" id="new-sm-name" class="app-input-field" placeholder="e.g. Rohit Kumar" style="background:var(--bg-color); color:var(--text-color);">
+                        </div>
+                        <div class="input-group">
+                            <label style="color:var(--text-color)">Security Password</label>
+                            <input type="text" id="new-sm-pass" class="app-input-field" placeholder="e.g. rohitpass2026" style="background:var(--bg-color); color:var(--text-color);">
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-gold" style="background:#6E6264; color:#fff; display:none;" id="cancel-sm-edit-btn" onclick="resetSalesmanFormState()">Cancel</button>
+                            <button class="btn-gold" id="submit-sm-btn" onclick="commitSalesmanToDatabase()">Save Salesman Profile</button>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Active Database Profiles</div>
+                    <div id="admin-salesmen-list-container"></div>
+                </div>
+
+                <div id="admin-panel-system" class="admin-view-panel">
+                    <div class="premium-form-card" style="text-align:center;">
+                        <h4 style="margin-bottom:12px; font-weight:700;">System Configuration Reset</h4>
+                        <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:16px;">Wipes secure local session cache lock binding.</p>
+                        <button class="btn-gold" style="background:#cc2936; color:#FFF;" onclick="clearSystemSession()">Reset System Lock</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div class="nav-wrapper">
+            <nav class="bottom-pill-nav">
+                <div class="nav-pill-item active" onclick="navigatePill('view-dashboard', this)">
+                    <i class="fa-solid fa-house-chimney"></i>
+                    <span>Home</span>
+                </div>
+                <div class="nav-pill-item" onclick="navigatePill('view-my-logs', this)">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>My Logs</span>
+                </div>
+                <div class="nav-pill-item center-action" onclick="navigatePill('view-new-entry', this)">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <div class="nav-pill-item" onclick="navigatePill('view-self-editor', this)">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Edit Logs</span>
+                </div>
+                <div class="nav-pill-item" onclick="navigatePill('view-admin', this)">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Admin</span>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9Bwx5nWDS5ZIDDiUFw9JYG3V-AVTbR9s",
+            authDomain: "jewelbook-bb7b3.firebaseapp.com",
+            databaseURL: "https://jewelbook-bb7b3-default-rtdb.firebaseio.com",
+            projectId: "jewelbook-bb7b3",
+            storageBucket: "jewelbook-bb7b3.firebasestorage.app",
+            messagingSenderId: "318025398538",
+            appId: "1:318025398538:web:48e7ad6cd8f65b4b0ba2f3",
+            measurementId: "G-J84BK5F87Q"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let activeCompany = localStorage.getItem("jb_premium_co") || "";
+        let authSalesman = "";
+        let cachedCustomers = {};
+        let cachedSalesmen = {};
+        let isAdminAuthenticated = false;
+        let confirmPromiseResolver = null;
+
+        // --- NATIVE POPUP DIALOG REPLACEMENTS ---
+        window.openCustomAlert = function(title, msg) {
+            document.getElementById('custom-alert-title').innerText = title;
+            document.getElementById('custom-alert-msg').innerText = msg;
+            document.getElementById('custom-alert-modal').style.display = "flex";
+        }
+        window.closeCustomAlert = function() {
+            document.getElementById('custom-alert-modal').style.display = "none";
+        }
+
+        window.openCustomConfirm = function(title, msg) {
+            document.getElementById('custom-confirm-title').innerText = title;
+            document.getElementById('custom-confirm-msg').innerText = msg;
+            document.getElementById('custom-confirm-modal').style.display = "flex";
+            return new Promise((resolve) => {
+                confirmPromiseResolver = resolve;
+            });
+        }
+        window.resolveCustomConfirm = function(userAgreed) {
+            document.getElementById('custom-confirm-modal').style.display = "none";
+            if(confirmPromiseResolver) confirmPromiseResolver(userAgreed);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('splash-screen').classList.add('hidden');
+                bootstrapAuthModel();
+            }, 1800);
+        });
+
+        function bootstrapAuthModel() {
+            if(!activeCompany) {
+                document.getElementById('company-auth-view').style.display = 'flex';
+            } else {
+                presentSalesmanView();
+            }
+        }
+
+        window.verifyCompanyCode = async function() {
+            const code = document.getElementById('company-code-input').value.trim();
+            if(!code) return triggerToast("Enter valid setup registry target.");
+            try {
+                const snap = await get(ref(db, `companies/${code}`));
+                if(snap.exists()){
+                    localStorage.setItem("jb_premium_co", code);
+                    activeCompany = code;
+                    presentSalesmanView();
+                } else { openCustomAlert("Activation Error", "Company profile does not match database setup."); }
+            } catch(e) { triggerToast("DB Error: " + e.message); }
+        };
+
+        function presentSalesmanView() {
+            document.getElementById('company-auth-view').style.display = 'none';
+            document.getElementById('salesman-auth-view').style.display = 'flex';
+            
+            onValue(ref(db, `companies/${activeCompany}/salesmen`), (snap) => {
+                const selector = document.getElementById('salesman-select');
+                const filterSalesmanDropdown = document.getElementById('filter-salesman');
+                const adminListContainer = document.getElementById('admin-salesmen-list-container');
+                
+                selector.innerHTML = "";
+                filterSalesmanDropdown.innerHTML = `<option value="all">All Salesmen</option>`;
+                adminListContainer.innerHTML = "";
+                
+                if(snap.exists()){
+                    cachedSalesmen = snap.val();
+                    Object.keys(cachedSalesmen).forEach(key => {
+                        const sm = cachedSalesmen[key];
+                        selector.innerHTML += `<option value="${key}">${sm.name}</option>`;
+                        filterSalesmanDropdown.innerHTML += `<option value="${key}">${sm.name}</option>`;
+                        adminListContainer.innerHTML += `
+                            <div class="salesman-manage-item">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <strong>${sm.name} <span style="font-weight:400; font-size:0.75rem; color:var(--text-muted);">(@${key})</span></strong>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="action-icon-btn edit" onclick="startSalesmanEditWorkflow('${key}')"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="action-icon-btn delete" onclick="triggerSalesmanDelete('${key}')"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Password value: <code style="color:var(--maroon-main); font-weight:600;">${sm.password}</code></div>
+                            </div>
+                        `;
+                    });
+                }
+            });
+        }
+
+        window.verifySalesman = async function() {
+            const selectSm = document.getElementById('salesman-select').value;
+            const pass = document.getElementById('salesman-pass').value.trim();
+            if(!selectSm) return triggerToast("No salesman profiles active on server database.");
+
+            try {
+                const snap = await get(ref(db, `companies/${activeCompany}/salesmen/${selectSm}`));
+                if(snap.exists() && String(snap.val().password) === pass) {
+                    authSalesman = selectSm;
+                    document.getElementById('user-display-pill').innerHTML = `<i class="fa-solid fa-user-check"></i> ${snap.val().name}`;
+                    document.getElementById('my-logs-title-name').innerText = snap.val().name + "'s Logs";
+                    document.getElementById('salesman-auth-view').style.display = 'none';
+                    document.getElementById('app-workspace').style.display = 'block';
+                    startRealtimeSynchronizationPipeline();
+                } else { openCustomAlert("Access Denied", "Incorrect profile password verified."); }
+            } catch(e) { triggerToast("Profile Authentication Error"); }
+        };
+
+        window.interceptAdminNavigation = async function() {
+            if(isAdminAuthenticated) {
+                showView('view-admin');
+                return;
+            }
+            document.getElementById('app-workspace').style.display = 'none';
+            document.getElementById('admin-gate-view').style.display = 'flex';
+        }
+
+        window.abortAdminGate = function() {
+            document.getElementById('admin-gate-view').style.display = 'none';
+            document.getElementById('app-workspace').style.display = 'block';
+            document.querySelector('.nav-pill-item').click();
+        }
+
+        window.unlockAdminGateSubmit = async function() {
+            const gatePassInput = document.getElementById('admin-gate-pass').value.trim();
+            if(!gatePassInput) return triggerToast("Please enter administrative password.");
+            try {
+                const snap = await get(ref(db, `companies/${activeCompany}/company_info/admin_password`));
+                if(snap.exists() && gatePassInput === String(snap.val())) {
+                    isAdminAuthenticated = true;
+                    document.getElementById('admin-gate-view').style.display = 'none';
+                    document.getElementById('app-workspace').style.display = 'block';
+                    showView('view-admin');
+                    triggerToast("Admin environment unlocked.");
+                } else { openCustomAlert("Security Lockout", "Invalid Administrative Authorization Password."); }
+            } catch(e) { triggerToast("Authentication Validation Route Error."); }
+        }
+
+        function startRealtimeSynchronizationPipeline() {
+            onValue(ref(db, `companies/${activeCompany}/dashboard_stats/total_customer_visits`), (snap) => {
+                document.getElementById('total-visits-counter').innerText = snap.val() || 0;
+            });
+
+            onValue(ref(db, `companies/${activeCompany}/customers`), (snap) => {
+                const timeline = document.getElementById('dashboard-timeline-container');
+                const personalContainer = document.getElementById('my-personal-logs-container');
+                const selfEditorContainer = document.getElementById('self-editor-list-container');
+                
+                timeline.innerHTML = "";
+                personalContainer.innerHTML = "";
+                selfEditorContainer.innerHTML = "";
+                
+                if(snap.exists()) {
+                    cachedCustomers = snap.val();
+                    
+                    const orderedKeys = Object.keys(cachedCustomers).sort((a, b) => {
+                        return (cachedCustomers[b].timestamp || 0) - (cachedCustomers[a].timestamp || 0);
+                    });
+
+                    let selfEntriesCount = 0;
+
+                    orderedKeys.forEach(key => {
+                        const logs = cachedCustomers[key];
+                        timeline.innerHTML += generateLogCardMarkup(logs, false);
+                        
+                        if(logs.recorded_by === authSalesman) {
+                            personalContainer.innerHTML += generateLogCardMarkup(logs, false);
+                            selfEditorContainer.innerHTML += generateLogCardMarkup(logs, true, true);
+                            selfEntriesCount++;
+                        }
+                    });
+
+                    if(selfEntriesCount === 0) {
+                        selfEditorContainer.innerHTML = `<p style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.75rem;">No logs found under your username to modify.</p>`;
+                    }
+
+                    applyAdvancedFilters();
+                } else {
+                    const errorMsg = `<p style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.8rem;">No entries saved.</p>`;
+                    timeline.innerHTML = errorMsg;
+                    personalContainer.innerHTML = errorMsg;
+                    selfEditorContainer.innerHTML = errorMsg;
+                }
+            });
+        }
+
+        function generateLogCardMarkup(data, includeControls = false, limitToStaffSelfEdit = false) {
+            const dateStr = new Date(data.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+            let controlMarkup = "";
+            
+            if(includeControls) {
+                if(limitToStaffSelfEdit) {
+                    controlMarkup = `
+                        <div class="card-actions-row">
+                            <button class="action-icon-btn edit" onclick="triggerEditCustomerWorkflow('${data.visit_id}')"><i class="fa-solid fa-pen-to-square"></i> Modify Entry</button>
+                        </div>
+                    `;
+                } else {
+                    controlMarkup = `
+                        <div class="card-actions-row">
+                            <button class="action-icon-btn edit" onclick="triggerAdminSalespersonReassignment('${data.visit_id}')"><i class="fa-solid fa-user-pen"></i> Reassign Salesman</button>
+                            <button class="action-icon-btn delete" onclick="triggerDeleteCustomerWorkflow('${data.visit_id}')"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                        </div>
+                    `;
+                }
+            }
+
+            return `
+                <div class="visit-card" id="card-node-${data.visit_id}">
+                    <div class="card-top">
+                        <div>
+                            <div class="card-title">${data.name}</div>
+                            <div class="card-meta">${data.phone} • By <b>${data.recorded_by}</b></div>
+                        </div>
+                        <span class="visit-id-badge">${data.visit_id}</span>
+                    </div>
+                    <div class="card-msg">"${data.message}"</div>
+                    <div style="margin-top:8px; display:flex; gap:6px; align-items:center;">
+                        <span class="status-pill ${data.purchased ? 'yes' : 'no'}">${data.purchased ? 'Purchased' : 'No Purchase'}</span>
+                        <span class="status-pill" style="background:rgba(0,0,0,0.04); color:var(--text-color);">${data.customer_type}</span>
+                        <span style="margin-left:auto; font-size:0.7rem; color:var(--text-muted);">${dateStr}</span>
+                    </div>
+                    ${controlMarkup}
+                </div>
+            `;
+        }
+
+        window.triggerAdminSalespersonReassignment = function(visitId) {
+            const log = cachedCustomers[visitId];
+            if(!log) return triggerToast("Error: Record data missing.");
+
+            document.getElementById('admin-modal-visit-id').value = visitId;
+            document.getElementById('admin-modal-cust-info').innerText = `Reassigning record ${visitId} for ${log.name}`;
+            
+            const modalSelect = document.getElementById('admin-modal-sm-select');
+            modalSelect.innerHTML = "";
+            Object.keys(cachedSalesmen).forEach(key => {
+                const isSelected = (key === log.recorded_by) ? "selected" : "";
+                modalSelect.innerHTML += `<option value="${key}" ${isSelected}>${cachedSalesmen[key].name}</option>`;
+            });
+
+            document.getElementById('admin-change-sm-modal').style.display = "flex";
+        }
+
+        window.closeAdminChangeSmModal = function() {
+            document.getElementById('admin-change-sm-modal').style.display = "none";
+        }
+
+        window.saveAdminSalespersonReassignment = async function() {
+            const visitId = document.getElementById('admin-modal-visit-id').value;
+            const newSalespersonKey = document.getElementById('admin-modal-sm-select').value;
+            
+            if(!visitId || !newSalespersonKey) return;
+            try {
+                await set(ref(db, `companies/${activeCompany}/customers/${visitId}/recorded_by`), newSalespersonKey);
+                triggerToast("Salesperson reassigned successfully.");
+                closeAdminChangeSmModal();
+            } catch(e) { triggerToast("Failed to reassign salesperson."); }
+        }
+
+        window.commitSalesmanToDatabase = async function() {
+            const sKey = document.getElementById('new-sm-key').value.trim().toLowerCase();
+            const sName = document.getElementById('new-sm-name').value.trim();
+            const sPass = document.getElementById('new-sm-pass').value.trim();
+            const editActiveKey = document.getElementById('edit-sm-mode-active-key').value;
+
+            if(!sKey || !sName || !sPass) return triggerToast("Fill all rows.");
+            try {
+                if (editActiveKey && editActiveKey !== sKey) {
+                    await remove(ref(db, `companies/${activeCompany}/salesmen/${editActiveKey}`));
+                }
+                await set(ref(db, `companies/${activeCompany}/salesmen/${sKey}`), { name: sName, password: sPass });
+                triggerToast(editActiveKey ? `Salesman parameters updated.` : `Salesman profile recorded.`);
+                resetSalesmanFormState();
+            } catch(e) { triggerToast("Operation failed."); }
+        }
+
+        window.startSalesmanEditWorkflow = function(usernameKeyId) {
+            const data = cachedSalesmen[usernameKeyId];
+            if(!data) return triggerToast("Failed mapping data components.");
+            
+            document.getElementById('edit-sm-mode-active-key').value = usernameKeyId;
+            document.getElementById('sm-form-title').innerText = `Edit Salesman: @${usernameKeyId}`;
+            document.getElementById('new-sm-key').value = usernameKeyId;
+            document.getElementById('new-sm-name').value = data.name || "";
+            document.getElementById('new-sm-pass').value = data.password || "";
+            
+            document.getElementById('cancel-sm-edit-btn').style.display = "block";
+            document.getElementById('submit-sm-btn').innerText = "Update Node";
+        }
+
+        window.triggerSalesmanDelete = async function(usernameKeyId) {
+            if(usernameKeyId === 'trilok') return triggerToast("Cannot delete baseline master profile.");
+            const confirmed = await openCustomConfirm("Delete Salesman?", `Delete profile @${usernameKeyId}? Staff will lose real-time access layout sync properties.`);
+            if(!confirmed) return;
+            try {
+                await remove(ref(db, `companies/${activeCompany}/salesmen/${usernameKeyId}`));
+                triggerToast("Account profile purged.");
+                if(document.getElementById('edit-sm-mode-active-key').value === usernameKeyId) resetSalesmanFormState();
+            } catch(e) { triggerToast("Removal failure."); }
+        }
+
+        window.resetSalesmanFormState = function() {
+            document.getElementById('edit-sm-mode-active-key').value = "";
+            document.getElementById('sm-form-title').innerText = "Register New Salesman";
+            document.getElementById('new-sm-key').value = "";
+            document.getElementById('new-sm-name').value = "";
+            document.getElementById('new-sm-pass').value = "";
+            document.getElementById('cancel-sm-edit-btn').style.display = "none";
+        }
+
+        window.handleFormSubmission = async function(e) {
+            e.preventDefault();
+            const editKey = document.getElementById('edit-mode-active-key').value;
+            const name = document.getElementById('c-name').value.trim();
+            const phone = document.getElementById('c-phone').value.trim();
+            const email = document.getElementById('c-email').value.trim();
+            const customer_type = document.querySelector('input[name="cust-type"]:checked').value;
+            const purchased = document.querySelector('input[name="cust-purc"]:checked').value === "true";
+            const message = document.getElementById('c-msg').value.trim();
+
+            try {
+                let currentId = editKey;
+                let targetCreator = authSalesman;
+
+                if(!editKey) {
+                    const counterRef = ref(db, `companies/${activeCompany}/dashboard_stats/total_customer_visits`);
+                    const currentCountSnap = await get(counterRef);
+                    const absoluteNext = (currentCountSnap.exists() ? currentCountSnap.val() : 0) + 1;
+                    currentId = `V${String(absoluteNext).padStart(4, '0')}`;
+                    await set(counterRef, absoluteNext);
+                } else {
+                    if(cachedCustomers[editKey]) targetCreator = cachedCustomers[editKey].recorded_by;
+                }
+
+                const payload = {
+                    visit_id: currentId,
+                    name, phone, email, customer_type, purchased, message,
+                    timestamp: Date.now(),
+                    date_string: new Date().toISOString().split('T')[0],
+                    recorded_by: targetCreator
+                };
+
+                await set(ref(db, `companies/${activeCompany}/customers/${currentId}`), payload);
+                triggerToast(`Record saved: ${currentId}`);
+                resetFormStateContainers();
+                document.querySelector('.nav-pill-item').click();
+            } catch(error) { triggerToast("Write operation failed."); }
+        };
+
+        window.triggerDeleteCustomerWorkflow = async function(targetVisitId) {
+            const confirmed = await openCustomConfirm("Delete Customer Entry?", `Permanently clear visit entry ${targetVisitId} from data stream registries?`);
+            if(!confirmed) return;
+            try {
+                await remove(ref(db, `companies/${activeCompany}/customers/${targetVisitId}`));
+                triggerToast(`Record ${targetVisitId} removed.`);
+            } catch(e) { triggerToast("Deletion error."); }
+        }
+
+        window.triggerEditCustomerWorkflow = function(targetVisitId) {
+            const data = cachedCustomers[targetVisitId];
+            if(!data) return triggerToast("Data reference dropped.");
+
+            document.getElementById('edit-mode-active-key').value = targetVisitId;
+            document.getElementById('form-heading-title').innerText = `Modify Record (${targetVisitId})`;
+            document.getElementById('submit-form-action-btn').innerText = "Save Record Edits";
+
+            document.getElementById('c-name').value = data.name || "";
+            document.getElementById('c-phone').value = data.phone || "";
+            document.getElementById('c-email').value = data.email || "";
+            document.getElementById('c-msg').value = data.message || "";
+            
+            if(data.customer_type === "old") document.getElementById('type-old').checked = true;
+            else document.getElementById('type-new').checked = true;
+
+            if(data.purchased === false) document.getElementById('purc-no').checked = true;
+            else document.getElementById('purc-yes').checked = true;
+
+            showView('view-new-entry');
+            document.querySelectorAll('.nav-pill-item').forEach(i => i.classList.remove('active'));
+            document.querySelector('.center-action').classList.add('active');
+        }
+
+        window.resetFormStateContainers = function() {
+            document.getElementById('customer-form').reset();
+            document.getElementById('edit-mode-active-key').value = "";
+            document.getElementById('form-heading-title').innerText = "Visitor Entry";
+            document.getElementById('submit-form-action-btn').innerText = "Commit Entry Log";
+        }
+
+        window.applyAdvancedFilters = function() {
+            const displayPanel = document.getElementById('admin-filtered-results');
+            displayPanel.innerHTML = "";
+
+            if(!cachedCustomers || Object.keys(cachedCustomers).length === 0) return;
+
+            const fStart = document.getElementById('filter-start-date').value;
+            const fEnd = document.getElementById('filter-end-date').value;
+            const fSalesman = document.getElementById('filter-salesman').value;
+            const fType = document.getElementById('filter-type').value;
+
+            const processingKeys = Object.keys(cachedCustomers).sort((a,b)=>cachedCustomers[b].timestamp - cachedCustomers[a].timestamp);
+            let matchedCount = 0;
+
+            processingKeys.forEach(key => {
+                const log = cachedCustomers[key];
+
+                if(fStart && log.date_string < fStart) return;
+                if(fEnd && log.date_string > fEnd) return;
+                if(fSalesman !== "all" && log.recorded_by !== fSalesman) return;
+                if(fType !== "all" && log.customer_type !== fType) return;
+
+                displayPanel.innerHTML += generateLogCardMarkup(log, true, false);
+                matchedCount++;
+            });
+
+            if(matchedCount === 0) {
+                displayPanel.innerHTML = `<p style="text-align:center; padding:15px; color:var(--text-muted); font-size:0.75rem;">No logs match filter criteria.</p>`;
+            }
+        };
+
+        window.clearSystemSession = function() {
+            localStorage.removeItem("jb_premium_co");
+            window.location.reload();
+        };
+    </script>
+
+    <script>
+        function navigatePill(targetView, element) {
+            if(targetView === 'view-admin') {
+                window.interceptAdminNavigation();
+                return;
+            }
+            if(targetView !== 'view-new-entry') {
+                window.resetFormStateContainers();
+            }
+            document.querySelectorAll('.nav-pill-item').forEach(i => i.classList.remove('active'));
+            element.classList.add('active');
+            showView(targetView);
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        function switchAdminSubPanel(panelId, btnElement) {
+            document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.admin-view-panel').forEach(p => p.classList.remove('active'));
+            btnElement.classList.add('active');
+            document.getElementById(panelId).classList.add('active');
+        }
+
+        function triggerToast(textMessage) {
+            const el = document.getElementById('app-toast');
+            document.getElementById('toast-text').innerText = textMessage;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        function toggleAppTheme() {
+            document.body.classList.toggle('dark-theme');
+            triggerToast("Theme modified.");
+        }
+    </script>
+</body>
+</html>
