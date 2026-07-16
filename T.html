@@ -1,982 +1,1516 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jewelbook Premium</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --maroon-main: #4A0E17;
-            --maroon-dark: #2A050B;
-            --maroon-light: #6B1D28;
-            --gold-main: #DFBA6B;
-            --gold-dark: #C5A04E;
-            --gold-glow: rgba(223, 186, 107, 0.15);
-            --bg-light: #FAF8F5;
-            --card-light: #FFFFFF;
-            --text-light: #2D2224;
-            --text-muted-light: #6E6264;
-            
-            --bg-color: var(--bg-light);
-            --card-bg: var(--card-light);
-            --text-color: var(--text-light);
-            --text-muted: var(--text-muted-light);
-            --border-color: rgba(74, 14, 23, 0.08);
-            --shadow-sm: 0 2px 8px rgba(74, 14, 23, 0.04);
-            --shadow-md: 0 8px 20px rgba(74, 14, 23, 0.06);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>A Manager — Personal Expense Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root, body.dark {
+    --bg-main: #06090C;
+    --bg-side: #0B0F13;
+    --card: #10161C;
+    --card-hover: #162027;
+    --ink: #FFFFFF;
+    --muted: #7E93A2;
+    --line: #1E2B35;
+    --gold: #66FF00; /* Neon Green */
+    --teal: #00FFCC;
+    --rust: #FF3366;
+    --violet: #CC66FF;
+    --shadow: 0 0 25px rgba(102,255,0,0.12);
+  }
+  
+  body.light {
+    --bg-main: #F0F4F8;
+    --bg-side: #FFFFFF;
+    --card: #FFFFFF;
+    --card-hover: #F8FAFC;
+    --ink: #0F172A;
+    --muted: #64748B;
+    --line: #CBD5E1;
+    --gold: #4BE000;
+    --teal: #0D9488;
+    --rust: #DC2626;
+    --violet: #7C3AED;
+    --shadow: 0 8px 30px rgba(75,224,0,0.08);
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow-x: hidden; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at 50% 0%, #111a12 0%, var(--bg-main) 70%);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.4s ease;
+  }
 
-        .dark-theme {
-            --bg-color: #140305;
-            --card-bg: #22080B;
-            --text-color: #FDFBF7;
-            --text-muted: #A39698;
-            --border-color: rgba(223, 186, 107, 0.15);
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
-            --shadow-md: 0 8px 20px rgba(0,0,0,0.35);
-        }
+  .shell, .auth-gate, .loading-gate { position: relative; z-index: 5; }
+  .num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+  
+  button, input, select { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  button { cursor: pointer; border: none; background: none; color: inherit; font-family: inherit; }
+  
+  /* Micro Click Bounce Animations */
+  button:active { transform: scale(0.92) !important; filter: brightness(1.2); }
+  
+  input, select { font-family: inherit; color: inherit; }
+  input:focus, select:focus { border-color: var(--gold) !important; transform: translateY(-2px); box-shadow: 0 0 12px rgba(102,255,0,0.3); }
 
-        * {
-            box-sizing: border-box;
-            margin: 0; padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); filter: blur(4px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUpModal { 
+    from { transform: translateY(60px) scale(0.95); opacity: 0; } 
+    to { transform: translateY(0) scale(1); opacity: 1; } 
+  }
+  @keyframes micPulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.5); transform: scale(1); }
+    70% { box-shadow: 0 0 0 18px rgba(255, 51, 102, 0); transform: scale(1.08); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0); transform: scale(1); }
+  }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
-            overflow-x: hidden;
-            min-height: 100vh;
-            font-size: 0.85rem;
-        }
+  .card, .tx-row, .credit-card, .chart-card { animation: fadeUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) both; }
+  .grid-cards .card:nth-child(1) { animation-delay: 0.05s; }
+  .grid-cards .card:nth-child(2) { animation-delay: 0.1s; }
+  .grid-cards .card:nth-child(3) { animation-delay: 0.15s; }
 
-        /* --- GLOBAL TOAST SYSTEM --- */
-        .toast {
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--maroon-main) 0%, var(--maroon-dark) 100%);
-            border: 1px solid var(--gold-main); color: #FFF;
-            padding: 10px 20px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            z-index: 10000; font-weight: 500; font-size: 0.8rem;
-            display: flex; align-items: center; gap: 8px;
-            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .toast.show { top: 20px; }
+  .shell { display: flex; min-height: 100vh; }
 
-        /* --- CUSTOM MODAL POPUPS --- */
-        .custom-popup-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.6); z-index: 3000; justify-content: center; align-items: center; padding: 20px;
-            backdrop-filter: blur(4px);
-        }
-        .popup-body {
-            background-color: var(--card-bg); border: 1px solid var(--border-color);
-            padding: 24px; border-radius: 16px; width: 100%; max-width: 340px;
-            box-shadow: var(--shadow-md); text-align: center;
-        }
-        .popup-body h3 { color: var(--maroon-main); font-size: 1.1rem; margin-bottom: 8px; font-weight: 700; }
-        .dark-theme .popup-body h3 { color: var(--gold-main); }
-        .popup-body p { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; line-height: 1.4; }
+  .sidebar {
+    width: 260px; flex-shrink: 0; background: var(--bg-side);
+    display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
+    padding: 30px 20px; border-right: 1px solid var(--line);
+  }
+  .brand { padding-bottom: 25px; }
+  .brand-text .name { font-size: 22px; font-weight: 800; letter-spacing: -1px; color: var(--gold); text-shadow: 0 0 15px rgba(102,255,0,0.3); }
+  .brand-text .tag { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-top: 2px; }
 
-        /* --- SPLASH SCREEN --- */
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at center, var(--maroon-main) 0%, var(--maroon-dark) 100%);
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
-            transition: opacity 0.4s, visibility 0.4s;
-        }
-        #splash-screen.hidden { opacity: 0; visibility: hidden; }
-        .splash-logo {
-            width: 80px; height: 80px; border-radius: 20px; border: 2px solid var(--gold-main);
-            object-fit: cover; box-shadow: 0 0 30px var(--gold-glow);
-            animation: appPulse 2s infinite ease-in-out;
-        }
-        @keyframes appPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+  .nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .nav button {
+    display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px;
+    font-size: 14.5px; font-weight: 500; color: var(--muted); text-align: left;
+  }
+  .nav button:hover { background: rgba(102,255,0,0.06); color: var(--gold); padding-left: 18px; }
+  .nav button.active { background: rgba(102, 255, 0, 0.1); color: var(--gold); font-weight: 700; border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; }
 
-        /* --- STYLISH AUTH SCREENS --- */
-        .auth-container {
-            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px;
-            background: radial-gradient(circle at top right, var(--maroon-light) 0%, var(--maroon-dark) 100%);
-        }
-        .auth-card {
-            background: rgba(34, 8, 11, 0.8); border: 1px solid rgba(223, 186, 107, 0.2);
-            padding: 30px 24px; border-radius: 20px; width: 100%; max-width: 360px;
-            backdrop-filter: blur(15px); text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-        }
-        .auth-card h2 { color: var(--gold-main); margin-bottom: 24px; font-size: 1.3rem; font-weight: 700; }
-        
-        .input-group { margin-bottom: 16px; text-align: left; }
-        .input-group label { display: block; color: var(--gold-main); font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; }
-        .input-group input, .input-group select {
-            width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(223, 186, 107, 0.2);
-            background: rgba(255,255,255,0.06); color: #fff; font-size: 0.85rem; outline: none; transition: all 0.2s;
-        }
-        .input-group input:focus, .input-group select:focus { border-color: var(--gold-main); background: rgba(255,255,255,0.1); }
-        .input-group select option { background: var(--maroon-dark); color: #fff; }
+  .user-badge {
+    background: rgba(125,125,125,0.03); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .user-badge .indicator { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+  .user-badge .username-display { font-weight: 600; }
 
-        .btn-gold {
-            width: 100%; padding: 12px; font-weight: 600; font-size: 0.85rem;
-            background: linear-gradient(135deg, var(--gold-main) 0%, var(--gold-dark) 100%);
-            border: none; border-radius: 10px; color: var(--maroon-dark); cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(223, 186, 107, 0.25); }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
-        header {
-            position: fixed; top: 0; left: 0; width: 100%; height: 64px;
-            background-color: var(--card-bg); display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; box-shadow: var(--shadow-sm); z-index: 900; border-bottom: 1px solid var(--border-color);
-        }
-        .header-logo { color: var(--maroon-main); font-size: 1.25rem; font-weight: 800; }
-        .dark-theme .header-logo { color: var(--gold-main); }
-        .header-actions { display: flex; gap: 10px; align-items: center; }
-        .user-pill { background-color: var(--border-color); padding: 6px 12px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 40px; border-bottom: 1px solid var(--line); background: var(--bg-side);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .topbar h1 { font-size: 24px; font-weight: 700; }
+  .topbar .date { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .topbar-actions { display: flex; gap: 12px; align-items: center; }
 
-        .main-content { padding: 84px 16px 100px 16px; max-width: 520px; margin: 0 auto; }
-        .app-view { display: none; animation: viewFade 0.3s ease forwards; }
-        .app-view.active { display: block; }
-        @keyframes viewFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+  .btn-primary { background: var(--ink); color: var(--bg-main); }
+  .btn-gold { background: var(--gold); color: #000000; font-weight: 700; box-shadow: 0 4px 15px rgba(102,255,0,0.25); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn-ghost:hover { background: rgba(102,255,0,0.06); border-color: var(--gold); }
 
-        .dashboard-hero {
-            background: linear-gradient(135deg, var(--maroon-main) 0%, var(--maroon-dark) 100%);
-            border-radius: 20px; padding: 20px; color: #fff; box-shadow: var(--shadow-md); margin-bottom: 20px;
-        }
-        .hero-lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gold-main); font-weight: 600; }
-        .hero-val { font-size: 2.4rem; font-weight: 800; margin: 4px 0; color: #FFF; }
-        
-        .section-title { font-size: 0.95rem; margin-bottom: 12px; color: var(--maroon-main); display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
-        .dark-theme .section-title { color: var(--gold-main); }
+  .content { padding: 40px; flex: 1; }
+  .view { display: none; }
+  .view.active { display: block; animation: fadeIn 0.4s ease both; }
 
-        .visit-card {
-            background-color: var(--card-bg); border: 1px solid var(--border-color);
-            border-radius: 14px; padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-sm);
-        }
-        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-        .visit-id-badge { background: rgba(223,186,107,0.12); color: var(--gold-dark); font-weight: 700; font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; }
-        .card-title { font-size: 0.9rem; font-weight: 700; }
-        .card-meta { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
-        .card-msg { font-size: 0.8rem; line-height: 1.4; background-color: var(--border-color); padding: 8px 12px; border-radius: 8px; font-style: italic; }
-        
-        .status-pill { padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
-        .status-pill.yes { background-color: rgba(46, 125, 50, 0.08); color: #2e7d32; }
-        .status-pill.no { background-color: rgba(198, 40, 40, 0.08); color: #c62828; }
-        
-        .card-actions-row { display: flex; gap: 8px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 8px; justify-content: flex-end; }
-        .action-icon-btn { background: none; border: none; font-size: 0.75rem; cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; transition: all 0.2s; }
-        .action-icon-btn.edit { color: var(--gold-dark); background: rgba(223,186,107,0.1); }
-        .action-icon-btn.delete { color: #c62828; background: rgba(198,40,40,0.05); }
+  .grid-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+  .dynamic-modes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+  
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; box-shadow: none; }
+  .card:hover { transform: translateY(-4px); border-color: var(--gold); background: var(--card-hover); box-shadow: var(--shadow); }
+  .card .label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .card .value { font-size: 24px; font-weight: 600; margin-top: 10px; }
+  .card.balance .value { font-size: 28px; color: var(--gold); text-shadow: 0 0 10px rgba(102,255,0,0.2); }
 
-        .premium-form-card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; box-shadow: var(--shadow-md); margin-bottom: 16px; }
-        .app-input-field {
-            width: 100%; padding: 10px 12px; margin-bottom: 12px; border-radius: 8px;
-            border: 1px solid var(--border-color); background-color: var(--bg-color);
-            color: var(--text-color); font-size: 0.85rem; outline: none; transition: border-color 0.2s;
-        }
-        .app-input-field:focus { border-color: var(--gold-main); }
-        
-        .segmented-row { display: flex; gap: 8px; margin-bottom: 12px; }
-        .segment-btn { flex: 1; }
-        .segment-btn input[type="radio"] { display: none; }
-        .segment-btn label {
-            display: block; text-align: center; padding: 10px; border: 1px solid var(--border-color);
-            border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; background-color: var(--bg-color);
-        }
-        .segment-btn input[type="radio"]:checked + label { background-color: var(--maroon-main); color: #FFF; border-color: var(--maroon-main); }
-        .dark-theme .segment-btn input[type="radio"]:checked + label { background-color: var(--gold-main); color: var(--maroon-dark); border-color: var(--gold-main); }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 
-        .admin-sub-menu { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
-        .sub-tab-btn { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: var(--text-muted); white-space: nowrap; }
-        .sub-tab-btn.active { background-color: var(--maroon-main); color: #FFF; border-color: var(--maroon-main); }
-        .dark-theme .sub-tab-btn.active { background-color: var(--gold-main); color: var(--maroon-dark); border-color: var(--gold-main); }
-        
-        .admin-view-panel { display: none; }
-        .admin-view-panel.active { display: block; }
+  .tx-row { display: grid; grid-template-columns: 38px 1fr auto auto; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--line); }
+  .tx-row:hover { background: rgba(102,255,0,0.03); border-left: 2px solid var(--gold); }
+  .tx-row:last-child { border-bottom: none; }
+  .tx-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+  .tx-icon.income { background: rgba(0, 255, 204, 0.1); color: var(--teal); }
+  .tx-icon.expense { background: rgba(255, 51, 102, 0.1); color: var(--rust); }
+  .tx-icon.transfer { background: rgba(204, 102, 255, 0.1); color: var(--violet); }
+  .tx-amt { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; }
+  .tx-amt.income { color: var(--teal); }
+  .tx-amt.expense { color: var(--rust); }
+  .tx-amt.transfer { color: var(--violet); }
+  .tx-del { opacity: 0.3; padding: 6px; color: var(--rust); font-size: 18px; line-height: 1; }
+  .tx-del:hover { opacity: 1; transform: scale(1.2); }
 
-        .filter-panel { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 14px; border-radius: 14px; margin-bottom: 16px; }
-        .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .filter-item label { display: block; font-size: 0.7rem; font-weight: 600; margin-bottom: 2px; color: var(--text-muted); text-transform: uppercase; }
-        .filter-item input, .filter-item select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); font-size: 0.8rem; outline: none; }
+  .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filters select, .filters input[type="text"], .filters input[type="date"] {
+    padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+    font-size: 13.5px; color: var(--ink); outline: none; flex: 1; min-width: 140px;
+  }
 
-        /* --- FLOATING 5-BUTTON PILL NAV --- */
-        .nav-wrapper { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 460px; z-index: 950; }
-        .bottom-pill-nav {
-            background: rgba(42, 5, 11, 0.94); border: 1px solid rgba(223, 186, 107, 0.15);
-            height: 60px; border-radius: 16px; display: flex; justify-content: space-around; align-items: center; padding: 0 6px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); backdrop-filter: blur(10px);
-        }
-        .nav-pill-item {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.60rem; cursor: pointer; width: 44px; height: 44px; border-radius: 12px;
-        }
-        .nav-pill-item i { font-size: 1.05rem; margin-bottom: 1px; transition: transform 0.2s; }
-        .nav-pill-item.active { color: var(--gold-main); }
-        .nav-pill-item.active i { transform: translateY(-1px); }
-        
-        .nav-pill-item.center-action {
-            background: linear-gradient(135deg, var(--gold-main) 0%, var(--gold-dark) 100%);
-            color: var(--maroon-dark); width: 48px; height: 48px; border-radius: 50%;
-            transform: translateY(-12px); box-shadow: 0 4px 12px rgba(223, 186, 107, 0.3); border: 3px solid #2a050b;
-        }
-        .nav-pill-item.center-action i { font-size: 1.3rem; margin: 0; }
-        .nav-pill-item.center-action.active { transform: translateY(-14px); }
+  .ledger-table-wrap { width: 100%; overflow-x: auto; margin-top: 15px; }
+  .ledger-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+  .ledger-table th { background: rgba(125,125,125,0.04); padding: 12px 16px; border-bottom: 2px solid var(--line); font-weight: 600; color: var(--muted); }
+  .ledger-table td { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .ledger-table tr:hover { background: rgba(102,255,0,0.02); }
 
-        .salesman-manage-item {
-            background-color: var(--card-bg); border: 1px solid var(--border-color);
-            border-radius: 10px; padding: 10px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px;
-        }
-    </style>
+  .charts-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-bottom: 30px; }
+  .chart-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+  .chart-wrap { position: relative; height: 240px; }
+
+  .credit-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .credit-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; }
+  .credit-card:hover { border-color: var(--gold); background: var(--card-hover); }
+  .credit-top { display: flex; justify-content: space-between; align-items: center; }
+  .credit-meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .credit-actions { margin-top: 12px; display: flex; gap: 8px; }
+  .mini-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; }
+  .mini-btn.settle { background: var(--gold); color: #000000; font-weight: 700; }
+  .mini-btn.del { border: 1px solid var(--line); color: var(--rust); }
+
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fadeIn 0.2s ease; }
+  .overlay.active { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--line); border-radius: 16px; width: 100%; max-width: 460px; overflow: hidden; max-height: 90vh; overflow-y: auto; animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .modal-head { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .modal-body { padding: 24px; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  .field input, .field select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-main); color: var(--ink); outline: none; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  
+  .toggle-group { display: flex; gap: 8px; }
+  .toggle-group button { flex: 1; padding: 11px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--muted); background: var(--bg-main); }
+  .toggle-group button.sel-income { border-color: var(--teal); color: var(--teal); background: rgba(0,255,204,0.05); }
+  .toggle-group button.sel-expense { border-color: var(--rust); color: var(--rust); background: rgba(255,51,102,0.05); }
+  .toggle-group button.sel-transfer { border-color: var(--violet); color: var(--violet); background: rgba(204,102,255,0.05); }
+
+  .amt-input-wrap { position: relative; }
+  .amt-input-wrap input { padding-left: 24px; }
+  .amt-input-wrap .cur { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
+  .modal-submit { width: 100%; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; background: var(--gold); color: #000000; margin-top: 8px; }
+
+  /* AI Assistant Layout Chat Styling Matrix */
+  .ai-interface-container { display: none; text-align: center; padding: 5px 0; }
+  .ai-status-label { font-size: 13px; color: var(--gold); font-weight: 600; min-height: 18px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  
+  .ai-chat-history-node {
+    background: var(--bg-main); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px; min-height: 140px; max-height: 200px; overflow-y: auto;
+    text-align: left; font-size: 13.5px; line-height: 1.4; margin-bottom: 12px;
+  }
+  .ai-msg-bubble { margin-bottom: 10px; padding: 8px 12px; border-radius: 8px; max-width: 85%; }
+  .ai-msg-bubble.user { background: rgba(102,255,0,0.12); color: var(--gold); margin-left: auto; border-bottom-right-radius: 2px; border: 1px solid rgba(102,255,0,0.2); }
+  .ai-msg-bubble.assistant { background: rgba(255,255,255,0.03); color: var(--ink); border-bottom-left-radius: 2px; }
+
+  .ai-chat-input-row { display: flex; gap: 8px; }
+  .ai-chat-input-row input { flex: 1; padding: 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-main); color: var(--ink); outline: none; font-size: 13.5px; }
+  .ai-chat-input-row input:focus { border-color: var(--gold); }
+  #aiVoiceMicBtn.recording { animation: micPulse 1.2s infinite ease-in-out; background: var(--rust); color: #fff; }
+
+  .auth-gate { position: fixed; inset: 0; background: var(--bg-main); z-index: 250; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.4s ease; }
+  .auth-box { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow); }
+  .auth-switch { font-size: 14px; color: var(--muted); margin-top: 20px; }
+  .auth-switch span { color: var(--gold); cursor: pointer; font-weight: 600; }
+  .auth-error { font-size: 13px; color: var(--rust); background: rgba(255,51,102,0.1); padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--gold); color: #000000; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; display: none; z-index: 300; box-shadow: var(--shadow); transition: all 0.2s ease; }
+  
+  .loading-gate {
+    position: fixed; inset: 0; background: #06090C; z-index: 500;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .splash-container { text-align: center; }
+  .splash-title-text { font-size: 38px; font-weight: 900; color: var(--gold); letter-spacing: -1.5px; text-shadow: 0 0 20px rgba(102,255,0,0.4); }
+  .splash-subtitle { font-size: 13px; color: #7E93A2; margin-top: 8px; font-weight: 500; letter-spacing: 0.05em; }
+  
+  .splash-loader-bar {
+    width: 140px; height: 3px; background: #1E2B35; border-radius: 2px; margin: 24px auto 0 auto; overflow: hidden; position: relative;
+  }
+  .splash-loader-progress {
+    width: 60%; height: 100%; background: #66FF00; position: absolute; left: -100%; border-radius: 2px;
+    animation: splashLoad 1.8s infinite ease-in-out;
+  }
+  @keyframes splashLoad {
+    0% { left: -100%; width: 30%; }
+    50% { width: 60%; }
+    100% { left: 100%; width: 30%; }
+  }
+
+  .mobile-nav-bar { display: none; }
+
+  @media (max-width: 980px) {
+    .shell { flex-direction: column; padding-bottom: 70px; }
+    .sidebar { display: none; }
+    .topbar { padding: 16px 20px; position: sticky; top: 0; background: var(--bg-side); }
+    .topbar h1 { font-size: 20px; }
+    .topbar .date { display: none; }
+    .content { padding: 16px; }
+
+    .mobile-nav-bar {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
+      background: var(--bg-side); border-top: 1px solid var(--line);
+      z-index: 100; justify-content: space-around; align-items: center;
+      padding: 0 10px; box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+    }
+    .mobile-nav-bar button {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--muted); font-weight: 500; gap: 4px; flex: 1; height: 100%;
+    }
+    .mobile-nav-bar button.active { color: var(--gold); font-weight: 700; }
+    .mobile-nav-bar .nav-icon { font-size: 18px; }
+    .mobile-nav-bar button:active .nav-icon { transform: scale(1.2); }
+
+    .grid-cards { grid-template-columns: 1fr; gap: 12px; }
+    .charts-grid, .credit-cols { grid-template-columns: 1fr; gap: 20px; }
+    .field-row { grid-template-columns: 1fr; gap: 0; }
+    .tx-row { padding: 12px 14px; gap: 10px; }
+  }
+</style>
 </head>
-<body>
+<body class="dark">
 
-    <div id="app-toast" class="toast">
-        <i class="fa-solid fa-circle-info"></i> <span id="toast-text">Toast Alert Notification</span>
+<div class="loading-gate" id="loadingGate">
+  <div class="splash-container">
+    <!-- REMOVED THE EMBEDDED BOX IMAGE ICON LOGO FROM SPLASH -->
+    <h1 class="splash-title-text">A MANAGER</h1>
+    <p class="splash-subtitle">System Online Engine</p>
+    <div class="splash-loader-bar">
+      <div class="splash-loader-progress"></div>
     </div>
+  </div>
+</div>
 
-    <div id="custom-alert-modal" class="custom-popup-modal">
-        <div class="popup-body">
-            <h3 id="custom-alert-title">Notification</h3>
-            <p id="custom-alert-msg" style="margin-top: 10px;"></p>
-            <button class="btn-gold" onclick="closeCustomAlert()">Dismiss</button>
+<div class="auth-gate" id="authGate" style="display:none;">
+  <div class="auth-box">
+    <h2 id="authTitle" style="margin-bottom:8px;">Sign In</h2>
+    <p id="authSubtitle" style="color:var(--muted); margin-bottom:24px;">Enter credentials matrix to decrypt session workspace.</p>
+    
+    <form id="authForm">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="authUsername" placeholder="Enter identity string" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="authPassword" placeholder="Enter secure lock key" autocomplete="current-password" required>
+      </div>
+      <div class="auth-error" id="authError" style="display:none;"></div>
+      <button type="submit" class="btn modal-submit" id="authSubmitBtn">Sign In</button>
+    </form>
+    
+    <div class="auth-switch" id="authSwitchContainer">
+      New node? <span id="authSwitchModeBtn">Create Account</span>
+    </div>
+  </div>
+</div>
+
+<div class="shell" id="appShell" style="display:none;">
+  <aside class="sidebar">
+    <div class="brand">
+      <!-- REMOVED THE BOX BRAND LOGO ACCENT IN SIDEBAR HEADER -->
+      <div class="brand-text">
+        <div class="name">A Manager</div>
+        <div class="tag">Active Workspace</div>
+      </div>
+    </div>
+    <div class="user-badge">
+      <div class="indicator"></div>
+      <div class="username-display classUserNodeDesktop">guest</div>
+    </div>
+    
+    <nav class="nav mainNavBind">
+      <button data-view="dashboard" class="active">Dashboard</button>
+      <button data-view="transactions">All Entries</button>
+      <button data-view="statements">Balance Sheets</button>
+      <button data-view="credits">Loans</button>
+      <button data-view="modes">Payment Modes</button>
+    </nav>
+    
+    <div style="margin-top:20px;">
+      <button class="btn btn-ghost logOutActionBtn" style="width:100%; justify-content:center;">Log Out</button>
+    </div>
+  </aside>
+
+  <nav class="mobile-nav-bar mainNavBind">
+    <button data-view="dashboard" class="active"><span class="nav-icon">📊</span><span>Home</span></button>
+    <button data-view="transactions"><span class="nav-icon">📜</span><span>Entries</span></button>
+    <button data-view="statements"><span class="nav-icon">🧾</span><span>Sheets</span></button>
+    <button data-view="credits"><span class="nav-icon">🤝</span><span>Loans</span></button>
+    <button data-view="modes"><span class="nav-icon">💳</span><span>Modes</span></button>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="viewTitle">Dashboard</h1>
+        <div class="date" id="todayDate"></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" id="themeToggleBtn">☀️ Light Mode</button>
+        <button class="btn btn-gold" id="openTxModal">Add Entry</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="view active" id="view-dashboard">
+        <div class="grid-cards">
+          <div class="card balance">
+            <div class="label">Total Balance</div>
+            <div class="value num" id="statBalance">₹0</div>
+          </div>
+          <div class="card">
+            <div class="label">Today's Spent</div>
+            <div class="value num" id="statTodaySpent" style="color:var(--rust);">₹0</div>
+          </div>
+          <div class="card">
+            <div class="label">Total Income</div>
+            <div class="value num" id="statTotalIncome" style="color:var(--teal);">₹0</div>
+          </div>
         </div>
-    </div>
 
-    <div id="custom-confirm-modal" class="custom-popup-modal">
-        <div class="popup-body">
-            <h3 id="custom-confirm-title">Are you sure?</h3>
-            <p id="custom-confirm-msg" style="margin-top: 10px;"></p>
-            <div style="display: flex; gap: 8px;">
-                <button class="btn-gold" style="background:#6E6264; color:#fff;" onclick="resolveCustomConfirm(false)">Cancel</button>
-                <button class="btn-gold" id="custom-confirm-agree-btn" onclick="resolveCustomConfirm(true)">Confirm</button>
-            </div>
+        <div class="section-title">Balances across Accounts</div>
+        <div class="dynamic-modes-grid" id="dashboardModesGrid"></div>
+
+        <div class="charts-grid" style="margin-top:30px;">
+          <div class="chart-card">
+            <h3>Timeline</h3>
+            <div class="chart-wrap"><canvas id="chartFlow"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <h3>Categories</h3>
+            <div class="chart-wrap"><canvas id="chartCatMini"></canvas></div>
+          </div>
         </div>
-    </div>
 
-    <div id="admin-change-sm-modal" class="custom-popup-modal">
-        <div class="popup-body">
-            <h3>Reassign Salesperson</h3>
-            <p id="admin-modal-cust-info"></p>
-            <input type="hidden" id="admin-modal-visit-id">
-            <div class="input-group">
-                <label style="color: var(--text-color); font-weight:600;">Select New Salesperson</label>
-                <select id="admin-modal-sm-select" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color);"></select>
-            </div>
-            <div style="display:flex; gap:8px; margin-top:20px;">
-                <button class="btn-gold" style="background:#6E6264; color:#fff;" onclick="closeAdminChangeSmModal()">Cancel</button>
-                <button class="btn-gold" onclick="saveAdminSalespersonReassignment()">Apply Changes</button>
-            </div>
+        <div class="section-title">Recent Entries</div>
+        <div class="panel" id="recentTxPanel"></div>
+      </section>
+
+      <section class="view" id="view-transactions">
+        <div class="filters">
+          <select id="filterType">
+            <option value="all">All Entries</option>
+            <option value="income">Income Only</option>
+            <option value="expense">Expenses Only</option>
+            <option value="transfer">Transfers Only</option>
+          </select>
+          <select id="filterMethod">
+            <option value="all">All Payment Modes</option>
+          </select>
+          <input type="text" id="filterSearch" placeholder="Search notes description...">
         </div>
-    </div>
+        <div class="panel" id="allTxPanel"></div>
+      </section>
 
-    <div id="splash-screen">
-        <img class="splash-logo" src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784118474/Untitled_iyhklf.jpg" alt="Logo">
-    </div>
-
-    <div id="company-auth-view" class="auth-container" style="display: none;">
-        <div class="auth-card">
-            <h2>Activate Device</h2>
-            <div class="input-group">
-                <label>Company Activation Code</label>
-                <input type="text" id="company-code-input" placeholder="akjewel0202">
-            </div>
-            <button class="btn-gold" onclick="verifyCompanyCode()">Verify Configuration</button>
+      <section class="view" id="view-statements">
+        <div class="filters">
+          <select id="sheetMethodSelect"></select>
+          <input type="text" id="sheetSearchPerson" placeholder="Filter by target person name...">
+          <input type="date" id="sheetStartDate">
+          <input type="date" id="sheetEndDate">
+          <button class="btn btn-ghost" id="printStatementBtn" style="flex-shrink:0;">🖨️ Export</button>
         </div>
-    </div>
-
-    <div id="salesman-auth-view" class="auth-container" style="display: none;">
-        <div class="auth-card">
-            <h2>Salesman Sign In</h2>
-            <div class="input-group">
-                <label>Select Profile</label>
-                <select id="salesman-select"></select>
+        
+        <div class="card" style="margin-bottom: 20px; padding: 15px 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div class="label" id="sheetAccountLabel">Account Statement</div>
+              <div style="font-size:13px; color:var(--muted); margin-top:2px;" id="sheetDateFilterLabel">All-Time History</div>
             </div>
-            <div class="input-group">
-                <label>Security Password</label>
-                <input type="password" id="salesman-pass" placeholder="••••••••">
+            <div style="text-align:right;">
+              <div class="label">Closing Sheet Balance</div>
+              <div class="value num" id="sheetClosingBalance" style="font-size:22px; margin-top:4px; color:var(--gold);">₹0</div>
             </div>
-            <button class="btn-gold" onclick="verifySalesman()">Authorize Login</button>
+          </div>
         </div>
-    </div>
 
-    <div id="admin-gate-view" class="auth-container" style="display: none;">
-        <div class="auth-card">
-            <h2>Admin Verification</h2>
-            <p style="color: rgba(255,255,255,0.7); font-size:0.8rem; margin-bottom:16px;">Master keys required.</p>
-            <div class="input-group">
-                <label>Administrative Password</label>
-                <input type="password" id="admin-gate-pass" placeholder="••••••••">
-            </div>
-            <div style="display:flex; gap:8px;">
-                <button class="btn-gold" style="background:#6E6264; color:#fff;" onclick="abortAdminGate()">Cancel</button>
-                <button class="btn-gold" onclick="unlockAdminGateSubmit()">Unlock Admin</button>
-            </div>
+        <div class="panel">
+          <div class="ledger-table-wrap">
+            <table class="ledger-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Category/Type</th>
+                  <th>Description / Details</th>
+                  <th>Flow Out</th>
+                  <th>Flow In</th>
+                  <th>Running Balance</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerBalanceSheetBody"></tbody>
+            </table>
+          </div>
         </div>
-    </div>
+      </section>
 
-    <div id="app-workspace" style="display: none;">
-        <header>
-            <div class="header-logo">Jewelbook.</div>
-            <div class="header-actions">
-                <div class="user-pill" id="user-display-pill"><i class="fa-solid fa-user-tie"></i> Accessing...</div>
-                <button class="segment-btn" style="border:none; background:none; color:var(--gold-dark); font-size:1.1rem; cursor:pointer;" onclick="toggleAppTheme()">
-                    <i class="fa-solid fa-circle-half-stroke"></i>
-                </button>
-            </div>
-        </header>
-
-        <main class="main-content">
-            
-            <section id="view-dashboard" class="app-view active">
-                <div class="dashboard-hero">
-                    <div class="hero-lbl">Total Customer Visits</div>
-                    <div class="hero-val" id="total-visits-counter">0</div>
-                </div>
-                <div class="section-title">Timeline Logs</div>
-                <div id="dashboard-timeline-container"></div>
-            </section>
-
-            <section id="view-my-logs" class="app-view">
-                <div class="dashboard-hero" style="background: linear-gradient(135deg, var(--maroon-light) 0%, #3A0910 100%);">
-                    <div class="hero-lbl">Personal Ledger</div>
-                    <div class="hero-val" style="font-size: 1.8rem; margin: 6px 0;" id="my-logs-title-name">My Customers</div>
-                </div>
-                <div class="section-title">Attended Customer Entries</div>
-                <div id="my-personal-logs-container"></div>
-            </section>
-
-            <section id="view-new-entry" class="app-view">
-                <div class="premium-form-card">
-                    <h3 style="margin-bottom:14px; font-weight:700; color:var(--maroon-main);" id="form-heading-title">Visitor Entry</h3>
-                    <form id="customer-form" onsubmit="handleFormSubmission(event)">
-                        <input type="hidden" id="edit-mode-active-key" value="">
-                        <input type="text" id="c-name" class="app-input-field" placeholder="Customer Name" required>
-                        <input type="tel" id="c-phone" class="app-input-field" placeholder="Contact Number" required>
-                        <input type="email" id="c-email" class="app-input-field" placeholder="Email Address (Optional)">
-                        
-                        <div class="segmented-row">
-                            <div class="segment-btn">
-                                <input type="radio" name="cust-type" id="type-new" value="new" checked>
-                                <label for="type-new">New Customer</label>
-                            </div>
-                            <div class="segment-btn">
-                                <input type="radio" name="cust-type" id="type-old" value="old">
-                                <label for="type-old">Old Profile</label>
-                            </div>
-                        </div>
-
-                        <div class="segmented-row">
-                            <div class="segment-btn">
-                                <input type="radio" name="cust-purc" id="purc-yes" value="true" checked>
-                                <label for="purc-yes"><i class="fa-solid fa-bag-shopping"></i> Purchased</label>
-                            </div>
-                            <div class="segment-btn">
-                                <input type="radio" name="cust-purc" id="purc-no" value="false">
-                                <label for="purc-no"><i class="fa-solid fa-xmark"></i> No Purchase</label>
-                            </div>
-                        </div>
-
-                        <textarea id="c-msg" class="app-input-field" rows="3" placeholder="Detailed logs regarding item selections or exit reasons..." required></textarea>
-                        <button type="submit" class="btn-gold" id="submit-form-action-btn">Commit Entry Log</button>
-                    </form>
-                </div>
-            </section>
-
-            <section id="view-self-editor" class="app-view">
-                <div class="dashboard-hero" style="background: linear-gradient(135deg, var(--gold-dark) 0%, #6E5314 100%);">
-                    <div class="hero-lbl">Correction Workspace</div>
-                    <div class="hero-val" style="font-size: 1.8rem; margin: 6px 0;">Self Entry Editor</div>
-                </div>
-                <div class="section-title">Modify Your Made Entries</div>
-                <div id="self-editor-list-container"></div>
-            </section>
-
-            <section id="view-admin" class="app-view">
-                <div class="admin-sub-menu">
-                    <button class="sub-tab-btn active" onclick="switchAdminSubPanel('admin-panel-filters', this)">Reports & Filters</button>
-                    <button class="sub-tab-btn" onclick="switchAdminSubPanel('admin-panel-salesmen', this)">Manage Salesmen</button>
-                    <button class="sub-tab-btn" onclick="switchAdminSubPanel('admin-panel-system', this)">Device System</button>
-                </div>
-
-                <div id="admin-panel-filters" class="admin-view-panel active">
-                    <div class="filter-panel">
-                        <div class="filter-grid">
-                            <div class="filter-item">
-                                <label>From Date</label>
-                                <input type="date" id="filter-start-date" onchange="applyAdvancedFilters()">
-                            </div>
-                            <div class="filter-item">
-                                <label>To Date</label>
-                                <input type="date" id="filter-end-date" onchange="applyAdvancedFilters()">
-                            </div>
-                        </div>
-                        <div class="filter-grid">
-                            <div class="filter-item">
-                                <label>Salesman</label>
-                                <select id="filter-salesman" onchange="applyAdvancedFilters()"></select>
-                            </div>
-                            <div class="filter-item">
-                                <label>Classification</label>
-                                <select id="filter-type" onchange="applyAdvancedFilters()">
-                                    <option value="all">All Statuses</option>
-                                    <option value="new">New Customer</option>
-                                    <option value="old">Old Customer</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="section-title">Master System Logs Output</div>
-                    <div id="admin-filtered-results"></div>
-                </div>
-
-                <div id="admin-panel-salesmen" class="admin-view-panel">
-                    <div class="premium-form-card">
-                        <h4 style="margin-bottom:12px; color:var(--maroon-main); font-weight:700;" id="sm-form-title">Register New Salesman</h4>
-                        <input type="hidden" id="edit-sm-mode-active-key" value="">
-                        
-                        <div class="input-group">
-                            <label style="color:var(--text-color)">Salesman Username Key ID</label>
-                            <input type="text" id="new-sm-key" class="app-input-field" placeholder="e.g. rohit" style="background:var(--bg-color); color:var(--text-color);">
-                        </div>
-                        <div class="input-group">
-                            <label style="color:var(--text-color)">Display Name</label>
-                            <input type="text" id="new-sm-name" class="app-input-field" placeholder="e.g. Rohit Kumar" style="background:var(--bg-color); color:var(--text-color);">
-                        </div>
-                        <div class="input-group">
-                            <label style="color:var(--text-color)">Security Password</label>
-                            <input type="text" id="new-sm-pass" class="app-input-field" placeholder="e.g. rohitpass2026" style="background:var(--bg-color); color:var(--text-color);">
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            <button class="btn-gold" style="background:#6E6264; color:#fff; display:none;" id="cancel-sm-edit-btn" onclick="resetSalesmanFormState()">Cancel</button>
-                            <button class="btn-gold" id="submit-sm-btn" onclick="commitSalesmanToDatabase()">Save Salesman Profile</button>
-                        </div>
-                    </div>
-
-                    <div class="section-title">Active Database Profiles</div>
-                    <div id="admin-salesmen-list-container"></div>
-                </div>
-
-                <div id="admin-panel-system" class="admin-view-panel">
-                    <div class="premium-form-card" style="text-align:center;">
-                        <h4 style="margin-bottom:12px; font-weight:700;">System Configuration Reset</h4>
-                        <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:16px;">Wipes secure local session cache lock binding.</p>
-                        <button class="btn-gold" style="background:#cc2936; color:#FFF;" onclick="clearSystemSession()">Reset System Lock</button>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <div class="nav-wrapper">
-            <nav class="bottom-pill-nav">
-                <div class="nav-pill-item active" onclick="navigatePill('view-dashboard', this)">
-                    <i class="fa-solid fa-house-chimney"></i>
-                    <span>Home</span>
-                </div>
-                <div class="nav-pill-item" onclick="navigatePill('view-my-logs', this)">
-                    <i class="fa-solid fa-user-check"></i>
-                    <span>My Logs</span>
-                </div>
-                <div class="nav-pill-item center-action" onclick="navigatePill('view-new-entry', this)">
-                    <i class="fa-solid fa-plus"></i>
-                </div>
-                <div class="nav-pill-item" onclick="navigatePill('view-self-editor', this)">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    <span>Edit Logs</span>
-                </div>
-                <div class="nav-pill-item" onclick="navigatePill('view-admin', this)">
-                    <i class="fa-solid fa-sliders"></i>
-                    <span>Admin</span>
-                </div>
-            </nav>
+      <section class="view" id="view-credits">
+        <div class="grid-cards" style="grid-template-columns: 1fr 1fr;">
+          <div class="card">
+            <div class="label">People Owe You</div>
+            <div class="value num" id="statLent" style="color:var(--teal);">₹0</div>
+          </div>
+          <div class="card">
+            <div class="label">You Owe People</div>
+            <div class="value num" id="statBorrowed" style="color:var(--rust);">₹0</div>
+          </div>
         </div>
+        
+        <button class="btn btn-primary" id="openCreditModal" style="margin-bottom:20px; width:100%; justify-content:center;">Log New Loan Record</button>
+
+        <div class="credit-cols">
+          <div>
+            <h3 style="margin-bottom:10px;">Money Lent to Others</h3>
+            <div id="lentList"></div>
+          </div>
+          <div>
+            <h3 style="margin-bottom:10px;">Money Borrowed From Others</h3>
+            <div id="borrowedList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-modes">
+        <div class="card" style="max-width:400px; margin-bottom:24px;">
+          <h3 style="margin-bottom:12px;">Add Custom Payment Mode</h3>
+          <form id="addModeForm">
+            <div class="field">
+              <label>Mode Name</label>
+              <input type="text" id="newModeName" placeholder="e.g. HDFC Bank, Paytm Wallet" required>
+            </div>
+            <button type="submit" class="btn btn-gold" style="width:100%; justify-content:center;">Save Mode</button>
+          </form>
+        </div>
+        <div class="section-title">Active Payment Accounts</div>
+        <div class="panel" id="customModesListPanel"></div>
+      </section>
     </div>
+  </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<!-- COMPREHENSIVE ENTRY MODAL CONSOLE -->
+<div class="overlay" id="txOverlay">
+  <div class="modal">
+    <div class="modal-head" style="padding-bottom:10px;">
+      <div class="toggle-group" id="inputInterfaceTabToggle" style="width:100%; max-width:240px; margin-right:20px;">
+        <button type="button" data-tab="ai" class="sel-income">AI Assistant</button>
+        <button type="button" data-tab="manual">Manual Entry</button>
+      </div>
+      <button id="closeTxModal" style="font-size:18px;">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <form id="txForm" style="display:none;">
+        <div class="field">
+          <label>Type</label>
+          <div class="toggle-group" id="txTypeToggle">
+            <button type="button" data-val="income" class="sel-income">Income</button>
+            <button type="button" data-val="expense" class="sel-expense">Expense</button>
+            <button type="button" data-val="transfer">Transfer</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Amount</label>
+            <div class="amt-input-wrap">
+              <span class="cur">₹</span>
+              <input type="number" step="0.01" id="txAmount" required placeholder="0.00">
+            </div>
+          </div>
+          <div class="field" id="txMethodField">
+            <label>Paid Via</label>
+            <select id="txMethod"></select>
+          </div>
+        </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA9Bwx5nWDS5ZIDDiUFw9JYG3V-AVTbR9s",
-            authDomain: "jewelbook-bb7b3.firebaseapp.com",
-            databaseURL: "https://jewelbook-bb7b3-default-rtdb.firebaseio.com",
-            projectId: "jewelbook-bb7b3",
-            storageBucket: "jewelbook-bb7b3.firebasestorage.app",
-            messagingSenderId: "318025398538",
-            appId: "1:318025398538:web:48e7ad6cd8f65b4b0ba2f3",
-            measurementId: "G-J84BK5F87Q"
-        };
+        <div id="transferFields" style="display:none;">
+          <div class="field-row">
+            <div class="field">
+              <label>From Account</label>
+              <select id="txFromMethod"></select>
+            </div>
+            <div class="field">
+              <label>To Account</label>
+              <select id="txToMethod"></select>
+            </div>
+          </div>
+        </div>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        <div class="field-row">
+          <div class="field" id="txCategoryField">
+            <label>Category</label>
+            <select id="txCategory"></select>
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="txDate" required>
+          </div>
+        </div>
+        <div class="field">
+          <label>Note / Description</label>
+          <input type="text" id="txNote" placeholder="What was this for?">
+        </div>
+        <button type="submit" class="btn modal-submit">Save Entry</button>
+      </form>
 
-        let activeCompany = localStorage.getItem("jb_premium_co") || "";
-        let authSalesman = "";
-        let cachedCustomers = {};
-        let cachedSalesmen = {};
-        let isAdminAuthenticated = false;
-        let confirmPromiseResolver = null;
+      <div class="ai-interface-container" id="aiInterfaceNode" style="display:block;">
+        <div class="ai-chat-history-node" id="aiChatHistoryScroll">
+          <div class="ai-msg-bubble assistant">Console decrypted. Ask metrics questions, type natural entries (e.g. <b>"spent 60 on burger in cash"</b>), or push loans metrics straight into records.</div>
+        </div>
+        
+        <div class="ai-status-label" id="aiStatusNode">Ready for queries</div>
+        
+        <div class="ai-chat-input-row">
+          <input type="text" id="aiChatTextBar" placeholder="Type data command matrix or transaction syntax...">
+          <button type="button" class="btn btn-gold" id="aiTextSubmitBtn" style="padding: 10px 14px;">Ask</button>
+          <button type="button" class="btn btn-primary" id="aiVoiceMicBtn" style="padding: 10px;">🎤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        // --- NATIVE POPUP DIALOG REPLACEMENTS ---
-        window.openCustomAlert = function(title, msg) {
-            document.getElementById('custom-alert-title').innerText = title;
-            document.getElementById('custom-alert-msg').innerText = msg;
-            document.getElementById('custom-alert-modal').style.display = "flex";
-        }
-        window.closeCustomAlert = function() {
-            document.getElementById('custom-alert-modal').style.display = "none";
-        }
+<!-- LOAN MODAL -->
+<div class="overlay" id="creditOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Add Loan Entry</h2>
+      <button id="closeCreditModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="creditForm">
+        <div class="field">
+          <label>Type</label>
+          <div class="toggle-group" id="creditTypeToggle">
+            <button type="button" data-val="lent" class="sel-lent">I Lent Money</button>
+            <button type="button" data-val="borrowed" class="sel-borrowed">I Borrowed Money</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Person's Name</label>
+          <input type="text" id="creditPerson" required placeholder="Enter person name">
+        </div>
+        <div class="field">
+          <label>Amount</label>
+          <div class="amt-input-wrap">
+            <span class="cur">₹</span>
+            <input type="number" step="0.01" id="creditAmount" required placeholder="0.00">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Date Given</label>
+            <input type="date" id="creditTaken">
+          </div>
+          <div class="field">
+            <label>Due Return Date</label>
+            <input type="date" id="creditDue">
+          </div>
+        </div>
+        <div class="field">
+          <label>Note</label>
+          <input type="text" id="creditNote" placeholder="Optional details">
+        </div>
+        <button type="submit" class="btn modal-submit">Save Loan Record</button>
+      </form>
+    </div>
+  </div>
+</div>
 
-        window.openCustomConfirm = function(title, msg) {
-            document.getElementById('custom-confirm-title').innerText = title;
-            document.getElementById('custom-confirm-msg').innerText = msg;
-            document.getElementById('custom-confirm-modal').style.display = "flex";
-            return new Promise((resolve) => {
-                confirmPromiseResolver = resolve;
-            });
-        }
-        window.resolveCustomConfirm = function(userAgreed) {
-            document.getElementById('custom-confirm-modal').style.display = "none";
-            if(confirmPromiseResolver) confirmPromiseResolver(userAgreed);
-        }
+<div class="toast" id="toast"></div>
 
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                document.getElementById('splash-screen').classList.add('hidden');
-                bootstrapAuthModel();
-            }, 1800);
-        });
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, update, set, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-        function bootstrapAuthModel() {
-            if(!activeCompany) {
-                document.getElementById('company-auth-view').style.display = 'flex';
-            } else {
-                presentSalesmanView();
-            }
-        }
+const firebaseConfig = {
+  apiKey: "AIzaSyDTAqJaAabAlAfIuXa7BVs9kXBSUuLz_-Q",
+  authDomain: "money-manager-17460.firebaseapp.com",
+  databaseURL: "https://money-manager-17460-default-rtdb.firebaseio.com",
+  projectId: "money-manager-17460",
+  storageBucket: "money-manager-17460.firebasestorage.app",
+  messagingSenderId: "189021884412",
+  appId: "1:189021884412:web:3bbc2dc95ab7cab7d96c79",
+  measurementId: "G-ZDD5Y642QN"
+};
 
-        window.verifyCompanyCode = async function() {
-            const code = document.getElementById('company-code-input').value.trim();
-            if(!code) return triggerToast("Enter valid setup registry target.");
-            try {
-                const snap = await get(ref(db, `companies/${code}`));
-                if(snap.exists()){
-                    localStorage.setItem("jb_premium_co", code);
-                    activeCompany = code;
-                    presentSalesmanView();
-                } else { openCustomAlert("Activation Error", "Company profile does not match database setup."); }
-            } catch(e) { triggerToast("DB Error: " + e.message); }
-        };
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-        function presentSalesmanView() {
-            document.getElementById('company-auth-view').style.display = 'none';
-            document.getElementById('salesman-auth-view').style.display = 'flex';
-            
-            onValue(ref(db, `companies/${activeCompany}/salesmen`), (snap) => {
-                const selector = document.getElementById('salesman-select');
-                const filterSalesmanDropdown = document.getElementById('filter-salesman');
-                const adminListContainer = document.getElementById('admin-salesmen-list-container');
-                
-                selector.innerHTML = "";
-                filterSalesmanDropdown.innerHTML = `<option value="all">All Salesmen</option>`;
-                adminListContainer.innerHTML = "";
-                
-                if(snap.exists()){
-                    cachedSalesmen = snap.val();
-                    Object.keys(cachedSalesmen).forEach(key => {
-                        const sm = cachedSalesmen[key];
-                        selector.innerHTML += `<option value="${key}">${sm.name}</option>`;
-                        filterSalesmanDropdown.innerHTML += `<option value="${key}">${sm.name}</option>`;
-                        adminListContainer.innerHTML += `
-                            <div class="salesman-manage-item">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <strong>${sm.name} <span style="font-weight:400; font-size:0.75rem; color:var(--text-muted);">(@${key})</span></strong>
-                                    <div style="display:flex; gap:4px;">
-                                        <button class="action-icon-btn edit" onclick="startSalesmanEditWorkflow('${key}')"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="action-icon-btn delete" onclick="triggerSalesmanDelete('${key}')"><i class="fa-solid fa-trash"></i></button>
-                                    </div>
-                                </div>
-                                <div style="font-size:0.75rem; color:var(--text-muted);">Password value: <code style="color:var(--maroon-main); font-weight:600;">${sm.password}</code></div>
-                            </div>
-                        `;
-                    });
-                }
-            });
-        }
+const OPENROUTER_SECRET_KEY = "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"; 
 
-        window.verifySalesman = async function() {
-            const selectSm = document.getElementById('salesman-select').value;
-            const pass = document.getElementById('salesman-pass').value.trim();
-            if(!selectSm) return triggerToast("No salesman profiles active on server database.");
+let currentSessionUser = null;
+let databaseStreamPath = "";
+let transactions = [];
+let credits = [];
+let paymentModes = ["Cash", "UPI"];
+let authMode = "login";
 
-            try {
-                const snap = await get(ref(db, `companies/${activeCompany}/salesmen/${selectSm}`));
-                if(snap.exists() && String(snap.val().password) === pass) {
-                    authSalesman = selectSm;
-                    document.getElementById('user-display-pill').innerHTML = `<i class="fa-solid fa-user-check"></i> ${snap.val().name}`;
-                    document.getElementById('my-logs-title-name').innerText = snap.val().name + "'s Logs";
-                    document.getElementById('salesman-auth-view').style.display = 'none';
-                    document.getElementById('app-workspace').style.display = 'block';
-                    startRealtimeSynchronizationPipeline();
-                } else { openCustomAlert("Access Denied", "Incorrect profile password verified."); }
-            } catch(e) { triggerToast("Profile Authentication Error"); }
-        };
+let CATEGORIES_EXPENSE = ["Food","Transport","Rent","Shopping","Bills","Health","Entertainment","Education","Other"];
+let CATEGORIES_INCOME = ["Salary","Freelance","Gift","Interest","Refund","Other"];
 
-        window.interceptAdminNavigation = async function() {
-            if(isAdminAuthenticated) {
-                showView('view-admin');
-                return;
-            }
-            document.getElementById('app-workspace').style.display = 'none';
-            document.getElementById('admin-gate-view').style.display = 'flex';
-        }
+function computeRouteMangle(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  }
+  return "u_" + Math.abs(h);
+}
 
-        window.abortAdminGate = function() {
-            document.getElementById('admin-gate-view').style.display = 'none';
-            document.getElementById('app-workspace').style.display = 'block';
-            document.querySelector('.nav-pill-item').click();
-        }
+window.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    const gate = document.getElementById("loadingGate");
+    gate.style.opacity = "0";
+    setTimeout(() => {
+      gate.style.display = "none";
+      showAuthGate();
+    }, 600);
+  }, 1600);
+});
 
-        window.unlockAdminGateSubmit = async function() {
-            const gatePassInput = document.getElementById('admin-gate-pass').value.trim();
-            if(!gatePassInput) return triggerToast("Please enter administrative password.");
-            try {
-                const snap = await get(ref(db, `companies/${activeCompany}/company_info/admin_password`));
-                if(snap.exists() && gatePassInput === String(snap.val())) {
-                    isAdminAuthenticated = true;
-                    document.getElementById('admin-gate-view').style.display = 'none';
-                    document.getElementById('app-workspace').style.display = 'block';
-                    showView('view-admin');
-                    triggerToast("Admin environment unlocked.");
-                } else { openCustomAlert("Security Lockout", "Invalid Administrative Authorization Password."); }
-            } catch(e) { triggerToast("Authentication Validation Route Error."); }
-        }
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+themeToggleBtn.addEventListener("click", () => {
+  if (document.body.classList.contains("dark")) {
+    document.body.classList.replace("dark", "light");
+    themeToggleBtn.textContent = "🌙 Dark Mode";
+  } else {
+    document.body.classList.replace("light", "dark");
+    themeToggleBtn.textContent = "☀️ Light Mode";
+  }
+  renderAll();
+});
 
-        function startRealtimeSynchronizationPipeline() {
-            onValue(ref(db, `companies/${activeCompany}/dashboard_stats/total_customer_visits`), (snap) => {
-                document.getElementById('total-visits-counter').innerText = snap.val() || 0;
-            });
+function showAuthGate() {
+  currentSessionUser = null;
+  databaseStreamPath = "";
+  document.getElementById("appShell").style.display = "none";
+  document.getElementById("authGate").style.display = "flex";
+  setAuthMode("login");
+}
 
-            onValue(ref(db, `companies/${activeCompany}/customers`), (snap) => {
-                const timeline = document.getElementById('dashboard-timeline-container');
-                const personalContainer = document.getElementById('my-personal-logs-container');
-                const selfEditorContainer = document.getElementById('self-editor-list-container');
-                
-                timeline.innerHTML = "";
-                personalContainer.innerHTML = "";
-                selfEditorContainer.innerHTML = "";
-                
-                if(snap.exists()) {
-                    cachedCustomers = snap.val();
-                    
-                    const orderedKeys = Object.keys(cachedCustomers).sort((a, b) => {
-                        return (cachedCustomers[b].timestamp || 0) - (cachedCustomers[a].timestamp || 0);
-                    });
+function setAuthMode(mode) {
+  authMode = mode;
+  const t = document.getElementById("authTitle");
+  const s = document.getElementById("authSubtitle");
+  const b = document.getElementById("authSubmitBtn");
+  const sw = document.getElementById("authSwitchContainer");
+  document.getElementById("authError").style.display = "none";
+  document.getElementById("authForm").reset();
 
-                    let selfEntriesCount = 0;
+  if (mode === "login") {
+    t.textContent = "Sign In";
+    s.textContent = "Enter identity parameters to unlock session matrix.";
+    b.textContent = "Sign In";
+    sw.innerHTML = `New node? <span id="authSwitchModeBtn">Create Account</span>`;
+  } else {
+    t.textContent = "Create Account";
+    s.textContent = "Allocate fresh storage pathway configuration block.";
+    b.textContent = "Create Account";
+    sw.innerHTML = `Already mapped? <span id="authSwitchModeBtn">Sign In</span>`;
+  }
+  
+  document.getElementById("authSwitchModeBtn").addEventListener("click", () => {
+    setAuthMode(authMode === "login" ? "signup" : "login");
+  });
+}
 
-                    orderedKeys.forEach(key => {
-                        const logs = cachedCustomers[key];
-                        timeline.innerHTML += generateLogCardMarkup(logs, false);
-                        
-                        if(logs.recorded_by === authSalesman) {
-                            personalContainer.innerHTML += generateLogCardMarkup(logs, false);
-                            selfEditorContainer.innerHTML += generateLogCardMarkup(logs, true, true);
-                            selfEntriesCount++;
-                        }
-                    });
+document.getElementById("authForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const u = document.getElementById("authUsername").value.trim().toLowerCase();
+  const p = document.getElementById("authPassword").value;
+  const err = document.getElementById("authError");
+  err.style.display = "none";
 
-                    if(selfEntriesCount === 0) {
-                        selfEditorContainer.innerHTML = `<p style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.75rem;">No logs found under your username to modify.</p>`;
-                    }
+  if(!/^[a-z0-9_]{3,15}$/.test(u)) {
+    err.textContent = "Username format constraint validation failure.";
+    err.style.display = "block";
+    return;
+  }
 
-                    applyAdvancedFilters();
-                } else {
-                    const errorMsg = `<p style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.8rem;">No entries saved.</p>`;
-                    timeline.innerHTML = errorMsg;
-                    personalContainer.innerHTML = errorMsg;
-                    selfEditorContainer.innerHTML = errorMsg;
-                }
-            });
-        }
+  const userMangleKey = computeRouteMangle(u);
 
-        function generateLogCardMarkup(data, includeControls = false, limitToStaffSelfEdit = false) {
-            const dateStr = new Date(data.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
-            let controlMarkup = "";
-            
-            if(includeControls) {
-                if(limitToStaffSelfEdit) {
-                    controlMarkup = `
-                        <div class="card-actions-row">
-                            <button class="action-icon-btn edit" onclick="triggerEditCustomerWorkflow('${data.visit_id}')"><i class="fa-solid fa-pen-to-square"></i> Modify Entry</button>
-                        </div>
-                    `;
-                } else {
-                    controlMarkup = `
-                        <div class="card-actions-row">
-                            <button class="action-icon-btn edit" onclick="triggerAdminSalespersonReassignment('${data.visit_id}')"><i class="fa-solid fa-user-pen"></i> Reassign Salesman</button>
-                            <button class="action-icon-btn delete" onclick="triggerDeleteCustomerWorkflow('${data.visit_id}')"><i class="fa-solid fa-trash-can"></i> Delete</button>
-                        </div>
-                    `;
-                }
-            }
+  try {
+    const accountSnapshot = await get(ref(db, `users/${userMangleKey}/profile`));
+    const exist = accountSnapshot.exists();
 
-            return `
-                <div class="visit-card" id="card-node-${data.visit_id}">
-                    <div class="card-top">
-                        <div>
-                            <div class="card-title">${data.name}</div>
-                            <div class="card-meta">${data.phone} • By <b>${data.recorded_by}</b></div>
-                        </div>
-                        <span class="visit-id-badge">${data.visit_id}</span>
-                    </div>
-                    <div class="card-msg">"${data.message}"</div>
-                    <div style="margin-top:8px; display:flex; gap:6px; align-items:center;">
-                        <span class="status-pill ${data.purchased ? 'yes' : 'no'}">${data.purchased ? 'Purchased' : 'No Purchase'}</span>
-                        <span class="status-pill" style="background:rgba(0,0,0,0.04); color:var(--text-color);">${data.customer_type}</span>
-                        <span style="margin-left:auto; font-size:0.7rem; color:var(--text-muted);">${dateStr}</span>
-                    </div>
-                    ${controlMarkup}
-                </div>
-            `;
-        }
+    if (authMode === "login") {
+      if (!exist || accountSnapshot.val().password !== p) {
+        err.textContent = "Wrong username or password key.";
+        err.style.display = "block";
+        return;
+      }
+      initializeUserSession(u, userMangleKey);
+    } else {
+      if (exist) {
+        err.textContent = "Matrix destination route already taken.";
+        err.style.display = "block";
+        return;
+      }
+      await set(ref(db, `users/${userMangleKey}/profile`), { username: u, password: p, timestamp: Date.now() });
+      await set(ref(db, `users/${userMangleKey}/modes`), ["Cash", "UPI"]);
+      showToast("Account Allocated!");
+      initializeUserSession(u, userMangleKey);
+    }
+  } catch (eX) {
+    err.textContent = "Database Matrix Error: " + eX.message;
+    err.style.display = "block";
+  }
+});
 
-        window.triggerAdminSalespersonReassignment = function(visitId) {
-            const log = cachedCustomers[visitId];
-            if(!log) return triggerToast("Error: Record data missing.");
+function initializeUserSession(username, userKey) {
+  currentSessionUser = username;
+  databaseStreamPath = `users/${userKey}`;
+  
+  document.querySelectorAll(".classUserNodeDesktop").forEach(el => el.textContent = username);
+  document.getElementById("authGate").style.display = "none";
+  document.getElementById("appShell").style.display = "flex";
+  
+  startSyncListeners();
+}
 
-            document.getElementById('admin-modal-visit-id').value = visitId;
-            document.getElementById('admin-modal-cust-info').innerText = `Reassigning record ${visitId} for ${log.name}`;
-            
-            const modalSelect = document.getElementById('admin-modal-sm-select');
-            modalSelect.innerHTML = "";
-            Object.keys(cachedSalesmen).forEach(key => {
-                const isSelected = (key === log.recorded_by) ? "selected" : "";
-                modalSelect.innerHTML += `<option value="${key}" ${isSelected}>${cachedSalesmen[key].name}</option>`;
-            });
+document.querySelectorAll(".logOutActionBtn").forEach(btn => {
+  btn.addEventListener("click", showAuthGate);
+});
 
-            document.getElementById('admin-change-sm-modal').style.display = "flex";
-        }
+function startSyncListeners() {
+  onValue(ref(db, `${databaseStreamPath}/modes`), (snap) => {
+    const val = snap.val();
+    paymentModes = val ? Object.values(val) : ["Cash", "UPI"];
+    updatePaymentModeDropdowns();
+    renderModesView();
+    if(transactions.length > 0) renderAll();
+  });
 
-        window.closeAdminChangeSmModal = function() {
-            document.getElementById('admin-change-sm-modal').style.display = "none";
-        }
+  onValue(ref(db, `${databaseStreamPath}/transactions`), (snap) => {
+    const val = snap.val();
+    transactions = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+    transactions.sort((a,b) => b.date.localeCompare(a.date) || b.createdAtMs - a.createdAtMs);
+    renderAll();
+  });
 
-        window.saveAdminSalespersonReassignment = async function() {
-            const visitId = document.getElementById('admin-modal-visit-id').value;
-            const newSalespersonKey = document.getElementById('admin-modal-sm-select').value;
-            
-            if(!visitId || !newSalespersonKey) return;
-            try {
-                await set(ref(db, `companies/${activeCompany}/customers/${visitId}/recorded_by`), newSalespersonKey);
-                triggerToast("Salesperson reassigned successfully.");
-                closeAdminChangeSmModal();
-            } catch(e) { triggerToast("Failed to reassign salesperson."); }
-        }
+  onValue(ref(db, `${databaseStreamPath}/credits`), (snap) => {
+    const val = snap.val();
+    credits = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+    credits.sort((a,b) => b.createdAtMs - a.createdAtMs);
+    renderCredits();
+  });
+}
 
-        window.commitSalesmanToDatabase = async function() {
-            const sKey = document.getElementById('new-sm-key').value.trim().toLowerCase();
-            const sName = document.getElementById('new-sm-name').value.trim();
-            const sPass = document.getElementById('new-sm-pass').value.trim();
-            const editActiveKey = document.getElementById('edit-sm-mode-active-key').value;
+function updatePaymentModeDropdowns() {
+  const tSel = document.getElementById("txMethod");
+  const fSel = document.getElementById("txFromMethod");
+  const toSel = document.getElementById("txToMethod");
+  const filterSel = document.getElementById("filterMethod");
+  const sheetSel = document.getElementById("sheetMethodSelect");
 
-            if(!sKey || !sName || !sPass) return triggerToast("Fill all rows.");
-            try {
-                if (editActiveKey && editActiveKey !== sKey) {
-                    await remove(ref(db, `companies/${activeCompany}/salesmen/${editActiveKey}`));
-                }
-                await set(ref(db, `companies/${activeCompany}/salesmen/${sKey}`), { name: sName, password: sPass });
-                triggerToast(editActiveKey ? `Salesman parameters updated.` : `Salesman profile recorded.`);
-                resetSalesmanFormState();
-            } catch(e) { triggerToast("Operation failed."); }
-        }
+  const optionsHTML = paymentModes.map(m => `<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
+  tSel.innerHTML = optionsHTML;
+  fSel.innerHTML = optionsHTML;
+  toSel.innerHTML = optionsHTML;
 
-        window.startSalesmanEditWorkflow = function(usernameKeyId) {
-            const data = cachedSalesmen[usernameKeyId];
-            if(!data) return triggerToast("Failed mapping data components.");
-            
-            document.getElementById('edit-sm-mode-active-key').value = usernameKeyId;
-            document.getElementById('sm-form-title').innerText = `Edit Salesman: @${usernameKeyId}`;
-            document.getElementById('new-sm-key').value = usernameKeyId;
-            document.getElementById('new-sm-name').value = data.name || "";
-            document.getElementById('new-sm-pass').value = data.password || "";
-            
-            document.getElementById('cancel-sm-edit-btn').style.display = "block";
-            document.getElementById('submit-sm-btn').innerText = "Update Node";
-        }
+  filterSel.innerHTML = '<option value="all">All Payment Modes</option>' + paymentModes.map(m => `<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
+  sheetSel.innerHTML = paymentModes.map(m => `<option value="${escapeHTML(m)}">Ledger: ${escapeHTML(m)}</option>`).join('');
+}
 
-        window.triggerSalesmanDelete = async function(usernameKeyId) {
-            if(usernameKeyId === 'trilok') return triggerToast("Cannot delete baseline master profile.");
-            const confirmed = await openCustomConfirm("Delete Salesman?", `Delete profile @${usernameKeyId}? Staff will lose real-time access layout sync properties.`);
-            if(!confirmed) return;
-            try {
-                await remove(ref(db, `companies/${activeCompany}/salesmen/${usernameKeyId}`));
-                triggerToast("Account profile purged.");
-                if(document.getElementById('edit-sm-mode-active-key').value === usernameKeyId) resetSalesmanFormState();
-            } catch(e) { triggerToast("Removal failure."); }
-        }
+const fmt = (n) => "₹" + Number(n||0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const todayISO = () => new Date().toISOString().slice(0,10);
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = "block";
+  t.style.transform = "translateX(-50%) translateY(0)";
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => {
+    t.style.display = "none";
+  }, 2200);
+}
+function formatDate(d) {
+  if(!d) return '';
+  return new Date(d+'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function escapeHTML(s) { 
+  return (s||'').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); 
+}
 
-        window.resetSalesmanFormState = function() {
-            document.getElementById('edit-sm-mode-active-key').value = "";
-            document.getElementById('sm-form-title').innerText = "Register New Salesman";
-            document.getElementById('new-sm-key').value = "";
-            document.getElementById('new-sm-name').value = "";
-            document.getElementById('new-sm-pass').value = "";
-            document.getElementById('cancel-sm-edit-btn').style.display = "none";
-        }
+const views = ['dashboard','transactions','statements','credits','modes'];
+function goTo(view) {
+  views.forEach(v => document.getElementById('view-'+v).classList.toggle('active', v===view));
+  
+  document.querySelectorAll('.mainNavBind button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+  
+  const titles = { dashboard: 'Dashboard', transactions: 'All Entries', statements: 'Account Ledgers', credits: 'Loans & Debts', modes: 'Payment Accounts' };
+  document.getElementById('viewTitle').textContent = titles[view];
+  if(view === 'statements') generateAccountBalanceSheet();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-        window.handleFormSubmission = async function(e) {
-            e.preventDefault();
-            const editKey = document.getElementById('edit-mode-active-key').value;
-            const name = document.getElementById('c-name').value.trim();
-            const phone = document.getElementById('c-phone').value.trim();
-            const email = document.getElementById('c-email').value.trim();
-            const customer_type = document.querySelector('input[name="cust-type"]:checked').value;
-            const purchased = document.querySelector('input[name="cust-purc"]:checked').value === "true";
-            const message = document.getElementById('c-msg').value.trim();
+document.querySelectorAll('.mainNavBind button').forEach(b => {
+  if(b.dataset.view) {
+    b.addEventListener('click', () => goTo(b.dataset.view));
+  }
+});
 
-            try {
-                let currentId = editKey;
-                let targetCreator = authSalesman;
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-                if(!editKey) {
-                    const counterRef = ref(db, `companies/${activeCompany}/dashboard_stats/total_customer_visits`);
-                    const currentCountSnap = await get(counterRef);
-                    const absoluteNext = (currentCountSnap.exists() ? currentCountSnap.val() : 0) + 1;
-                    currentId = `V${String(absoluteNext).padStart(4, '0')}`;
-                    await set(counterRef, absoluteNext);
-                } else {
-                    if(cachedCustomers[editKey]) targetCreator = cachedCustomers[editKey].recorded_by;
-                }
+const txOverlay = document.getElementById('txOverlay');
+let txType = 'expense';
 
-                const payload = {
-                    visit_id: currentId,
-                    name, phone, email, customer_type, purchased, message,
-                    timestamp: Date.now(),
-                    date_string: new Date().toISOString().split('T')[0],
-                    recorded_by: targetCreator
-                };
+document.getElementById('inputInterfaceTabToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
+  b.classList.add('sel-income');
+  
+  const mode = b.dataset.tab;
+  if(mode === 'manual') {
+    document.getElementById('txForm').style.display = 'block';
+    document.getElementById('aiInterfaceNode').style.display = 'none';
+  } else {
+    document.getElementById('txForm').style.display = 'none';
+    document.getElementById('aiInterfaceNode').style.display = 'block';
+    resetAIInterfaceUI();
+  }
+});
 
-                await set(ref(db, `companies/${activeCompany}/customers/${currentId}`), payload);
-                triggerToast(`Record saved: ${currentId}`);
-                resetFormStateContainers();
-                document.querySelector('.nav-pill-item').click();
-            } catch(error) { triggerToast("Write operation failed."); }
-        };
+function populateCategorySelect() {
+  const sel = document.getElementById('txCategory');
+  const list = txType === 'income' ? CATEGORIES_INCOME : CATEGORIES_EXPENSE;
+  sel.innerHTML = list.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+}
 
-        window.triggerDeleteCustomerWorkflow = async function(targetVisitId) {
-            const confirmed = await openCustomConfirm("Delete Customer Entry?", `Permanently clear visit entry ${targetVisitId} from data stream registries?`);
-            if(!confirmed) return;
-            try {
-                await remove(ref(db, `companies/${activeCompany}/customers/${targetVisitId}`));
-                triggerToast(`Record ${targetVisitId} removed.`);
-            } catch(e) { triggerToast("Deletion error."); }
-        }
+function setTxTypeUI() {
+  document.querySelectorAll('#txTypeToggle button').forEach(x => x.classList.remove('sel-income','sel-expense','sel-transfer'));
+  const btn = document.querySelector(`#txTypeToggle button[data-val="${txType}"]`);
+  if(btn) btn.classList.add(txType === 'income' ? 'sel-income' : txType === 'expense' ? 'sel-expense' : 'sel-transfer');
 
-        window.triggerEditCustomerWorkflow = function(targetVisitId) {
-            const data = cachedCustomers[targetVisitId];
-            if(!data) return triggerToast("Data reference dropped.");
+  const isTransfer = txType === 'transfer';
+  document.getElementById('transferFields').style.display = isTransfer ? 'block' : 'none';
+  document.getElementById('txMethodField').style.display = isTransfer ? 'none' : 'block';
+  document.getElementById('txCategoryField').style.display = isTransfer ? 'none' : 'block';
+  if(!isTransfer) populateCategorySelect();
+}
 
-            document.getElementById('edit-mode-active-key').value = targetVisitId;
-            document.getElementById('form-heading-title').innerText = `Modify Record (${targetVisitId})`;
-            document.getElementById('submit-form-action-btn').innerText = "Save Record Edits";
+document.getElementById('txTypeToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if(!b) return;
+  txType = b.dataset.val;
+  setTxTypeUI();
+});
 
-            document.getElementById('c-name').value = data.name || "";
-            document.getElementById('c-phone').value = data.phone || "";
-            document.getElementById('c-email').value = data.email || "";
-            document.getElementById('c-msg').value = data.message || "";
-            
-            if(data.customer_type === "old") document.getElementById('type-old').checked = true;
-            else document.getElementById('type-new').checked = true;
+document.getElementById('openTxModal').addEventListener('click', () => {
+  document.getElementById('txForm').reset();
+  document.getElementById('txDate').value = todayISO();
+  txType = 'expense';
+  setTxTypeUI();
+  
+  document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
+  document.querySelector('#inputInterfaceTabToggle button[data-tab="ai"]').classList.add('sel-income');
+  document.getElementById('txForm').style.display = 'none';
+  document.getElementById('aiInterfaceNode').style.display = 'block';
+  resetAIInterfaceUI();
+  
+  txOverlay.classList.add('active');
+});
+document.getElementById('closeTxModal').addEventListener('click', () => {
+  stopVoiceAudioRecording();
+  txOverlay.classList.remove('active');
+});
 
-            if(data.purchased === false) document.getElementById('purc-no').checked = true;
-            else document.getElementById('purc-yes').checked = true;
+document.getElementById('txForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  if(!amount || amount <= 0) return showToast("Enter a valid amount.");
+  
+  let payload = {
+    type: txType,
+    amount,
+    date: document.getElementById('txDate').value,
+    note: document.getElementById('txNote').value.trim(),
+    createdAtMs: Date.now()
+  };
 
-            showView('view-new-entry');
-            document.querySelectorAll('.nav-pill-item').forEach(i => i.classList.remove('active'));
-            document.querySelector('.center-action').classList.add('active');
-        }
+  if(txType === 'transfer') {
+    payload.fromMethod = document.getElementById('txFromMethod').value;
+    payload.toMethod = document.getElementById('txToMethod').value;
+    if(payload.fromMethod === payload.toMethod) return showToast("Choose different accounts.");
+  } else {
+    payload.method = document.getElementById('txMethod').value;
+    payload.category = document.getElementById('txCategory').value;
+  }
 
-        window.resetFormStateContainers = function() {
-            document.getElementById('customer-form').reset();
-            document.getElementById('edit-mode-active-key').value = "";
-            document.getElementById('form-heading-title').innerText = "Visitor Entry";
-            document.getElementById('submit-form-action-btn').innerText = "Commit Entry Log";
-        }
+  await push(ref(db, `${databaseStreamPath}/transactions`), payload);
+  txOverlay.classList.remove('active');
+  showToast("Saved successfully.");
+});
 
-        window.applyAdvancedFilters = function() {
-            const displayPanel = document.getElementById('admin-filtered-results');
-            displayPanel.innerHTML = "";
+window.deleteTx = async (id) => {
+  if(!confirm("Delete this entry permanently?")) return;
+  await remove(ref(db, `${databaseStreamPath}/transactions/${id}`));
+  showToast("Deleted.");
+};
 
-            if(!cachedCustomers || Object.keys(cachedCustomers).length === 0) return;
+// Custom Modes View Configuration
+document.getElementById("addModeForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("newModeName").value.trim();
+  if(!name) return;
+  if(paymentModes.includes(name)) return showToast("Mode name already exists.");
 
-            const fStart = document.getElementById('filter-start-date').value;
-            const fEnd = document.getElementById('filter-end-date').value;
-            const fSalesman = document.getElementById('filter-salesman').value;
-            const fType = document.getElementById('filter-type').value;
+  paymentModes.push(name);
+  await set(ref(db, `${databaseStreamPath}/modes`), paymentModes);
+  document.getElementById("addModeForm").reset();
+  showToast("Payment account added.");
+});
 
-            const processingKeys = Object.keys(cachedCustomers).sort((a,b)=>cachedCustomers[b].timestamp - cachedCustomers[a].timestamp);
-            let matchedCount = 0;
+window.deleteCustomMode = async (modeName) => {
+  if(paymentModes.length <= 1) return showToast("You must keep at least one payment mode.");
+  if(!confirm(`Delete account "${modeName}"?`)) return;
 
-            processingKeys.forEach(key => {
-                const log = cachedCustomers[key];
+  paymentModes = paymentModes.filter(m => m !== modeName);
+  await set(ref(db, `${databaseStreamPath}/modes`), paymentModes);
+  showToast("Mode removed.");
+};
 
-                if(fStart && log.date_string < fStart) return;
-                if(fEnd && log.date_string > fEnd) return;
-                if(fSalesman !== "all" && log.recorded_by !== fSalesman) return;
-                if(fType !== "all" && log.customer_type !== fType) return;
+function renderModesView() {
+  const panel = document.getElementById("customModesListPanel");
+  panel.innerHTML = paymentModes.map(m => `
+    <div class="tx-row" style="grid-template-columns: 1fr auto;">
+      <div style="font-weight:600;">${escapeHTML(m)}</div>
+      <button class="mini-btn del" onclick="deleteCustomMode('${escapeHTML(m)}')">Delete Mode</button>
+    </div>
+  `).join('');
+}
 
-                displayPanel.innerHTML += generateLogCardMarkup(log, true, false);
-                matchedCount++;
-            });
+// Credits Operations Configuration Matrix
+const creditOverlay = document.getElementById('creditOverlay');
+let creditType = 'lent';
 
-            if(matchedCount === 0) {
-                displayPanel.innerHTML = `<p style="text-align:center; padding:15px; color:var(--text-muted); font-size:0.75rem;">No logs match filter criteria.</p>`;
-            }
-        };
+document.getElementById('creditTypeToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if(!b) return;
+  creditType = b.dataset.val;
+  document.querySelectorAll('#creditTypeToggle button').forEach(x => x.classList.remove('sel-lent','sel-borrowed'));
+  b.classList.add(creditType === 'lent' ? 'sel-lent' : 'sel-borrowed');
+});
 
-        window.clearSystemSession = function() {
-            localStorage.removeItem("jb_premium_co");
-            window.location.reload();
-        };
-    </script>
+document.getElementById('closeCreditModal').addEventListener('click', () => creditOverlay.classList.remove('active'));
 
-    <script>
-        function navigatePill(targetView, element) {
-            if(targetView === 'view-admin') {
-                window.interceptAdminNavigation();
-                return;
-            }
-            if(targetView !== 'view-new-entry') {
-                window.resetFormStateContainers();
-            }
-            document.querySelectorAll('.nav-pill-item').forEach(i => i.classList.remove('active'));
-            element.classList.add('active');
-            showView(targetView);
-        }
+document.getElementById('creditForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const amount = parseFloat(document.getElementById('creditAmount').value);
+  const payload = {
+    type: creditType,
+    person: document.getElementById('creditPerson').value.trim(),
+    amount,
+    takenDate: document.getElementById('creditTaken').value || null,
+    dueDate: document.getElementById('creditDue').value || null,
+    note: document.getElementById('creditNote').value.trim(),
+    status: 'pending',
+    createdAtMs: Date.now()
+  };
+  await push(ref(db, `${databaseStreamPath}/credits`), payload);
+  creditOverlay.classList.remove('active');
+  showToast("Loan logged successfully.");
+});
 
-        function showView(viewId) {
-            document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-        }
+window.settleCredit = async (id) => {
+  await update(ref(db, `${databaseStreamPath}/credits/${id}`), { status: 'paid' });
+  showToast("Marked as paid.");
+};
+window.deleteCredit = async (id) => {
+  if(!confirm("Delete this loan record?")) return;
+  await remove(ref(db, `${databaseStreamPath}/credits/${id}`));
+  showToast("Removed.");
+};
 
-        function switchAdminSubPanel(panelId, btnElement) {
-            document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.admin-view-panel').forEach(p => p.classList.remove('active'));
-            btnElement.classList.add('active');
-            document.getElementById(panelId).classList.add('active');
-        }
+// ===== OMNIPRESENT CHAT ASSISTANT & SPEECH RECOGNITION =====
+let isVoiceRecordingActive = false;
+const BrowserSpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+let browserSpeechRecognizerInstance = null;
 
-        function triggerToast(textMessage) {
-            const el = document.getElementById('app-toast');
-            document.getElementById('toast-text').innerText = textMessage;
-            el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 3000);
-        }
+function resetAIInterfaceUI() {
+  document.getElementById('aiStatusNode').textContent = 'Ready to assist';
+  document.getElementById('aiStatusNode').style.color = 'var(--gold)';
+  document.getElementById('aiChatTextBar').value = '';
+  document.getElementById('aiChatHistoryScroll').innerHTML = `
+    <div class="ai-msg-bubble assistant">Console decrypted. Ask metrics questions, type natural entries (e.g. <b>"spent 60 on burger in cash"</b>), or push loans metrics straight into records.</div>
+  `;
+  
+  const btn = document.getElementById('aiVoiceMicBtn');
+  btn.classList.remove('recording');
+  btn.textContent = '🎤';
+  isVoiceRecordingActive = false;
+}
 
-        function toggleAppTheme() {
-            document.body.classList.toggle('dark-theme');
-            triggerToast("Theme modified.");
-        }
-    </script>
+if (BrowserSpeechRecognitionClass) {
+  browserSpeechRecognizerInstance = new BrowserSpeechRecognitionClass();
+  browserSpeechRecognizerInstance.continuous = false;
+  browserSpeechRecognizerInstance.interimResults = false;
+  browserSpeechRecognizerInstance.lang = 'en-IN';
+
+  browserSpeechRecognizerInstance.onstart = () => {
+    isVoiceRecordingActive = true;
+    const btn = document.getElementById('aiVoiceMicBtn');
+    btn.classList.add('recording');
+    btn.textContent = '🛑';
+    document.getElementById('aiStatusNode').textContent = 'Listening to speech...';
+  };
+
+  browserSpeechRecognizerInstance.onresult = async (event) => {
+    const rawSpeechTranscriptResultString = event.results[0][0].transcript;
+    stopVoiceAudioRecording();
+    document.getElementById('aiChatTextBar').value = rawSpeechTranscriptResultString;
+    await triggerMainAIStreamPipeline();
+  };
+
+  browserSpeechRecognizerInstance.onerror = () => { stopVoiceAudioRecording(); };
+  browserSpeechRecognizerInstance.onend = () => { stopVoiceAudioRecording(); };
+}
+
+document.getElementById('aiVoiceMicBtn').addEventListener('click', () => {
+  if (!BrowserSpeechRecognitionClass) return showToast("Device running missing Speech APIs.");
+  if (!isVoiceRecordingActive) {
+    try { browserSpeechRecognizerInstance.start(); } catch(e){}
+  } else {
+    stopVoiceAudioRecording();
+  }
+});
+
+function stopVoiceAudioRecording() {
+  if (browserSpeechRecognizerInstance && isVoiceRecordingActive) browserSpeechRecognizerInstance.stop();
+  isVoiceRecordingActive = false;
+  const btn = document.getElementById('aiVoiceMicBtn');
+  if(btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+}
+
+document.getElementById('aiTextSubmitBtn').addEventListener('click', triggerMainAIStreamPipeline);
+document.getElementById('aiChatTextBar').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') triggerMainAIStreamPipeline();
+});
+
+async function triggerMainAIStreamPipeline() {
+  const textBar = document.getElementById('aiChatTextBar');
+  const userQuery = textBar.value.trim();
+  if(!userQuery) return;
+
+  textBar.value = '';
+  appendMessageToBubble('user', userQuery);
+  
+  const statusNode = document.getElementById('aiStatusNode');
+  statusNode.textContent = 'Analyzing parameters...';
+
+  try {
+    const historicalStatsSnapshot = computeStats();
+    
+    const contextLedgerPayload = {
+      currentDate: todayISO(),
+      availableCustomPaymentAccounts: paymentModes,
+      calculatedRunningBalances: historicalStatsSnapshot.modeBalances,
+      grandTotalLedgerBalance: historicalStatsSnapshot.total,
+      rawTransactionDatabaseRecords: transactions.map(t => ({
+        type: t.type, amount: t.amount, date: t.date, method: t.method || 'transfer',
+        from: t.fromMethod || null, to: t.toMethod || null, category: t.category || null, note: t.note || ''
+      })),
+      activeCreditsAndLoansRecords: credits.map(c => ({
+        type: c.type, person: c.person, amount: c.amount, status: c.status, note: c.note || ''
+      }))
+    };
+
+    const coreOmnipresentPromptSystemContext = `You are a dynamic personal ledger assistant system called "A Manager". You are connected to live user data arrays.
+    
+    Here is the exact real-time live database status snapshot payload data:
+    ${JSON.stringify(contextLedgerPayload)}
+    
+    Your job is to read this payload data and assist the user in three ways:
+    
+    WAY 1: IF the user is telling you about a new entry they made (e.g. "spent 60 on pizza via cash", "received 500 salary in upi"), extract the fields into a flat JSON format schema.
+    Strict parse format schema to return for entry matching:
+    {"action":"save_entry","type":"income/expense/transfer","amount":0.00,"method":"MatchedModeName","category":"MatchedCategoryName","note":"Context text description"}
+    
+    WAY 2: IF the user is telling you about a loan record (e.g. "lent 500 to Amit", "borrowed 1200 from Rahul cash"), extract the fields into a flat JSON format schema.
+    Strict parse format schema to return for loan record matching:
+    {"action":"save_loan","type":"lent/borrowed","person":"PersonName","amount":0.00,"note":"Context description"}
+    
+    WAY 3: IF the user is asking a conversational mathematical question regarding balances, history dates, records, or calculations, answer them in standard human terms inside a friendly single conversational paragraph. Do not use markdown charts.
+    Strict parse format schema to return for general chat responses:
+    {"action":"chat_response","reply":"Your textual friendly financial breakdown analysis goes here."}
+    
+    Always return ONLY a raw minified valid JSON output block matching one of the fields above. Do not include markdown code wrappers or backticks.`;
+
+    const openRouterResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_SECRET_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost",
+        "X-Title": "A Manager Smart Matrix Console"
+      },
+      body: JSON.stringify({
+        model: "openrouter/free",
+        messages: [
+          { role: "system", content: coreOmnipresentPromptSystemContext },
+          { role: "user", content: `User query phrase text: "${userQuery}"` }
+        ],
+        temperature: 0.1
+      })
+    });
+
+    if(!openRouterResponse.ok) throw new Error("OpenRouter cloud API network request fault.");
+    const jsonOutput = await openRouterResponse.json();
+    let cleanRawContentString = jsonOutput.choices[0].message.content.trim();
+
+    if(cleanRawContentString.includes("```")) {
+      cleanRawContentString = cleanRawContentString.replace(/```json/g, "").replace(/```/g, "").trim();
+    }
+
+    const aiParsedActionResponse = JSON.parse(cleanRawContentString);
+
+    if(aiParsedActionResponse.action === 'save_entry') {
+      aiParsedActionResponse.date = todayISO();
+      aiParsedActionResponse.createdAtMs = Date.now();
+      
+      await push(ref(db, `${databaseStreamPath}/transactions`), aiParsedActionResponse);
+      appendMessageToBubble('assistant', `Understood! Logged entry of ₹${aiParsedActionResponse.amount} under ${aiParsedActionResponse.category || 'Transfer'} successfully.`);
+      statusNode.textContent = 'Committed to Firebase!';
+      
+      setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
+    } else if (aiParsedActionResponse.action === 'save_loan') {
+      const loanPayload = {
+        type: aiParsedActionResponse.type,
+        person: aiParsedActionResponse.person || 'Unknown',
+        amount: Number(aiParsedActionResponse.amount) || 0,
+        takenDate: todayISO(),
+        dueDate: null,
+        note: aiParsedActionResponse.note || 'Logged via AI Assistant',
+        status: 'pending',
+        createdAtMs: Date.now()
+      };
+      
+      await push(ref(db, `${databaseStreamPath}/credits`), loanPayload);
+      appendMessageToBubble('assistant', `Loan recorded! Logged that you **${loanPayload.type === 'lent' ? 'lent money to' : 'borrowed money from'} ${loanPayload.person}** totaling ₹${loanPayload.amount}.`);
+      statusNode.textContent = 'Committed to Loans!';
+      setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
+    } else {
+      appendMessageToBubble('assistant', aiParsedActionResponse.reply);
+      statusNode.textContent = 'Ready for queries';
+    }
+
+  } catch(errX) {
+    statusNode.textContent = 'Loop exception logged.';
+    appendMessageToBubble('assistant', "Apologies, I encountered a minor processing fault analyzing your ledger context parameters.");
+    console.error(errX);
+  }
+}
+
+function appendMessageToBubble(sender, text) {
+  const historyScroll = document.getElementById('aiChatHistoryScroll');
+  const bubble = document.createElement('div');
+  bubble.className = `ai-msg-bubble ${sender}`;
+  bubble.innerHTML = text;
+  historyScroll.appendChild(bubble);
+  historyScroll.scrollTop = historyScroll.scrollHeight;
+}
+
+// ===== DYNAMIC BALANCE SHEET LEDGER LOGIC =====
+function generateAccountBalanceSheet() {
+  const activeMethod = document.getElementById('sheetMethodSelect').value;
+  const personFilter = document.getElementById('sheetSearchPerson').value.toLowerCase().trim();
+  const startDate = document.getElementById('sheetStartDate').value;
+  const endDate = document.getElementById('sheetEndDate').value;
+
+  document.getElementById('sheetAccountLabel').textContent = `Statement for: ${activeMethod}`;
+  
+  let labelText = "All-Time Running Ledger";
+  if(startDate || endDate) {
+    labelText = `History: ${startDate || 'Onset'} to ${endDate || 'Present'}`;
+  }
+  document.getElementById('sheetDateFilterLabel').textContent = labelText;
+
+  const tBody = document.getElementById('ledgerBalanceSheetBody');
+  tBody.innerHTML = '';
+
+  let runningBalanceVal = 0;
+  let matchesRowsCollected = [];
+
+  const sequentialTimelineList = [...transactions].reverse();
+
+  sequentialTimelineList.forEach(t => {
+    let affectsThisAccount = false;
+    let flowDirection = 0;
+
+    if(t.type === 'transfer') {
+      if(t.fromMethod === activeMethod) { affectsThisAccount = true; flowDirection = -1; }
+      if(t.toMethod === activeMethod) { affectsThisAccount = true; flowDirection = 1; }
+    } else {
+      if(t.method === activeMethod) {
+        affectsThisAccount = true;
+        flowDirection = t.type === 'income' ? 1 : -1;
+      }
+    }
+
+    if (!affectsThisAccount) return;
+
+    const amt = Number(t.amount) || 0;
+    runningBalanceVal += (flowDirection * amt);
+
+    if(startDate && t.date < startDate) return;
+    if(endDate && t.date > endDate) return;
+    
+    if(personFilter) {
+      const noteStr = (t.note || '').toLowerCase();
+      const catStr = (t.category || '').toLowerCase();
+      if(!noteStr.includes(personFilter) && !catStr.includes(personFilter)) return;
+    }
+
+    matchesRowsCollected.push({
+      date: t.date,
+      type: t.type === 'transfer' ? 'Transfer' : t.category,
+      desc: t.type === 'transfer' ? `Transfer: ${t.fromMethod} ➔ ${t.toMethod} ${t.note ? '('+t.note+')' : ''}` : (t.note || 'Ledger entry'),
+      out: flowDirection === -1 ? fmt(amt) : '-',
+      in: flowDirection === 1 ? fmt(amt) : '-',
+      bal: fmt(runningBalanceVal)
+    });
+  });
+
+  document.getElementById('sheetClosingBalance').textContent = fmt(runningBalanceVal);
+
+  if(!matchesRowsCollected.length) {
+    tBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:30px;">No statement entries found for selection parameters.</td></tr>`;
+    return;
+  }
+
+  matchesRowsCollected.reverse().forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${formatDate(row.date)}</td>
+      <td><span class="label" style="color:var(--gold); border: 1px solid rgba(102,255,0,0.2); padding: 2px 6px; border-radius:4px; font-size:11px;">${escapeHTML(row.type)}</span></td>
+      <td>${escapeHTML(row.desc)}</td>
+      <td class="num" style="color:var(--rust); font-weight:600;">${row.out}</td>
+      <td class="num" style="color:var(--teal); font-weight:600;">${row.in}</td>
+      <td class="num" style="font-weight:600; color:var(--gold);">${row.bal}</td>
+    `;
+    tBody.appendChild(tr);
+  });
+}
+
+['sheetMethodSelect', 'sheetStartDate', 'sheetEndDate'].forEach(id => {
+  document.getElementById(id).addEventListener('change', generateAccountBalanceSheet);
+});
+document.getElementById('sheetSearchPerson').addEventListener('input', generateAccountBalanceSheet);
+
+document.getElementById('printStatementBtn').addEventListener('click', () => {
+  window.print();
+});
+
+// ===== CORE RUNTIME MATH ENGINE =====
+function computeStats() {
+  let incomeTotal = 0, expenseTotal = 0;
+  let todaySpentTotal = 0;
+  
+  const todayStringISO = todayISO();
+
+  let modeBalances = {};
+  paymentModes.forEach(m => modeBalances[m] = 0);
+
+  const chronologicalTransactionStream = [...transactions].reverse();
+
+  chronologicalTransactionStream.forEach(t => {
+    const amt = Number(t.amount) || 0;
+    
+    if (t.type === 'transfer') {
+      if (modeBalances[t.fromMethod] !== undefined) modeBalances[t.fromMethod] -= amt;
+      if (modeBalances[t.toMethod] !== undefined) modeBalances[t.toMethod] += amt;
+      return;
+    }
+    
+    const sign = t.type === 'income' ? 1 : -1;
+    if (modeBalances[t.method] !== undefined) {
+      modeBalances[t.method] += sign * amt;
+    }
+    
+    if (t.type === 'income') {
+      incomeTotal += amt;
+    } else {
+      expenseTotal += amt;
+      if (t.date === todayStringISO) {
+        todaySpentTotal += amt;
+      }
+    }
+  });
+
+  let grandTotal = Object.values(modeBalances).reduce((a,b) => a + b, 0);
+  return { total: grandTotal, incomeTotal, todaySpentTotal, modeBalances };
+}
+
+function mergeAllState() {
+  const s = computeStats();
+  document.getElementById('statBalance').textContent = fmt(s.total);
+  document.getElementById('statTodaySpent').textContent = fmt(s.todaySpentTotal);
+  document.getElementById('statTotalIncome').textContent = fmt(s.incomeTotal);
+
+  const dGrid = document.getElementById("dashboardModesGrid");
+  dGrid.innerHTML = Object.keys(s.modeBalances).map(modeKey => `
+    <div class="card" style="padding:15px 20px;">
+      <div class="label" style="color:var(--gold); font-size:12px;">${escapeHTML(modeKey)}</div>
+      <div class="value num" style="font-size:20px; margin-top:8px;">${fmt(s.modeBalances[modeKey])}</div>
+    </div>
+  `).join('');
+
+  const recent = transactions.slice(0, 5);
+  document.getElementById('recentTxPanel').innerHTML = txListHTML(recent);
+  
+  renderTransactionsList();
+  if(document.getElementById('view-statements').classList.contains('active')) generateAccountBalanceSheet();
+  renderCharts(s);
+}
+
+function txListHTML(list) {
+  if(!list.length) return `<div class="empty-state">No entries logged yet.</div>`;
+  return list.map((t, idx) => {
+    const customDelay = `style="animation-delay: ${idx * 0.04}s"`;
+    if(t.type === 'transfer') {
+      return `<div class="tx-row" ${customDelay}>
+        <div class="tx-icon transfer">⇄</div>
+        <div class="tx-main">
+          <div class="cat" style="font-weight:600;">Transfer: ${escapeHTML(t.fromMethod)} ➔ ${escapeHTML(t.toMethod)}</div>
+          <div class="meta">${formatDate(t.date)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
+        </div>
+        <div class="tx-amt transfer">${fmt(t.amount)}</div>
+        <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
+      </div>`;
+    }
+    return `<div class="tx-row" ${customDelay}>
+      <div class="tx-icon ${t.type}">${t.type === 'income' ? '↙' : '↗'}</div>
+      <div class="tx-main">
+        <div class="cat" style="font-weight:600;">${escapeHTML(t.category)}</div>
+        <div class="meta">${formatDate(t.date)} • via ${escapeHTML(t.method)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
+      </div>
+      <div class="tx-amt ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</div>
+      <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderTransactionsList() {
+  const typeF = document.getElementById('filterType').value;
+  const methodF = document.getElementById('filterMethod').value;
+  const searchF = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+  let filtered = transactions.filter(t => {
+    if(typeF !== 'all' && t.type !== typeF) return false;
+    if(methodF !== 'all') {
+      if(t.type === 'transfer') { if(t.fromMethod !== methodF && t.toMethod !== methodF) return false; }
+      else if(t.method !== methodF) return false;
+    }
+    if(searchF && !(t.note||'').toLowerCase().includes(searchF) && !(t.category||'').toLowerCase().includes(searchF) && !(t.date||'').toLowerCase().includes(searchF)) return false;
+    return true;
+  });
+
+  document.getElementById('allTxPanel').innerHTML = txListHTML(filtered);
+}
+['filterType','filterMethod','filterSearch'].forEach(id => document.getElementById(id).addEventListener('input', renderTransactionsList));
+
+function renderCredits() {
+  const lent = credits.filter(c => c.type === 'lent');
+  const borrowed = credits.filter(c => c.type === 'borrowed');
+
+  const totalLent = lent.filter(c => c.status === 'pending').reduce((a,b) => a + Number(b.amount||0), 0);
+  const totalBorrowed = borrowed.filter(c => c.status === 'pending').reduce((a,b) => a + Number(b.amount||0), 0);
+
+  document.getElementById('statLent').textContent = fmt(totalLent);
+  document.getElementById('statBorrowed').textContent = fmt(totalBorrowed);
+
+  document.getElementById('lentList').innerHTML = creditListHTML(lent);
+  document.getElementById('borrowedList').innerHTML = creditListHTML(borrowed);
+}
+
+function creditListHTML(list) {
+  if(!list.length) return `<div class="empty-state">No loan lists found.</div>`;
+  return list.map((c, idx) => `
+    <div class="credit-card" style="animation-delay: ${idx * 0.05}s">
+      <div class="credit-top">
+        <div style="font-weight:600;">${escapeHTML(c.person)}</div>
+        <div class="credit-amt ${c.type}">${fmt(c.amount)}</div>
+      </div>
+      <div class="credit-meta">
+        <span style="font-weight:bold; color:var(--gold);">${c.status.toUpperCase()}</span>
+        ${c.dueDate ? '• Due: '+formatDate(c.dueDate) : ''}
+        ${c.note ? '• '+escapeHTML(c.note) : ''}
+      </div>
+      <div class="credit-actions">
+        ${c.status === 'pending' ? `<button class="mini-btn settle" onclick="settleCredit('${c.id}')">Mark Settled</button>` : ''}
+        <button class="mini-btn del" onclick="deleteCredit('${c.id}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+let cFlow, cCat;
+function renderCharts(stats) {
+  const ctxFlow = document.getElementById('chartFlow');
+  const ctxCat = document.getElementById('chartCatMini');
+  
+  const months = Array.from({length: 6}, (_, i) => {
+    const d = new Date(); d.setMonth(d.getMonth() - i);
+    return { label: d.toLocaleString('en-IN', {month: 'short'}), m: d.getMonth(), y: d.getFullYear() };
+  }).reverse();
+
+  const flowIn = months.map(m => transactions.filter(t => t.type === 'income' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
+  const flowOut = months.map(m => transactions.filter(t => t.type === 'expense' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
+
+  const textModeColor = document.body.classList.contains("light") ? "#000000" : "#FFFFFF";
+  const gridLineColor = document.body.classList.contains("light") ? "#CBD5E1" : "#1E2B35";
+
+  if(cFlow) cFlow.destroy();
+  cFlow = new Chart(ctxFlow, {
+    type: 'line',
+    data: {
+      labels: months.map(m => m.label),
+      datasets: [
+        { label: 'Income', data: flowIn, borderColor: '#00FFCC', tension: 0.2, pointRadius: 2 },
+        { label: 'Expense', data: flowOut, borderColor: '#FF3366', tension: 0.2, pointRadius: 2 }
+      ]
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { legend: { display: false } }, 
+      scales: { 
+        y: { grid: { color: gridLineColor }, ticks: { color: textModeColor } }, 
+        x: { grid: { display: false }, ticks: { color: textModeColor } } 
+      } 
+    }
+  });
+
+  const catMap = {};
+  transactions.filter(t => t.type === 'expense').forEach(t => catMap[t.category] = (catMap[t.category]||0) + Number(t.amount));
+
+  if(cCat) cCat.destroy();
+  cCat = new Chart(ctxCat, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(catMap).length ? Object.keys(catMap) : ['None'],
+      datasets: [{ data: Object.values(catMap).length ? Object.values(catMap) : [1], backgroundColor: ['#66FF00', '#00FFCC', '#FF3366', '#CC66FF', '#7E93A2'], borderWidth: 0 }]
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { legend: { display: false } } 
+    }
+  });
+}
+window.renderAll = mergeAllState;
+</script>
 </body>
 </html>
