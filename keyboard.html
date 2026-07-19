@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { margin: 0; background: transparent; }
+        
+        .keyboard {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #d1d5db;
+            padding: 8px 5px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .key {
+            background: #ffffff;
+            border-radius: 5px;
+            padding: 15px 0;
+            flex: 1;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+            box-shadow: 0 1px 0px #999;
+            user-select: none;
+        }
+
+        .wide { flex: 1.5; }
+        .space { flex: 4; }
+    </style>
+</head>
+<body>
+
+    <div class="keyboard">
+        <div class="row">
+            <div class="key">Q</div><div class="key">W</div><div class="key">E</div><div class="key">R</div>
+            <div class="key">T</div><div class="key">Y</div><div class="key">U</div><div class="key">I</div>
+            <div class="key">O</div><div class="key">P</div>
+        </div>
+        <div class="row">
+            <div class="key">A</div><div class="key">S</div><div class="key">D</div><div class="key">F</div>
+            <div class="key">G</div><div class="key">H</div><div class="key">J</div><div class="key">K</div>
+            <div class="key">L</div>
+        </div>
+        <div class="row">
+            <div class="key wide">⇧</div>
+            <div class="key">Z</div><div class="key">X</div><div class="key">C</div><div class="key">V</div>
+            <div class="key">B</div><div class="key">N</div><div class="key">M</div>
+            <div class="key wide">⌫</div>
+        </div>
+        <div class="row">
+            <div class="key">?123</div>
+            <div class="key space">SPACE</div>
+            <div class="key">ENT</div>
+        </div>
+    </div>
+
+</body>
+</html>
