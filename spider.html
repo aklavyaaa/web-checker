@@ -2,942 +2,942 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aklavya's Runner - Animated Mobile & Desktop Code Studio</title>
-    <!-- FontAwesome & Google Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eklavaya Verma | Multiverse Portfolio</title>
     <style>
-        /* --- Color Palettes & Gradient Meshes --- */
-        :root {
-            /* Light Theme: Lavender & White */
-            --bg-gradient: linear-gradient(-45deg, #f3f0f9, #e9d5ff, #f8f5fc, #ddd6fe);
-            --bg-panel: rgba(255, 255, 255, 0.85);
-            --bg-editor: #f8f6fc;
-            --border-color: #e2d9f3;
-            --text-primary: #2d2438;
-            --text-secondary: #7e6e90;
-            --accent-primary: #7c3aed;
-            --accent-hover: #6d28d9;
-            --shadow-3d: 0 4px 0px #d1c4e9, 0 8px 15px rgba(124, 58, 237, 0.12);
-            --shadow-3d-active: 0 1px 0px #d1c4e9, 0 3px 8px rgba(124, 58, 237, 0.15);
-            --header-bg: rgba(250, 248, 253, 0.85);
-            --console-bg: #1c1825;
-            --console-text: #c084fc;
-        }
-
-        body.theme-dark {
-            /* Dark Theme: Maroon & Deep Grey */
-            --bg-gradient: linear-gradient(-45deg, #121214, #2a0812, #1a1618, #3b0717);
-            --bg-panel: rgba(30, 30, 36, 0.85);
-            --bg-editor: #16161a;
-            --border-color: #4a1926;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --accent-primary: #9f1239;
-            --accent-hover: #be123c;
-            --shadow-3d: 0 4px 0px #4c0519, 0 8px 15px rgba(159, 18, 57, 0.3);
-            --shadow-3d-active: 0 1px 0px #4c0519, 0 3px 8px rgba(159, 18, 57, 0.35);
-            --header-bg: rgba(25, 20, 23, 0.85);
-            --console-bg: #0d0a0c;
-            --console-text: #fda4af;
-        }
-
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            height: 100dvh;
-            background: var(--bg-gradient);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            color: var(--text-primary);
-            overflow: hidden;
+            background-color: #030205;
+            color: #ffffff;
+            overflow-x: hidden;
+            line-height: 1.7;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* --- Splash Screen --- */
-        #splashScreen {
+        /* --- 0. SPLASH SCREEN OVERLAY --- */
+        #splash-screen {
             position: fixed;
-            inset: 0;
-            background: var(--bg-gradient);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            z-index: 99999;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #1a0005 0%, #030205 100%);
+            z-index: 9999;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s ease;
+            align-items: center;
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), visibility 1s;
         }
 
-        .splash-logo-box {
-            width: 100px;
-            height: 100px;
-            background: var(--bg-panel);
-            border: 2px solid var(--border-color);
-            border-radius: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 42px;
-            color: var(--accent-primary);
-            box-shadow: var(--shadow-3d);
-            animation: pulseLogo 2s ease-in-out infinite;
-            margin-bottom: 20px;
+        #splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
 
-        @keyframes pulseLogo {
-            0%, 100% { transform: scale(1) translateY(0); }
-            50% { transform: scale(1.08) translateY(-6px); }
+        .splash-spider-logo {
+            width: 90px;
+            height: 90px;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 20px #e50914);
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(1); filter: drop-shadow(0 0 15px #e50914); }
+            100% { transform: scale(1.1); filter: drop-shadow(0 0 35px #e50914); }
         }
 
         .splash-title {
-            font-size: 26px;
+            font-size: 2.8rem;
             font-weight: 800;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-        }
-
-        .splash-title span { color: var(--accent-primary); }
-
-        .splash-loader {
-            width: 140px;
-            height: 4px;
-            background: var(--border-color);
-            border-radius: 10px;
-            margin-top: 24px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .splash-progress {
-            width: 100%;
-            height: 100%;
-            background: var(--accent-primary);
-            border-radius: 10px;
-            animation: splashBar 2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-            transform-origin: left;
-        }
-
-        @keyframes splashBar {
-            0% { transform: scaleX(0); }
-            100% { transform: scaleX(1); }
-        }
-
-        /* --- Header & Top Controls --- */
-        header {
-            background-color: var(--header-bg);
-            backdrop-filter: blur(12px);
-            padding: 10px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            border-bottom: 2px solid var(--border-color);
-            z-index: 20;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-        }
-
-        @media(min-width: 900px) {
-            header {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px 20px;
-            }
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .brand {
-            font-weight: 800;
-            font-size: 1.15rem;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            letter-spacing: -0.5px;
-            white-space: nowrap;
-        }
-
-        .brand i {
-            color: var(--accent-primary);
-            font-size: 1.3rem;
-            animation: spinBolt 6s linear infinite;
-        }
-
-        @keyframes spinBolt {
-            0%, 90%, 100% { transform: rotate(0deg); }
-            95% { transform: rotate(15deg); }
-        }
-
-        .brand span { color: var(--accent-primary); }
-
-        .toolbar {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .mobile-tabs {
-            display: flex;
-            background: var(--bg-editor);
-            padding: 3px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-
-        @media(min-width: 768px) {
-            .mobile-tabs { display: none; }
-        }
-
-        .mobile-tab-btn {
-            padding: 5px 12px;
-            font-size: 11px;
-            font-weight: 800;
-            border-radius: 9px;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
-            cursor: pointer;
-            box-shadow: none !important;
-            transform: none !important;
-            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .mobile-tab-btn.active {
-            background: var(--accent-primary);
-            color: #ffffff;
-            transform: scale(1.02) !important;
-        }
-
-        /* 3D Tactile Animated Buttons */
-        button, label.btn-label {
-            background-color: var(--bg-panel);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            padding: 7px 11px;
-            border-radius: 9px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 3px 0px var(--border-color);
-            transform: translateY(-2px);
-            user-select: none;
-            white-space: nowrap;
-            flex-shrink: 0;
-            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), 
-                        box-shadow 0.15s ease, 
-                        background-color 0.2s ease, 
-                        color 0.2s ease;
-        }
-
-        button:hover, label.btn-label:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 5px 0px var(--border-color);
-        }
-
-        button:active, label.btn-label:active {
-            transform: translateY(1px) scale(0.97);
-            box-shadow: 0 1px 0px var(--border-color);
-        }
-
-        button.primary {
-            background-color: var(--accent-primary);
-            color: white;
-            border-color: rgba(0,0,0,0.1);
-            box-shadow: var(--shadow-3d);
-        }
-
-        button.primary:hover {
-            background-color: var(--accent-hover);
-            box-shadow: var(--shadow-3d);
-        }
-
-        button.primary:active {
-            box-shadow: var(--shadow-3d-active);
-        }
-
-        button.active {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-        }
-
-        /* --- Find Modal --- */
-        #findModal {
-            position: fixed;
-            top: 60px;
-            right: 20px;
-            z-index: 1000;
-            background: var(--bg-panel);
-            backdrop-filter: blur(12px);
-            border: 2px solid var(--border-color);
-            border-radius: 16px;
-            padding: 14px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 310px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px) scale(0.95);
-            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        #findModal.open {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0) scale(1);
-        }
-
-        .find-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            font-weight: 800;
-            color: var(--text-primary);
-        }
-
-        .find-input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .find-input {
-            width: 100%;
-            padding: 8px 10px;
-            background: var(--bg-editor);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            outline: none;
-        }
-
-        .find-input:focus {
-            border-color: var(--accent-primary);
-        }
-
-        .find-actions {
-            display: flex;
-            gap: 6px;
-            justify-content: flex-end;
-        }
-
-        .find-actions button {
-            padding: 6px 10px;
-            font-size: 11px;
-        }
-
-        .find-status {
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--text-secondary);
-        }
-
-        /* --- Main Layout --- */
-        .main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .editor-pane {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg-panel);
-            backdrop-filter: blur(10px);
-            border-right: 2px solid var(--border-color);
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
-        }
-
-        @media(min-width: 768px) {
-            .editor-pane { width: 45%; }
-        }
-
-        .editor-header {
-            padding: 8px 12px;
-            background-color: var(--header-bg);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 10px;
-            color: var(--text-secondary);
-            font-weight: 700;
-            letter-spacing: 0.5px;
+            letter-spacing: 4px;
             text-transform: uppercase;
+            color: #ffffff;
+            margin-bottom: 10px;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(229, 9, 20, 0.6);
         }
 
-        textarea {
-            flex: 1;
-            width: 100%;
-            padding: 14px;
-            border: none;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
-            resize: none;
-            outline: none;
-            background-color: var(--bg-editor);
-            color: var(--text-primary);
-            line-height: 1.5;
-            -webkit-appearance: none;
-            border-radius: 0;
+        .splash-subtitle {
+            font-size: 1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #0066ff;
+            margin-bottom: 35px;
+            text-align: center;
         }
 
-        .preview-pane {
-            width: 100%;
-            display: none;
-            flex-direction: column;
-            background-color: transparent;
-            position: relative;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        .splash-btn {
+            background: linear-gradient(135deg, #e50914 0%, #a0000a 100%);
+            color: #ffffff;
+            border: 1px solid #ff4d4d;
+            padding: 16px 36px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(229, 9, 20, 0.5);
+            transition: all 0.3s ease;
         }
 
-        @media(min-width: 768px) {
-            .preview-pane {
-                display: flex !important;
-                width: 55%;
-            }
+        .splash-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 40px rgba(229, 9, 20, 0.9);
+            background: linear-gradient(135deg, #ff0d1a 0%, #c0000e 100%);
         }
 
-        .preview-pane.mobile-active {
-            display: flex !important;
-            animation: fadeInTab 0.3s ease-out;
+        /* Clear Background Video */
+        .video-bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
         }
 
-        @keyframes fadeInTab {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .preview-wrapper {
+        .video-bg {
             width: 100%;
             height: 100%;
+            object-fit: cover;
+            filter: brightness(0.55) contrast(1.1);
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #bg-desktop { display: block; }
+        #bg-mobile { display: none; }
+
+        @media (max-width: 768px) {
+            #bg-desktop { display: none; }
+            #bg-mobile { display: block; }
+        }
+
+        /* Curly Web Overlay Canvas */
+        #web-edge-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* 3D WebGL Canvas Layer */
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
+            pointer-events: auto;
+        }
+
+        /* --- SPIDER-MAN IMAGE REVEAL OVERLAY --- */
+        #spiderman-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 3;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1.2s ease-in-out;
             display: flex;
             justify-content: center;
             align-items: center;
+            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(3, 2, 5, 0.9) 80%);
+        }
+
+        #spiderman-overlay.active {
+            opacity: 1;
+        }
+
+        .spiderman-img {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            filter: drop-shadow(0 0 40px rgba(229, 9, 20, 0.6));
+        }
+
+        #spidey-desktop { display: block; }
+        #spidey-mobile { display: none; }
+
+        @media (max-width: 768px) {
+            #spidey-desktop { display: none; }
+            #spidey-mobile { display: block; }
+        }
+
+        /* Minimalist Typography Scroll Container */
+        .scroll-container {
             position: relative;
-            padding: 8px;
+            z-index: 4;
+            pointer-events: none;
+            padding: 5vh 0;
         }
 
-        @media(min-width: 768px) {
-            .preview-wrapper { padding: 15px; }
+        .content-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 60px 10%;
         }
 
-        iframe {
+        .text-block {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
             width: 100%;
-            height: 100%;
-            border: none;
-            background-color: #ffffff;
+            max-width: 780px;
+            pointer-events: auto;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+            margin-bottom: 25px;
+            background: rgba(5, 3, 10, 0.55);
+            padding: 35px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .preview-wrapper.mobile iframe {
-            width: 375px;
-            height: 667px;
-            max-height: 95%;
-            border: 10px solid #1a1a24;
-            border-radius: 28px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-            animation: popFrame 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .text-block.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .preview-wrapper.tablet iframe {
-            width: 768px;
-            height: 980px;
-            max-height: 95%;
-            border: 10px solid #1a1a24;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-            animation: popFrame 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .section-tag {
+            font-size: 0.82rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #e50914;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: block;
         }
 
-        @keyframes popFrame {
-            from { transform: scale(0.95); opacity: 0.8; }
-            to { transform: scale(1); opacity: 1; }
+        .text-block h1 {
+            font-size: 3.8rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: #ffffff;
+            margin-bottom: 12px;
+            line-height: 1.1;
         }
 
-        .console-drawer {
-            height: 100px;
-            width: 100%;
-            background-color: var(--console-bg);
-            border-top: 2px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .text-block h2 {
+            font-size: 2.3rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
         }
 
-        .console-header {
-            background-color: rgba(255,255,255,0.03);
-            padding: 6px 12px;
+        .text-block h3 {
+            font-size: 1.15rem;
+            color: #0066ff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            font-weight: 600;
+        }
+
+        .text-block p, .text-block li {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+        }
+
+        .text-block ul {
+            list-style: none;
+            margin-top: 14px;
+        }
+
+        .text-block ul li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 12px;
+        }
+
+        .text-block ul li::before {
+            content: '🕸️';
+            position: absolute;
+            left: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Skill Meters */
+        .skill-item {
+            margin-bottom: 16px;
+        }
+
+        .skill-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            color: var(--text-secondary);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.92rem;
+            margin-bottom: 6px;
+            color: #ffffff;
+            font-weight: 600;
         }
 
-        .console-logs {
-            flex: 1;
-            padding: 8px 12px;
-            overflow-y: auto;
-            color: var(--console-text);
+        .skill-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 3px;
+            overflow: hidden;
         }
 
-        .log-entry { margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
-        .log-error { color: #f87171; }
-        .log-warn { color: #fbbf24; }
-
-        body.fullscreen .editor-pane,
-        body.fullscreen header,
-        body.fullscreen .console-drawer {
-            display: none !important;
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #e50914, #0066ff);
         }
 
-        body.fullscreen .preview-pane {
-            display: flex !important;
-            width: 100vw !important;
-            height: 100vh !important;
+        .align-right {
+            align-items: flex-end;
+            text-align: right;
         }
 
-        body.fullscreen .preview-wrapper { padding: 0; }
-        body.fullscreen iframe { border-radius: 0; }
+        .align-right .section-tag { color: #0066ff; }
+        .align-right ul li { padding-left: 0; padding-right: 24px; }
+        .align-right ul li::before { left: auto; right: 0; }
 
-        .exit-fs {
-            display: none;
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 99999;
-            background-color: var(--bg-panel);
-            color: var(--text-primary);
+        .grid-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 18px;
         }
 
-        body.fullscreen .exit-fs { display: flex; }
-        .hidden { display: none !important; }
-        .desktop-only { display: none !important; }
+        @media (max-width: 650px) {
+            .grid-info { grid-template-columns: 1fr; }
+            .text-block h1 { font-size: 2.6rem; }
+        }
 
-        @media(min-width: 768px) {
-            .desktop-only { display: inline-flex !important; }
+        /* Interactive Terminal Style */
+        .terminal-box {
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid #0066ff;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ff66;
+            margin-top: 15px;
+        }
+
+        .terminal-input {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            outline: none;
+            width: 70%;
+        }
+
+        .hud-status {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            font-size: 0.72rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #ffffff;
+            pointer-events: none;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 8px 22px;
+            border-radius: 20px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(229, 9, 20, 0.4);
         }
     </style>
 </head>
-<body class="theme-light">
+<body>
 
-    <!-- Animated Splash Screen -->
-    <div id="splashScreen">
-        <div class="splash-logo-box">
-            <i class="fa-solid fa-bolt"></i>
-        </div>
-        <h2 class="splash-title">Aklavya's <span>Runner</span></h2>
-        <div class="splash-loader">
-            <div class="splash-progress"></div>
-        </div>
+    <!-- 0. Splash Screen -->
+    <div id="splash-screen">
+        <svg class="splash-spider-logo" viewBox="0 0 100 100" fill="#e50914">
+            <ellipse cx="50" cy="50" rx="10" ry="18"/>
+            <ellipse cx="50" cy="32" rx="7" ry="8"/>
+            <path d="M50 38 Q20 15 10 5 M50 42 Q15 35 5 30 M50 58 Q15 65 5 75 M50 62 Q20 85 10 95" stroke="#e50914" stroke-width="4" stroke-linecap="round"/>
+            <path d="M50 38 Q80 15 90 5 M50 42 Q85 35 95 30 M50 58 Q85 65 95 75 M50 62 Q80 85 90 95" stroke="#e50914" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <div class="splash-title">Eklavaya Verma</div>
+        <div class="splash-subtitle">3D Multiverse Portfolio</div>
+        <button class="splash-btn" onclick="enterSite()">Enter The Multiverse</button>
     </div>
 
-    <!-- Header Toolbar -->
-    <header>
-        <div class="header-top">
-            <div class="brand">
-                <i class="fa-solid fa-bolt"></i>
-                Aklavya's <span>Runner</span>
-            </div>
-
-            <!-- Mobile View Switcher Tabs -->
-            <div class="mobile-tabs">
-                <button id="mobileTabCode" class="mobile-tab-btn active" onclick="setMobileViewTab('code')">Code</button>
-                <button id="mobileTabPreview" class="mobile-tab-btn" onclick="setMobileViewTab('preview')">Preview</button>
-            </div>
-        </div>
-        
-        <div class="toolbar">
-            <button id="runBtn" class="primary"><i class="fa-solid fa-play"></i> Run</button>
-            <button id="findBtn"><i class="fa-solid fa-magnifying-glass"></i> Find</button>
-            <button id="downloadBtn"><i class="fa-solid fa-download"></i> Save</button>
-            
-            <label class="btn-label" for="fileInput"><i class="fa-solid fa-folder-open"></i> Open</label>
-            <input type="file" id="fileInput" class="hidden" accept=".html,.css,.js,.txt">
-            
-            <button id="formatBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Format</button>
-            <button id="clearBtn"><i class="fa-solid fa-trash-can"></i> Clear</button>
-            <button id="copyBtn"><i class="fa-solid fa-copy"></i> Copy</button>
-
-            <!-- Screen View Mode Toggles (Desktop only) -->
-            <button id="desktopViewBtn" class="active desktop-only" title="Desktop View"><i class="fa-solid fa-desktop"></i></button>
-            <button id="tabletViewBtn" class="desktop-only" title="Tablet View"><i class="fa-solid fa-tablet-screen-button"></i></button>
-            <button id="mobileViewBtn" class="desktop-only" title="Mobile Phone View"><i class="fa-solid fa-mobile-screen-button"></i></button>
-
-            <!-- Prominent Theme Switcher Toggle -->
-            <button id="themeToggleBtn" class="primary" style="background-color: var(--accent-primary);"><i class="fa-solid fa-palette"></i> Theme</button>
-            <button id="fullBtn"><i class="fa-solid fa-expand"></i> Full Screen</button>
-            <button id="splitToggleBtn" class="desktop-only"><i class="fa-solid fa-maximize"></i> Focus Preview</button>
-        </div>
-    </header>
-
-    <!-- Search & Replace Modal -->
-    <div id="findModal">
-        <div class="find-header">
-            <span><i class="fa-solid fa-magnifying-glass"></i> Search & Replace</span>
-            <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="toggleFindModal(false)"></i>
-        </div>
-        <div class="find-input-group">
-            <input type="text" id="findQuery" class="find-input" placeholder="Find text..." oninput="executeFind()">
-            <input type="text" id="replaceQuery" class="find-input" placeholder="Replace with...">
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span class="find-status" id="findStatus">0 matches</span>
-            <div class="find-actions">
-                <button onclick="executeFind(1)"><i class="fa-solid fa-arrow-down"></i></button>
-                <button onclick="executeReplace()"><i class="fa-solid fa-pen"></i> Replace</button>
-                <button class="primary" onclick="executeReplaceAll()"><i class="fa-solid fa-list-check"></i> All</button>
-            </div>
-        </div>
+    <!-- Clear Background Video -->
+    <div class="video-bg-container">
+        <video id="bg-desktop" class="video-bg" autoplay loop muted playsinline>
+            <source src="https://res.cloudinary.com/dl1ishrkv/video/upload/v1782629896/VN20260628_122516_wlqpgh.mp4" type="video/mp4">
+        </video>
+        <video id="bg-mobile" class="video-bg" autoplay loop muted playsinline>
+            <source src="https://res.cloudinary.com/dl1ishrkv/video/upload/v1782630313/VN20260628_123149_bygnih.mp4" type="video/mp4">
+        </video>
     </div>
 
-    <!-- Main Workspace -->
-    <div class="main-container">
-        <!-- Editor Pane -->
-        <div class="editor-pane" id="editorPane">
-            <div class="editor-header">
-                <span id="charCount">Chars: 0 | Lines: 1</span>
-                <span><i class="fa-solid fa-shield-halved"></i> Unrestricted Engine</span>
-            </div>
-            <textarea id="codeEditor" placeholder="Paste your HTML code here..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-        </div>
-        
-        <!-- Preview Pane -->
-        <div class="preview-pane" id="previewPane">
-            <button id="exitFsBtn" class="exit-fs"><i class="fa-solid fa-compress"></i> Exit</button>
-            
-            <div class="preview-wrapper" id="previewWrapper">
-                <!-- Added explicit src="about:blank" to stop the parent page from loading in the iframe -->
-                <iframe id="outputFrame" name="outputFrame" src="about:blank"></iframe>
-            </div>
+    <!-- Curly Web Canvas Overlay -->
+    <canvas id="web-edge-canvas"></canvas>
 
-            <!-- Console Log Drawer -->
-            <div class="console-drawer" id="consoleDrawer">
-                <div class="console-header">
-                    <span><i class="fa-solid fa-terminal"></i> Console</span>
+    <!-- 3D WebGL Canvas -->
+    <div id="webgl-container"></div>
+
+    <!-- Spider-Man Images Reveal Overlay -->
+    <div id="spiderman-overlay">
+        <img id="spidey-desktop" class="spiderman-img" src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784807113/b458c55f0a0d0f22006d464bf4784cfc.webp_zfypas.webp" alt="Spider-Man Desktop">
+        <img id="spidey-mobile" class="spiderman-img" src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784807113/d3fff37776063fefcf19add441000358_slmexy.jpg" alt="Spider-Man Mobile">
+    </div>
+
+    <!-- Extended Scroll Portfolio Content -->
+    <div class="scroll-container">
+
+        <!-- 1. Hero & Mission Statement -->
+        <section class="content-section">
+            <div class="text-block">
+                <span class="section-tag">Executive Summary</span>
+                <h1>Eklavaya Verma</h1>
+                <h3>Computer Operator & Financial Accounts Executive</h3>
+                <p>Reliable and tech-savvy professional bringing a unique blend of financial accuracy in Tally and cash management, combined with advanced Excel skills and a typing speed of 30+ WPM to ensure efficient front-end and back-office operations[cite: 1].</p>
+                <div class="grid-info">
                     <div>
-                        <button onclick="clearConsole()" style="padding: 2px 6px; font-size: 10px;">Clear</button>
-                        <button onclick="toggleConsole()" style="padding: 2px 6px; font-size: 10px;">Min/Max</button>
+                        <strong style="color:#e50914;">📍 Residence & Work</strong>
+                        <p>34 Heera Nagar Barsati Road, Haldwani[cite: 1]</p>
+                    </div>
+                    <div>
+                        <strong style="color:#0066ff;">📞 Direct Line</strong>
+                        <p>7464870444 | aklavyaverma6@gmail.com[cite: 1]</p>
                     </div>
                 </div>
-                <div class="console-logs" id="consoleLogs"></div>
             </div>
-        </div>
+        </section>
+
+        <!-- 2. Professional Objective & Philosophy -->
+        <section class="content-section align-right">
+            <div class="text-block">
+                <span class="section-tag">Career Vision</span>
+                <h2>Core Objective & Philosophy</h2>
+                <p>To leverage computer operations expertise, analytical data management, and financial precision in a growth-oriented organization[cite: 1]. Dedicated to maintaining 100% audit accuracy across ledgers, accelerating billing pipelines, and solving operational roadblocks using logical thinking[cite: 1].</p>
+            </div>
+        </section>
+
+        <!-- 3. Current Role: Jaiguru Jewellers -->
+        <section class="content-section">
+            <div class="text-block">
+                <span class="section-tag">Present Employment</span>
+                <h2>Jaiguru Jewellers</h2>
+                <h3>Accounts & Billing Executive</h3>
+                <p><em>February 2026 — Present | Haldwani[cite: 1]</em></p>
+                <ul>
+                    <li>Managed end-to-end billing operations for distribution sales and dispatches[cite: 1].</li>
+                    <li>Generated accurate invoices, debit notes, and credit notes as per company policies[cite: 1].</li>
+                    <li>Maintained Accounts Receivable ledgers and monitored distributor outstanding balances[cite: 1].</li>
+                    <li>Ensured daily transaction reconciliations and expedited billing throughput.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 4. Previous Role: Frontier Jewellers -->
+        <section class="content-section align-right">
+            <div class="text-block">
+                <span class="section-tag">Professional History</span>
+                <h2>Frontier Jewellers</h2>
+                <h3>Cashier & Computer Operator</h3>
+                <p><em>April 2025 — February 2026 | Dehradun[cite: 1]</em></p>
+                <ul>
+                    <li>Managed daily cash transactions and end-of-day financial reconciliations[cite: 1].</li>
+                    <li>Maintained digital inventory records, pricing databases, and store databases[cite: 1].</li>
+                    <li>Handled front-desk customer service and technical troubleshooting[cite: 1].</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 5. Database & Programming Matrix -->
+        <section class="content-section">
+            <div class="text-block">
+                <span class="section-tag">Technical Competencies</span>
+                <h2>Database & Programming</h2>
+                <p>Proficient in writing structured code, designing database schemas, and executing queries[cite: 1].</p>
+                <div style="margin-top:20px;">
+                    <div class="skill-item">
+                        <div class="skill-header"><span>SQL Database Queries & Relations</span><span>88%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" style="width: 88%;"></div></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-header"><span>Java Programming</span><span>78%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" style="width: 78%;"></div></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-header"><span>Python Scripting & Automation</span><span>82%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" style="width: 82%;"></div></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-header"><span>C Language Fundamentals</span><span>72%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" style="width: 72%;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Office Automation & Spreadsheets -->
+        <section class="content-section align-right">
+            <div class="text-block">
+                <span class="section-tag">Systems & Tools</span>
+                <h2>Office Automation & Excel</h2>
+                <p>Expertise in leveraging modern office software for business automation and recordkeeping[cite: 1].</p>
+                <div class="grid-info">
+                    <div>
+                        <h4 style="color:#0066ff;">Advance Excel</h4>
+                        <p>VLOOKUP, INDEX/MATCH, Pivot Tables, Data Validation, and Formula Logic[cite: 1].</p>
+                    </div>
+                    <div>
+                        <h4 style="color:#e50914;">MS Office Automation</h4>
+                        <p>MS Word documentation, PowerPoint presentations, and database maintenance[cite: 1].</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Accounting & Cash Management -->
+        <section class="content-section">
+            <div class="text-block">
+                <span class="section-tag">Financial Operations</span>
+                <h2>Digital Accounting & Cashiering</h2>
+                <ul>
+                    <li><strong>Tally Accounting:</strong> Voucher entry, ledger generation, debit/credit note management[cite: 1].</li>
+                    <li><strong>Cash Management:</strong> Daily drawer reconciliations, audit trails, and cash deposit logging[cite: 1].</li>
+                    <li><strong>Speed & Accuracy:</strong> 30+ WPM typing speed ensuring rapid billing during peak rush hours[cite: 1].</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 8. Creative Design & Spreadsheets -->
+        <section class="content-section align-right">
+            <div class="text-block">
+                <span class="section-tag">Creative Engineering</span>
+                <h2>Creative Design & Multimedia</h2>
+                <p>Blending technical structure with graphic multimedia layouts[cite: 1].</p>
+                <ul>
+                    <li><strong>Graphic Multimedia Layouts:</strong> Designing visual assets, promotional graphics, and layouts[cite: 1].</li>
+                    <li><strong>Spreadsheet Pixel Art:</strong> Innovating spreadsheet cell formatting to create detailed digital art animations.</li>
+                    <li><strong>Logical Problem Solving:</strong> Streamlining UI layouts and system database organization[cite: 1].</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 9. Domains & Focus Areas -->
+        <section class="content-section">
+            <div class="text-block">
+                <span class="section-tag">Specialized Domains</span>
+                <h2>Key Focus & Interests</h2>
+                <div class="grid-info">
+                    <div>
+                        <h4 style="color:#e50914;">IT Operations & Automation</h4>
+                        <p>Optimizing daily store IT tasks, hardware diagnostics, and workflow scripts[cite: 1].</p>
+                    </div>
+                    <div>
+                        <h4 style="color:#0066ff;">Data Analytics</h4>
+                        <p>Structuring sales data into actionable summaries and inventory reports[cite: 1].</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Educational Background -->
+        <section class="content-section align-right">
+            <div class="text-block">
+                <span class="section-tag">Academic Timeline</span>
+                <h2>Education & Credentials</h2>
+                <ul>
+                    <li><strong>BCC (Basic Computer Course):</strong> Best Computer Technology — 72% Grade (2026)[cite: 1].</li>
+                    <li><strong>Senior Secondary Education (Class XII):</strong> SGRR School Talab Branch (2025)[cite: 1].</li>
+                    <li><strong>Secondary Education (Class X):</strong> SGRR School Talab Branch (2023)[cite: 1].</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 11. Communication & Languages -->
+        <section class="content-section">
+            <div class="text-block">
+                <span class="section-tag">Communication</span>
+                <h2>Language Fluency & Soft Skills</h2>
+                <div style="margin-top: 15px;">
+                    <div class="skill-item">
+                        <div class="skill-header"><span>Hindi (Native Language)</span><span>100%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" style="width: 100%;"></div></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-header"><span>English (Fluent Conversational)</span><span>88%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" style="width: 88%;"></div></div>
+                    </div>
+                </div>
+                <p style="margin-top: 12px;">Strong interpersonal skills for client relations, front-desk operations, and team coordination[cite: 1].</p>
+            </div>
+        </section>
+
+        <!-- 12. Interactive Terminal Console -->
+        <section class="content-section align-right">
+            <div class="text-block">
+                <span class="section-tag">Interactive Terminal</span>
+                <h2>Multiverse Console</h2>
+                <p>Type commands below to query Eklavaya's interactive portfolio database in real time.</p>
+                <div class="terminal-box">
+                    <div id="terminal-output">System Ready. Type 'help' to view commands.</div>
+                    <div style="margin-top: 8px;">
+                        <span>&gt; </span>
+                        <input type="text" id="terminal-input" class="terminal-input" placeholder="type help, skills, contact...">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 13. Direct Contact & Footer -->
+        <section class="content-section">
+            <div class="text-block">
+                <span class="section-tag">Initiate Contact</span>
+                <h2>Get In Touch</h2>
+                <p>Open for Accounting, Billing Executive, Cashier, or Computer Operator positions[cite: 1].</p>
+                <div class="grid-info" style="margin-top: 15px;">
+                    <div>
+                        <strong style="color:#e50914;">📧 Email Address</strong>
+                        <p><a href="mailto:aklavyaverma6@gmail.com" style="color:#fff; text-decoration:none;">aklavyaverma6@gmail.com[cite: 1]</a></p>
+                    </div>
+                    <div>
+                        <strong style="color:#0066ff;">📱 Phone Line</strong>
+                        <p><a href="tel:7464870444" style="color:#fff; text-decoration:none;">+91 7464870444[cite: 1]</a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </div>
 
+    <div class="hud-status" id="hud-text">🦇 SCROLL DOWN: WEBS SHOOTING CURLY STRANDS</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <script>
-        const codeEditor = document.getElementById('codeEditor');
-        const outputFrame = document.getElementById('outputFrame');
-        const previewWrapper = document.getElementById('previewWrapper');
-        const consoleLogs = document.getElementById('consoleLogs');
-        const charCount = document.getElementById('charCount');
-        const editorPane = document.getElementById('editorPane');
-        const previewPane = document.getElementById('previewPane');
-        const findModal = document.getElementById('findModal');
+        // Splash Screen dismissal
+        function enterSite() {
+            document.getElementById('splash-screen').classList.add('hidden');
+        }
 
-        // Splash Screen Dismissal Animation
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const splash = document.getElementById('splashScreen');
-                if(splash) {
-                    splash.style.opacity = '0';
-                    splash.style.visibility = 'hidden';
+        // --- 1. CURLY & SPIRALING WEBS CANVAS ---
+        const webCanvas = document.getElementById('web-edge-canvas');
+        const wCtx = webCanvas.getContext('2d');
+        let batScreenX = 0, batScreenY = 0;
+
+        function resizeWebCanvas() {
+            webCanvas.width = window.innerWidth;
+            webCanvas.height = window.innerHeight;
+        }
+        resizeWebCanvas();
+        window.addEventListener('resize', resizeWebCanvas);
+
+        let scrollProgress = 0;
+
+        function drawCurlyWebStory(progress) {
+            wCtx.clearRect(0, 0, webCanvas.width, webCanvas.height);
+            const w = webCanvas.width;
+            const h = webCanvas.height;
+            const hudText = document.getElementById('hud-text');
+            const spidermanOverlay = document.getElementById('spiderman-overlay');
+
+            // STAGE 1: 0% - 30% (Fly Free, Curly Webs Attempt 1)
+            if (progress < 0.30) {
+                hudText.innerHTML = "🦇 SCROLL DOWN: CURLY WEBS SHOOTING OUT...";
+                spidermanOverlay.classList.remove('active');
+                const reach = (progress / 0.30) * (w * 0.3);
+                wCtx.strokeStyle = `rgba(255, 255, 255, ${progress * 1.5})`;
+                wCtx.lineWidth = 1.3;
+
+                for (let y = 0; y <= h; y += 100) {
+                    wCtx.beginPath();
+                    wCtx.moveTo(0, y);
+                    wCtx.bezierCurveTo(reach * 0.4, y - 60, reach * 0.7, y + 60, reach, y);
+                    wCtx.stroke();
                 }
-            }, 2100);
-            
-            // Clean iframe document initialization on startup
-            renderCode();
-        });
-
-        // Mobile View Tab Controller
-        function setMobileViewTab(tab) {
-            document.getElementById('mobileTabCode').classList.remove('active');
-            document.getElementById('mobileTabPreview').classList.remove('active');
-
-            if(tab === 'code') {
-                document.getElementById('mobileTabCode').classList.add('active');
-                editorPane.style.display = 'flex';
-                previewPane.classList.remove('mobile-active');
-            } else {
-                document.getElementById('mobileTabPreview').classList.add('active');
-                editorPane.style.display = 'none';
-                previewPane.classList.add('mobile-active');
-                renderCode();
             }
-        }
+            // STAGE 2: 0.30 - 0.70 (Curly Webs Catch & Bind the Bat)
+            else if (progress >= 0.30 && progress < 0.70) {
+                hudText.innerHTML = "🕸️ STAGE 2: CURLY WEBS TRAPPED THE BAT!";
+                spidermanOverlay.classList.remove('active');
+                const catchFactor = (progress - 0.30) / 0.40;
+                wCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                wCtx.lineWidth = 1.6;
 
-        // Search & Replace (Find) Engine
-        let lastMatchIndex = 0;
+                for (let y = 0; y <= h; y += 70) {
+                    wCtx.beginPath();
+                    wCtx.moveTo(0, y);
+                    wCtx.bezierCurveTo(batScreenX * 0.3, y + 80, batScreenX * 0.7, y - 80, batScreenX, batScreenY);
+                    wCtx.stroke();
 
-        function toggleFindModal(state) {
-            if(state !== undefined) {
-                findModal.classList.toggle('open', state);
-            } else {
-                findModal.classList.toggle('open');
-            }
-            if(findModal.classList.contains('open')) {
-                document.getElementById('findQuery').focus();
-            }
-        }
-
-        document.getElementById('findBtn').addEventListener('click', () => toggleFindModal());
-
-        function executeFind(dir = 0) {
-            const query = document.getElementById('findQuery').value;
-            const text = codeEditor.value;
-            const status = document.getElementById('findStatus');
-
-            if(!query) {
-                status.innerText = "0 matches";
-                return;
-            }
-
-            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            const matches = [...text.matchAll(regex)];
-
-            status.innerText = `${matches.length} match${matches.length === 1 ? '' : 'es'}`;
-
-            if(matches.length > 0) {
-                if(dir === 1) {
-                    lastMatchIndex = (lastMatchIndex + 1) % matches.length;
+                    wCtx.beginPath();
+                    wCtx.moveTo(w, y);
+                    wCtx.bezierCurveTo(w - (w - batScreenX) * 0.3, y - 80, w - (w - batScreenX) * 0.7, y + 80, batScreenX, batScreenY);
+                    wCtx.stroke();
                 }
-                const match = matches[lastMatchIndex] || matches[0];
-                codeEditor.focus();
-                codeEditor.setSelectionRange(match.index, match.index + query.length);
+
+                for (let r = 10; r < 80 * catchFactor; r += 12) {
+                    wCtx.beginPath();
+                    for (let a = 0; a < Math.PI * 4; a += 0.2) {
+                        const radius = r + a * 3;
+                        const x = batScreenX + Math.cos(a) * radius;
+                        const y = batScreenY + Math.sin(a) * radius;
+                        if (a === 0) wCtx.moveTo(x, y);
+                        else wCtx.lineTo(x, y);
+                    }
+                    wCtx.stroke();
+                }
+            }
+            // STAGE 3: 0.70 - 0.88 (Bat Breaks Free & Flies Sky High)
+            else if (progress >= 0.70 && progress < 0.88) {
+                hudText.innerHTML = "⚡ STAGE 3: BAT BREAKS FREE & FLIES SKY HIGH!";
+                spidermanOverlay.classList.remove('active');
+                const breakFactor = (progress - 0.70) / 0.18;
+                wCtx.strokeStyle = `rgba(229, 9, 20, ${1 - breakFactor})`;
+                wCtx.lineWidth = 2.2;
+
+                for (let i = 0; i < 24; i++) {
+                    const angle = (i / 24) * Math.PI * 2;
+                    const dist = 40 + breakFactor * 350;
+                    wCtx.beginPath();
+                    wCtx.moveTo(batScreenX, batScreenY);
+                    wCtx.quadraticCurveTo(
+                        batScreenX + Math.cos(angle + 0.5) * (dist * 0.5),
+                        batScreenY + Math.sin(angle + 0.5) * (dist * 0.5),
+                        batScreenX + Math.cos(angle) * dist,
+                        batScreenY + Math.sin(angle) * dist
+                    );
+                    wCtx.stroke();
+                }
+            }
+            // STAGE 4: 0.88 - 1.0 (Spider-Man Image Reveals)
+            else {
+                hudText.innerHTML = "🕷️ SPIDER-MAN HAS ENTERED THE MULTIVERSE";
+                spidermanOverlay.classList.add('active');
             }
         }
 
-        function executeReplace() {
-            const query = document.getElementById('findQuery').value;
-            const replacement = document.getElementById('replaceQuery').value;
-            const text = codeEditor.value;
+        // --- 2. 3D BAT CREATION ---
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x030205, 0.02);
 
-            if(!query) return;
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 13);
 
-            const start = codeEditor.selectionStart;
-            const end = codeEditor.selectionEnd;
-            const selectedText = text.substring(start, end);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
 
-            if(selectedText.toLowerCase() === query.toLowerCase()) {
-                codeEditor.setRangeText(replacement, start, end, 'select');
-                updateStats();
-                executeFind();
-            } else {
-                executeFind(1);
-            }
+        const ambient = new THREE.AmbientLight(0xffffff, 0.65);
+        scene.add(ambient);
+
+        const redGlow = new THREE.PointLight(0xe50914, 6, 35);
+        redGlow.position.set(-6, 4, 8);
+        scene.add(redGlow);
+
+        const blueGlow = new THREE.PointLight(0x0066ff, 5, 35);
+        blueGlow.position.set(6, -4, 8);
+        scene.add(blueGlow);
+
+        const batGroup = new THREE.Group();
+        scene.add(batGroup);
+
+        const batSkinMat = new THREE.MeshStandardMaterial({ color: 0x18161e, roughness: 0.35, metalness: 0.7, flatShading: true });
+        const wingMembraneMat = new THREE.MeshStandardMaterial({ color: 0x0c0a10, roughness: 0.5, metalness: 0.3, side: THREE.DoubleSide });
+
+        const torsoGeo = new THREE.CylinderGeometry(0.4, 0.2, 1.8, 8);
+        const torsoMesh = new THREE.Mesh(torsoGeo, batSkinMat);
+        torsoMesh.rotation.x = Math.PI * 0.1;
+        batGroup.add(torsoMesh);
+
+        const headGeo = new THREE.SphereGeometry(0.38, 10, 10);
+        const headMesh = new THREE.Mesh(headGeo, batSkinMat);
+        headMesh.position.set(0, 1.1, 0.2);
+        batGroup.add(headMesh);
+
+        const earGeo = new THREE.ConeGeometry(0.12, 0.6, 5);
+        const earL = new THREE.Mesh(earGeo, batSkinMat);
+        earL.position.set(-0.2, 1.5, 0.2);
+        earL.rotation.z = -0.3;
+        batGroup.add(earL);
+
+        const earR = earL.clone();
+        earR.position.x = 0.2;
+        earR.rotation.z = 0.3;
+        batGroup.add(earR);
+
+        function createRealisticWing(isRight = false) {
+            const wingGroup = new THREE.Group();
+            const side = isRight ? 1 : -1;
+
+            const boneGeo = new THREE.CylinderGeometry(0.06, 0.04, 2.2, 6);
+            const bone = new THREE.Mesh(boneGeo, batSkinMat);
+            bone.position.set(1.1 * side, 0.5, 0);
+            bone.rotation.z = -0.8 * side;
+            wingGroup.add(bone);
+
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0);
+            shape.quadraticCurveTo(1.2 * side, 1.8, 3.2 * side, 1.0);
+            shape.quadraticCurveTo(2.4 * side, 0.0, 2.0 * side, -1.2);
+            shape.quadraticCurveTo(1.2 * side, -0.3, 0.9 * side, -1.0);
+            shape.quadraticCurveTo(0.4 * side, -0.2, 0, -0.5);
+
+            const membraneGeo = new THREE.ShapeGeometry(shape);
+            const membrane = new THREE.Mesh(membraneGeo, wingMembraneMat);
+            wingGroup.add(membrane);
+
+            wingGroup.position.set(0.2 * side, 0.2, 0);
+            return wingGroup;
         }
 
-        function executeReplaceAll() {
-            const query = document.getElementById('findQuery').value;
-            const replacement = document.getElementById('replaceQuery').value;
-            if(!query) return;
+        const leftWing = createRealisticWing(false);
+        const rightWing = createRealisticWing(true);
+        batGroup.add(leftWing);
+        batGroup.add(rightWing);
 
-            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            codeEditor.value = codeEditor.value.replace(regex, replacement);
-            updateStats();
-            executeFind();
-        }
+        // --- 3. WAYPOINTS STORYLINE ---
+        const waypoints = [
+            { pos: new THREE.Vector3(0, 0, 2), rot: new THREE.Vector3(0, 0, 0), wingFold: 0.2 },
+            { pos: new THREE.Vector3(-3.8, 1.8, 0), rot: new THREE.Vector3(0.3, 0.8, -0.2), wingFold: 0.8 },
+            { pos: new THREE.Vector3(0, -0.4, 3), rot: new THREE.Vector3(0, 0, 0), wingFold: 1.7 },
+            { pos: new THREE.Vector3(2.8, -1.2, 1), rot: new THREE.Vector3(-0.3, -0.6, 0.3), wingFold: 1.5 },
+            { pos: new THREE.Vector3(0, 8.5, -2), rot: new THREE.Vector3(-0.8, 0, 0), wingFold: -0.4 }
+        ];
 
-        // 1. Render Execution Engine
-        function renderCode() {
-            const rawCode = codeEditor.value;
-            
-            const consoleCaptureScript = `
-                <script>
-                    (function(){
-                        const sendLog = (type, args) => {
-                            window.parent.postMessage({
-                                type: 'CONSOLE_LOG',
-                                logType: type,
-                                message: Array.from(args).map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ')
-                            }, '*');
-                        };
-                        console.log = (...args) => sendLog('log', args);
-                        console.error = (...args) => sendLog('error', args);
-                        console.warn = (...args) => sendLog('warn', args);
-                    })();
-                <\/script>
-            `;
+        // --- 4. INTERACTIVE TERMINAL ENGINE ---
+        const termInput = document.getElementById('terminal-input');
+        const termOutput = document.getElementById('terminal-output');
 
-            const frameDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
-            frameDoc.open();
-            frameDoc.write(consoleCaptureScript + rawCode);
-            frameDoc.close();
-        }
+        if (termInput) {
+            termInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const cmd = termInput.value.trim().toLowerCase();
+                    termInput.value = '';
 
-        document.getElementById('runBtn').addEventListener('click', () => {
-            renderCode();
-            if(window.innerWidth < 768) {
-                setMobileViewTab('preview');
-            }
-        });
-
-        // 2. Download File Handler
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            const code = codeEditor.value;
-            if(!code.trim()) return alert("Write or paste some code first!");
-
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            const defaultName = `webV1-${timestamp}.html`;
-
-            const userFileName = prompt("Enter filename to save:", defaultName);
-            if(!userFileName) return;
-
-            const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = userFileName.endsWith('.html') || userFileName.endsWith('.txt') ? userFileName : `${userFileName}.html`;
-            link.click();
-            URL.revokeObjectURL(link.href);
-        });
-
-        // 3. Open Local File Reader
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                codeEditor.value = event.target.result;
-                updateStats();
-                renderCode();
-            };
-            reader.readAsText(file);
-        });
-
-        // 4. Console Event Listener
-        window.addEventListener('message', (event) => {
-            if(event.data && event.data.type === 'CONSOLE_LOG') {
-                const entry = document.createElement('div');
-                entry.className = `log-entry log-${event.data.logType}`;
-                entry.innerText = `> ${event.data.message}`;
-                consoleLogs.appendChild(entry);
-                consoleLogs.scrollTop = consoleLogs.scrollHeight;
-            }
-        });
-
-        function clearConsole() { consoleLogs.innerHTML = ''; }
-        function toggleConsole() { 
-            const drawer = document.getElementById('consoleDrawer');
-            drawer.style.height = drawer.style.height === '26px' ? '100px' : '26px';
-        }
-
-        // 5. Code Formatter Utility
-        document.getElementById('formatBtn').addEventListener('click', () => {
-            let code = codeEditor.value;
-            let formatted = '', indent = 0;
-            code.split(/>\s*</).forEach(node => {
-                if (node.match( /^\/\w/ )) indent--;
-                formatted += '  '.repeat(Math.max(0, indent)) + '<' + node + '>\n';
-                if (node.match( /^<?\w[^>]*[^\/]$/ ) && !node.startsWith('input')) indent++;
+                    let response = '';
+                    switch (cmd) {
+                        case 'help':
+                            response = "Commands: 'skills', 'experience', 'contact', 'education', 'clear'";
+                            break;
+                        case 'skills':
+                            response = "SQL (88%), Java (78%), Python (82%), C (72%), Advance Excel, Tally[cite: 1].";
+                            break;
+                        case 'experience':
+                            response = "Jaiguru Jewellers (Accounts Executive) | Frontier Jewellers (Cashier)[cite: 1].";
+                            break;
+                        case 'contact':
+                            response = "Email: aklavyaverma6@gmail.com | Phone: 7464870444[cite: 1]";
+                            break;
+                        case 'education':
+                            response = "BCC Course (72%), SGRR School Senior Secondary[cite: 1].";
+                            break;
+                        case 'clear':
+                            termOutput.innerHTML = "System Ready. Type 'help' to view commands.";
+                            return;
+                        default:
+                            response = `Command not recognized: '${cmd}'. Type 'help'.`;
+                    }
+                    termOutput.innerHTML += `<br><span style="color:#fff;">&gt; ${cmd}</span><br>${response}`;
+                }
             });
-            codeEditor.value = formatted.trim();
-            updateStats();
-        });
-
-        // 6. View Controls
-        document.getElementById('desktopViewBtn').addEventListener('click', function() {
-            previewWrapper.className = 'preview-wrapper';
-            setActiveView(this);
-        });
-
-        document.getElementById('tabletViewBtn').addEventListener('click', function() {
-            previewWrapper.className = 'preview-wrapper tablet';
-            setActiveView(this);
-        });
-
-        document.getElementById('mobileViewBtn').addEventListener('click', function() {
-            previewWrapper.className = 'preview-wrapper mobile';
-            setActiveView(this);
-        });
-
-        function setActiveView(btn) {
-            document.querySelectorAll('#desktopViewBtn, #tabletViewBtn, #mobileViewBtn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
         }
 
-        // 7. Fullscreen Toggle
-        const toggleFS = () => document.body.classList.toggle('fullscreen');
-        document.getElementById('fullBtn').addEventListener('click', toggleFS);
-        document.getElementById('exitFsBtn').addEventListener('click', toggleFS);
+        // --- 5. SCROLL & ANIMATION LOOP ---
+        const textBlocks = document.querySelectorAll('.text-block');
 
-        // 8. Focus Preview Toggle
-        document.getElementById('splitToggleBtn').addEventListener('click', () => {
-            editorPane.style.width = editorPane.style.width === '0%' ? '45%' : '0%';
-        });
+        function updateOnScroll() {
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            scrollProgress = Math.max(0, Math.min(1, window.scrollY / maxScroll));
 
-        // 9. Utility Actions
-        document.getElementById('clearBtn').addEventListener('click', () => {
-            if(confirm("Clear current code from editor?")) {
-                codeEditor.value = '';
-                updateStats();
-                renderCode();
-            }
-        });
-
-        document.getElementById('copyBtn').addEventListener('click', () => {
-            navigator.clipboard.writeText(codeEditor.value);
-            alert("Code copied to clipboard!");
-        });
-
-        // Animated Theme Switcher Engine (Lavender vs Maroon)
-        document.getElementById('themeToggleBtn').addEventListener('click', () => {
-            document.body.classList.toggle('theme-dark');
-            document.body.classList.toggle('theme-light');
-        });
-
-        // Realtime Metrics & Shortcuts
-        function updateStats() {
-            const text = codeEditor.value;
-            const lines = text.split('\n').length;
-            charCount.innerText = `Chars: ${text.length} | Lines: ${lines}`;
+            textBlocks.forEach(block => {
+                const rect = block.getBoundingClientRect();
+                if (rect.top < window.innerHeight * 0.85 && rect.bottom > window.innerHeight * 0.15) {
+                    block.classList.add('visible');
+                } else {
+                    block.classList.remove('visible');
+                }
+            });
         }
 
-        codeEditor.addEventListener('input', updateStats);
+        window.addEventListener('scroll', updateOnScroll);
+        updateOnScroll();
 
-        codeEditor.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                e.preventDefault();
-                toggleFindModal(true);
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+
+            const segmentCount = waypoints.length - 1;
+            const scaledProgress = scrollProgress * segmentCount;
+            const index = Math.min(Math.floor(scaledProgress), segmentCount - 1);
+            const factor = scaledProgress - index;
+
+            const p1 = waypoints[index];
+            const p2 = waypoints[Math.min(index + 1, segmentCount)];
+
+            batGroup.position.lerpVectors(p1.pos, p2.pos, factor);
+
+            if (scrollProgress >= 0.30 && scrollProgress <= 0.70) {
+                batGroup.position.x += (Math.random() - 0.5) * 0.09;
+                batGroup.position.y += (Math.random() - 0.5) * 0.09;
+            } else {
+                batGroup.position.y += Math.sin(time * 2.5) * 0.07;
             }
+
+            const vector = batGroup.position.clone();
+            vector.project(camera);
+            batScreenX = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            batScreenY = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
+
+            drawCurlyWebStory(scrollProgress);
+
+            batGroup.rotation.x = THREE.MathUtils.lerp(p1.rot.x, p2.rot.x, factor);
+            batGroup.rotation.y = THREE.MathUtils.lerp(p1.rot.y, p2.rot.y, factor);
+            batGroup.rotation.z = THREE.MathUtils.lerp(p1.rot.z, p2.rot.z, factor);
+
+            const wingFoldVal = THREE.MathUtils.lerp(p1.wingFold, p2.wingFold, factor);
+            const flapSpeed = (scrollProgress >= 0.7) ? 14 : 5.5;
+            const flap = Math.sin(time * flapSpeed) * 0.38 + wingFoldVal;
+
+            leftWing.rotation.y = flap;
+            rightWing.rotation.y = -flap;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            updateOnScroll();
         });
     </script>
 </body>
