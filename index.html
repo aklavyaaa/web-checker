@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aklavya's Runner - Code Studio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aklavya's Runner - Mobile & Desktop Code Studio</title>
     <!-- FontAwesome & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
             --border-color: #e2d9f3;
             --text-primary: #2d2438;
             --text-secondary: #7e6e90;
-            --accent-primary: #7c3aed; /* Deep Lavender Accent */
+            --accent-primary: #7c3aed;
             --accent-hover: #6d28d9;
             --shadow-3d: 0 4px 0px #d1c4e9, 0 8px 15px rgba(124, 58, 237, 0.08);
             --shadow-3d-active: 0 1px 0px #d1c4e9, 0 3px 8px rgba(124, 58, 237, 0.12);
@@ -35,7 +35,7 @@
             --border-color: #3b1c24;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
-            --accent-primary: #9f1239; /* Rich Maroon */
+            --accent-primary: #9f1239;
             --accent-hover: #be123c;
             --shadow-3d: 0 4px 0px #4c0519, 0 8px 15px rgba(159, 18, 57, 0.25);
             --shadow-3d-active: 0 1px 0px #4c0519, 0 3px 8px rgba(159, 18, 57, 0.3);
@@ -56,6 +56,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh; /* Dynamic Viewport Height for Mobile Keyboards */
             background-color: var(--bg-main);
             color: var(--text-primary);
             overflow: hidden;
@@ -64,39 +65,98 @@
         /* --- Header & Top Controls --- */
         header {
             background-color: var(--header-bg);
-            padding: 12px 20px;
+            padding: 10px 14px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 10px;
             border-bottom: 2px solid var(--border-color);
             z-index: 20;
             box-shadow: 0 4px 20px rgba(0,0,0,0.03);
         }
 
+        @media(min-width: 768px) {
+            header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 20px;
+            }
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
         .brand {
             font-weight: 800;
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             letter-spacing: -0.5px;
+            white-space: nowrap;
         }
 
         .brand i {
             color: var(--accent-primary);
-            font-size: 1.4rem;
+            font-size: 1.3rem;
         }
 
         .brand span {
             color: var(--accent-primary);
         }
 
+        /* Toolbar Container with Touch Scroll for Phones */
         .toolbar {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
-            flex-wrap: wrap;
+            overflow-x: auto;
+            width: 100%;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .toolbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Mobile Workspace Segment Controller */
+        .mobile-tabs {
+            display: flex;
+            background: var(--bg-editor);
+            padding: 3px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        @media(min-width: 768px) {
+            .mobile-tabs {
+                display: none; /* Hide tab mode on desktop screens */
+            }
+        }
+
+        .mobile-tab-btn {
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            border-radius: 7px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .mobile-tab-btn.active {
+            background: var(--accent-primary);
+            color: #ffffff;
         }
 
         /* 3D Tactile Buttons */
@@ -104,17 +164,19 @@
             background-color: var(--bg-panel);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
-            padding: 8px 14px;
+            padding: 8px 12px;
             border-radius: 10px;
             cursor: pointer;
             font-weight: 700;
             font-size: 12px;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             box-shadow: 0 4px 0px var(--border-color);
             transform: translateY(-2px);
             user-select: none;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         button:hover, label.btn-label:hover {
@@ -158,7 +220,7 @@
 
         /* Left Editor Pane */
         .editor-pane {
-            width: 45%;
+            width: 100%;
             display: flex;
             flex-direction: column;
             background-color: var(--bg-panel);
@@ -166,14 +228,20 @@
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        @media(min-width: 768px) {
+            .editor-pane {
+                width: 45%;
+            }
+        }
+
         .editor-header {
-            padding: 10px 16px;
+            padding: 8px 12px;
             background-color: var(--bg-main);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-secondary);
             font-weight: 700;
             letter-spacing: 0.5px;
@@ -183,27 +251,40 @@
         textarea {
             flex: 1;
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             border: none;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 13.5px;
+            font-size: 14px; /* Set 14px+ to prevent iOS auto-zoom on input tap */
             resize: none;
             outline: none;
             background-color: var(--bg-editor);
             color: var(--text-primary);
-            line-height: 1.6;
+            line-height: 1.5;
+            -webkit-appearance: none;
+            border-radius: 0;
         }
 
         /* Right Preview Pane */
         .preview-pane {
-            width: 55%;
-            display: flex;
+            width: 100%;
+            display: none; /* Controlled by mobile tabs or side-by-side on desktop */
             flex-direction: column;
             background-color: var(--bg-main);
             position: relative;
             align-items: center;
             justify-content: center;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media(min-width: 768px) {
+            .preview-pane {
+                display: flex !important;
+                width: 55%;
+            }
+        }
+
+        .preview-pane.mobile-active {
+            display: flex !important;
         }
 
         .preview-wrapper {
@@ -213,7 +294,13 @@
             justify-content: center;
             align-items: center;
             position: relative;
-            padding: 15px;
+            padding: 8px;
+        }
+
+        @media(min-width: 768px) {
+            .preview-wrapper {
+                padding: 15px;
+            }
         }
 
         iframe {
@@ -221,17 +308,18 @@
             height: 100%;
             border: none;
             background-color: #ffffff;
-            border-radius: 12px;
+            border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Device Frame Simulations */
+        /* Device Frame Simulations for Desktop Previewing */
         .preview-wrapper.mobile iframe {
             width: 375px;
             height: 667px;
-            border: 12px solid #1a1a24;
-            border-radius: 32px;
+            max-height: 95%;
+            border: 10px solid #1a1a24;
+            border-radius: 28px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.25);
         }
 
@@ -239,14 +327,14 @@
             width: 768px;
             height: 980px;
             max-height: 95%;
-            border: 12px solid #1a1a24;
-            border-radius: 24px;
+            border: 10px solid #1a1a24;
+            border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.25);
         }
 
         /* Console Log Drawer */
         .console-drawer {
-            height: 120px;
+            height: 100px;
             width: 100%;
             background-color: var(--console-bg);
             border-top: 2px solid var(--border-color);
@@ -259,7 +347,7 @@
 
         .console-header {
             background-color: rgba(255,255,255,0.03);
-            padding: 6px 14px;
+            padding: 6px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -269,7 +357,7 @@
 
         .console-logs {
             flex: 1;
-            padding: 10px;
+            padding: 8px 12px;
             overflow-y: auto;
             color: var(--console-text);
         }
@@ -286,6 +374,7 @@
         }
 
         body.fullscreen .preview-pane {
+            display: flex !important;
             width: 100vw !important;
             height: 100vh !important;
         }
@@ -301,8 +390,8 @@
         .exit-fs {
             display: none;
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             z-index: 99999;
             background-color: var(--bg-panel);
             color: var(--text-primary);
@@ -310,20 +399,33 @@
 
         body.fullscreen .exit-fs { display: flex; }
         .hidden { display: none !important; }
+        .desktop-only { display: none !important; }
+
+        @media(min-width: 768px) {
+            .desktop-only { display: inline-flex !important; }
+        }
     </style>
 </head>
 <body class="theme-light">
 
     <!-- Header Toolbar -->
     <header>
-        <div class="brand">
-            <i class="fa-solid fa-bolt"></i>
-            Aklavya's <span>Runner</span>
+        <div class="header-top">
+            <div class="brand">
+                <i class="fa-solid fa-bolt"></i>
+                Aklavya's <span>Runner</span>
+            </div>
+
+            <!-- Mobile View Switcher Tabs -->
+            <div class="mobile-tabs">
+                <button id="mobileTabCode" class="mobile-tab-btn active" onclick="setMobileViewTab('code')">Code</button>
+                <button id="mobileTabPreview" class="mobile-tab-btn" onclick="setMobileViewTab('preview')">Preview</button>
+            </div>
         </div>
         
         <div class="toolbar">
-            <button id="runBtn" class="primary"><i class="fa-solid fa-play"></i> Run Code</button>
-            <button id="downloadBtn"><i class="fa-solid fa-download"></i> Save File</button>
+            <button id="runBtn" class="primary"><i class="fa-solid fa-play"></i> Run</button>
+            <button id="downloadBtn"><i class="fa-solid fa-download"></i> Save</button>
             
             <label class="btn-label" for="fileInput"><i class="fa-solid fa-folder-open"></i> Open</label>
             <input type="file" id="fileInput" class="hidden" accept=".html,.css,.js,.txt">
@@ -332,15 +434,15 @@
             <button id="clearBtn"><i class="fa-solid fa-trash-can"></i> Clear</button>
             <button id="copyBtn"><i class="fa-solid fa-copy"></i> Copy</button>
 
-            <!-- Screen View Mode Toggles -->
-            <button id="desktopViewBtn" class="active" title="Desktop View"><i class="fa-solid fa-desktop"></i></button>
-            <button id="tabletViewBtn" title="Tablet View"><i class="fa-solid fa-tablet-screen-button"></i></button>
-            <button id="mobileViewBtn" title="Mobile Phone View"><i class="fa-solid fa-mobile-screen-button"></i></button>
+            <!-- Screen View Mode Toggles (Desktop only) -->
+            <button id="desktopViewBtn" class="active desktop-only" title="Desktop View"><i class="fa-solid fa-desktop"></i></button>
+            <button id="tabletViewBtn" class="desktop-only" title="Tablet View"><i class="fa-solid fa-tablet-screen-button"></i></button>
+            <button id="mobileViewBtn" class="desktop-only" title="Mobile Phone View"><i class="fa-solid fa-mobile-screen-button"></i></button>
 
             <!-- Mode Controls -->
             <button id="fullBtn"><i class="fa-solid fa-expand"></i> Full Screen</button>
             <button id="themeToggleBtn"><i class="fa-solid fa-palette"></i> Theme</button>
-            <button id="splitToggleBtn"><i class="fa-solid fa-maximize"></i> Focus Preview</button>
+            <button id="splitToggleBtn" class="desktop-only"><i class="fa-solid fa-maximize"></i> Focus Preview</button>
         </div>
     </header>
 
@@ -350,14 +452,14 @@
         <div class="editor-pane" id="editorPane">
             <div class="editor-header">
                 <span id="charCount">Chars: 0 | Lines: 1</span>
-                <span><i class="fa-solid fa-shield-halved"></i> Unrestricted Mode</span>
+                <span><i class="fa-solid fa-shield-halved"></i> Mobile Ready</span>
             </div>
-            <textarea id="codeEditor" placeholder="Paste your HTML, CSS, JavaScript, Firebase, or Tailwind code here..."></textarea>
+            <textarea id="codeEditor" placeholder="Paste your HTML code here..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
         </div>
         
         <!-- Preview Pane -->
         <div class="preview-pane" id="previewPane">
-            <button id="exitFsBtn" class="exit-fs"><i class="fa-solid fa-compress"></i> Exit Full Screen</button>
+            <button id="exitFsBtn" class="exit-fs"><i class="fa-solid fa-compress"></i> Exit</button>
             
             <div class="preview-wrapper" id="previewWrapper">
                 <iframe id="outputFrame" name="outputFrame"></iframe>
@@ -366,7 +468,7 @@
             <!-- Console Log Drawer -->
             <div class="console-drawer" id="consoleDrawer">
                 <div class="console-header">
-                    <span><i class="fa-solid fa-terminal"></i> Output Console</span>
+                    <span><i class="fa-solid fa-terminal"></i> Console</span>
                     <div>
                         <button onclick="clearConsole()" style="padding: 2px 6px; font-size: 10px;">Clear</button>
                         <button onclick="toggleConsole()" style="padding: 2px 6px; font-size: 10px;">Min/Max</button>
@@ -383,12 +485,30 @@
         const previewWrapper = document.getElementById('previewWrapper');
         const consoleLogs = document.getElementById('consoleLogs');
         const charCount = document.getElementById('charCount');
+        const editorPane = document.getElementById('editorPane');
+        const previewPane = document.getElementById('previewPane');
+
+        // Mobile View Tab Controller
+        function setMobileViewTab(tab) {
+            document.getElementById('mobileTabCode').classList.remove('active');
+            document.getElementById('mobileTabPreview').classList.remove('active');
+
+            if(tab === 'code') {
+                document.getElementById('mobileTabCode').classList.add('active');
+                editorPane.style.display = 'flex';
+                previewPane.classList.remove('mobile-active');
+            } else {
+                document.getElementById('mobileTabPreview').classList.add('active');
+                editorPane.style.display = 'none';
+                previewPane.classList.add('mobile-active');
+                renderCode(); // Auto-trigger preview compilation on tab tap
+            }
+        }
 
         // 1. Render Execution Engine
         function renderCode() {
             const rawCode = codeEditor.value;
             
-            // Console capture script injected inside preview frame
             const consoleCaptureScript = `
                 <script>
                     (function(){
@@ -411,11 +531,18 @@
             frameDoc.write(consoleCaptureScript + rawCode);
             frameDoc.close();
 
-            // Auto-save backup
             localStorage.setItem('aklavya_runner_saved_code', rawCode);
         }
 
-        // 2. Download File with Custom Naming Prompt
+        // Auto-switch to preview on mobile when "Run" is tapped
+        document.getElementById('runBtn').addEventListener('click', () => {
+            renderCode();
+            if(window.innerWidth < 768) {
+                setMobileViewTab('preview');
+            }
+        });
+
+        // 2. Download File Handler
         document.getElementById('downloadBtn').addEventListener('click', () => {
             const code = codeEditor.value;
             if(!code.trim()) return alert("Write or paste some code first!");
@@ -462,7 +589,7 @@
         function clearConsole() { consoleLogs.innerHTML = ''; }
         function toggleConsole() { 
             const drawer = document.getElementById('consoleDrawer');
-            drawer.style.height = drawer.style.height === '26px' ? '120px' : '26px';
+            drawer.style.height = drawer.style.height === '26px' ? '100px' : '26px';
         }
 
         // 5. Code Formatter Utility
@@ -506,8 +633,7 @@
 
         // 8. Focus Preview Toggle
         document.getElementById('splitToggleBtn').addEventListener('click', () => {
-            const pane = document.getElementById('editorPane');
-            pane.style.width = pane.style.width === '0%' ? '45%' : '0%';
+            editorPane.style.width = editorPane.style.width === '0%' ? '45%' : '0%';
         });
 
         // 9. Utility Actions
@@ -524,7 +650,7 @@
             alert("Code copied to clipboard!");
         });
 
-        // Theme Switcher Engine (Lavender/White vs Maroon/Grey)
+        // Theme Switcher Engine
         document.getElementById('themeToggleBtn').addEventListener('click', () => {
             document.body.classList.toggle('theme-dark');
             document.body.classList.toggle('theme-light');
@@ -538,15 +664,6 @@
         }
 
         codeEditor.addEventListener('input', updateStats);
-        document.getElementById('runBtn').addEventListener('click', renderCode);
-
-        // Ctrl + Enter Shortcut Handler
-        codeEditor.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                renderCode();
-            }
-        });
 
         // Load saved code on startup
         window.onload = () => {
