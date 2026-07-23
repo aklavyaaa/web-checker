@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aklavya's Runner - Animated Mobile & Desktop Code Studio</title>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Color Palettes & Gradient Meshes --- */
+        :root {
+            /* Light Theme: Lavender & White */
+            --bg-gradient: linear-gradient(-45deg, #f3f0f9, #e9d5ff, #f8f5fc, #ddd6fe);
+            --bg-panel: rgba(255, 255, 255, 0.85);
+            --bg-editor: #f8f6fc;
+            --border-color: #e2d9f3;
+            --text-primary: #2d2438;
+            --text-secondary: #7e6e90;
+            --accent-primary: #7c3aed;
+            --accent-hover: #6d28d9;
+            --shadow-3d: 0 4px 0px #d1c4e9, 0 8px 15px rgba(124, 58, 237, 0.12);
+            --shadow-3d-active: 0 1px 0px #d1c4e9, 0 3px 8px rgba(124, 58, 237, 0.15);
+            --header-bg: rgba(250, 248, 253, 0.85);
+            --console-bg: #1c1825;
+            --console-text: #c084fc;
+        }
+
+        body.theme-dark {
+            /* Dark Theme: Maroon & Deep Grey */
+            --bg-gradient: linear-gradient(-45deg, #121214, #2a0812, #1a1618, #3b0717);
+            --bg-panel: rgba(30, 30, 36, 0.85);
+            --bg-editor: #16161a;
+            --border-color: #4a1926;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #9f1239;
+            --accent-hover: #be123c;
+            --shadow-3d: 0 4px 0px #4c0519, 0 8px 15px rgba(159, 18, 57, 0.3);
+            --shadow-3d-active: 0 1px 0px #4c0519, 0 3px 8px rgba(159, 18, 57, 0.35);
+            --header-bg: rgba(25, 20, 23, 0.85);
+            --console-bg: #0d0a0c;
+            --console-text: #fda4af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            background: var(--bg-gradient);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- Splash Screen --- */
+        #splashScreen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-gradient);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s ease;
+        }
+
+        .splash-logo-box {
+            width: 100px;
+            height: 100px;
+            background: var(--bg-panel);
+            border: 2px solid var(--border-color);
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            color: var(--accent-primary);
+            box-shadow: var(--shadow-3d);
+            animation: pulseLogo 2s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes pulseLogo {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.08) translateY(-6px); }
+        }
+
+        .splash-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .splash-title span { color: var(--accent-primary); }
+
+        .splash-loader {
+            width: 140px;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 10px;
+            margin-top: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .splash-progress {
+            width: 100%;
+            height: 100%;
+            background: var(--accent-primary);
+            border-radius: 10px;
+            animation: splashBar 2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+            transform-origin: left;
+        }
+
+        @keyframes splashBar {
+            0% { transform: scaleX(0); }
+            100% { transform: scaleX(1); }
+        }
+
+        /* --- Header & Top Controls --- */
+        header {
+            background-color: var(--header-bg);
+            backdrop-filter: blur(12px);
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-bottom: 2px solid var(--border-color);
+            z-index: 20;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+
+        @media(min-width: 900px) {
+            header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 20px;
+            }
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.5px;
+            white-space: nowrap;
+        }
+
+        .brand i {
+            color: var(--accent-primary);
+            font-size: 1.3rem;
+            animation: spinBolt 6s linear infinite;
+        }
+
+        @keyframes spinBolt {
+            0%, 90%, 100% { transform: rotate(0deg); }
+            95% { transform: rotate(15deg); }
+        }
+
+        .brand span { color: var(--accent-primary); }
+
+        .toolbar {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .mobile-tabs {
+            display: flex;
+            background: var(--bg-editor);
+            padding: 3px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        @media(min-width: 768px) {
+            .mobile-tabs { display: none; }
+        }
+
+        .mobile-tab-btn {
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            border-radius: 9px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            box-shadow: none !important;
+            transform: none !important;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .mobile-tab-btn.active {
+            background: var(--accent-primary);
+            color: #ffffff;
+            transform: scale(1.02) !important;
+        }
+
+        /* 3D Tactile Animated Buttons */
+        button, label.btn-label {
+            background-color: var(--bg-panel);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 7px 11px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 3px 0px var(--border-color);
+            transform: translateY(-2px);
+            user-select: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        box-shadow 0.15s ease, 
+                        background-color 0.2s ease, 
+                        color 0.2s ease;
+        }
+
+        button:hover, label.btn-label:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 5px 0px var(--border-color);
+        }
+
+        button:active, label.btn-label:active {
+            transform: translateY(1px) scale(0.97);
+            box-shadow: 0 1px 0px var(--border-color);
+        }
+
+        button.primary {
+            background-color: var(--accent-primary);
+            color: white;
+            border-color: rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-3d);
+        }
+
+        button.primary:hover {
+            background-color: var(--accent-hover);
+            box-shadow: var(--shadow-3d);
+        }
+
+        button.primary:active {
+            box-shadow: var(--shadow-3d-active);
+        }
+
+        button.active {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        /* --- Find Modal --- */
+        #findModal {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 310px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #findModal.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .find-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .find-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .find-input {
+            width: 100%;
+            padding: 8px 10px;
+            background: var(--bg-editor);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .find-input:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .find-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .find-actions button {
+            padding: 6px 10px;
+            font-size: 11px;
+        }
+
+        .find-status {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        /* --- Main Layout --- */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .editor-pane {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-panel);
+            backdrop-filter: blur(10px);
+            border-right: 2px solid var(--border-color);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
+        }
+
+        @media(min-width: 768px) {
+            .editor-pane { width: 45%; }
+        }
+
+        .editor-header {
+            padding: 8px 12px;
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            background-color: var(--bg-editor);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-appearance: none;
+            border-radius: 0;
+        }
+
+        .preview-pane {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            background-color: transparent;
+            position: relative;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media(min-width: 768px) {
+            .preview-pane {
+                display: flex !important;
+                width: 55%;
+            }
+        }
+
+        .preview-pane.mobile-active {
+            display: flex !important;
+            animation: fadeInTab 0.3s ease-out;
+        }
+
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .preview-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 8px;
+        }
+
+        @media(min-width: 768px) {
+            .preview-wrapper { padding: 15px; }
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .preview-wrapper.mobile iframe {
+            width: 375px;
+            height: 667px;
+            max-height: 95%;
+            border: 10px solid #1a1a24;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            animation: popFrame 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .preview-wrapper.tablet iframe {
+            width: 768px;
+            height: 980px;
+            max-height: 95%;
+            border: 10px solid #1a1a24;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            animation: popFrame 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popFrame {
+            from { transform: scale(0.95); opacity: 0.8; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .console-drawer {
+            height: 100px;
+            width: 100%;
+            background-color: var(--console-bg);
+            border-top: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .console-header {
+            background-color: rgba(255,255,255,0.03);
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .console-logs {
+            flex: 1;
+            padding: 8px 12px;
+            overflow-y: auto;
+            color: var(--console-text);
+        }
+
+        .log-entry { margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        .log-error { color: #f87171; }
+        .log-warn { color: #fbbf24; }
+
+        body.fullscreen .editor-pane,
+        body.fullscreen header,
+        body.fullscreen .console-drawer {
+            display: none !important;
+        }
+
+        body.fullscreen .preview-pane {
+            display: flex !important;
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+
+        body.fullscreen .preview-wrapper { padding: 0; }
+        body.fullscreen iframe { border-radius: 0; }
+
+        .exit-fs {
+            display: none;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 99999;
+            background-color: var(--bg-panel);
+            color: var(--text-primary);
+        }
+
+        body.fullscreen .exit-fs { display: flex; }
+        .hidden { display: none !important; }
+        .desktop-only { display: none !important; }
+
+        @media(min-width: 768px) {
+            .desktop-only { display: inline-flex !important; }
+        }
+    </style>
+</head>
+<body class="theme-light">
+
+    <!-- Animated Splash Screen -->
+    <div id="splashScreen">
+        <div class="splash-logo-box">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+        <h2 class="splash-title">Aklavya's <span>Runner</span></h2>
+        <div class="splash-loader">
+            <div class="splash-progress"></div>
+        </div>
+    </div>
+
+    <!-- Header Toolbar -->
+    <header>
+        <div class="header-top">
+            <div class="brand">
+                <i class="fa-solid fa-bolt"></i>
+                Aklavya's <span>Runner</span>
+            </div>
+
+            <!-- Mobile View Switcher Tabs -->
+            <div class="mobile-tabs">
+                <button id="mobileTabCode" class="mobile-tab-btn active" onclick="setMobileViewTab('code')">Code</button>
+                <button id="mobileTabPreview" class="mobile-tab-btn" onclick="setMobileViewTab('preview')">Preview</button>
+            </div>
+        </div>
+        
+        <div class="toolbar">
+            <button id="runBtn" class="primary"><i class="fa-solid fa-play"></i> Run</button>
+            <button id="findBtn"><i class="fa-solid fa-magnifying-glass"></i> Find</button>
+            <button id="downloadBtn"><i class="fa-solid fa-download"></i> Save</button>
+            
+            <label class="btn-label" for="fileInput"><i class="fa-solid fa-folder-open"></i> Open</label>
+            <input type="file" id="fileInput" class="hidden" accept=".html,.css,.js,.txt">
+            
+            <button id="formatBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Format</button>
+            <button id="clearBtn"><i class="fa-solid fa-trash-can"></i> Clear</button>
+            <button id="copyBtn"><i class="fa-solid fa-copy"></i> Copy</button>
+
+            <!-- Screen View Mode Toggles (Desktop only) -->
+            <button id="desktopViewBtn" class="active desktop-only" title="Desktop View"><i class="fa-solid fa-desktop"></i></button>
+            <button id="tabletViewBtn" class="desktop-only" title="Tablet View"><i class="fa-solid fa-tablet-screen-button"></i></button>
+            <button id="mobileViewBtn" class="desktop-only" title="Mobile Phone View"><i class="fa-solid fa-mobile-screen-button"></i></button>
+
+            <!-- Prominent Theme Switcher Toggle -->
+            <button id="themeToggleBtn" class="primary" style="background-color: var(--accent-primary);"><i class="fa-solid fa-palette"></i> Theme</button>
+            <button id="fullBtn"><i class="fa-solid fa-expand"></i> Full Screen</button>
+            <button id="splitToggleBtn" class="desktop-only"><i class="fa-solid fa-maximize"></i> Focus Preview</button>
+        </div>
+    </header>
+
+    <!-- Search & Replace Modal -->
+    <div id="findModal">
+        <div class="find-header">
+            <span><i class="fa-solid fa-magnifying-glass"></i> Search & Replace</span>
+            <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="toggleFindModal(false)"></i>
+        </div>
+        <div class="find-input-group">
+            <input type="text" id="findQuery" class="find-input" placeholder="Find text..." oninput="executeFind()">
+            <input type="text" id="replaceQuery" class="find-input" placeholder="Replace with...">
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="find-status" id="findStatus">0 matches</span>
+            <div class="find-actions">
+                <button onclick="executeFind(1)"><i class="fa-solid fa-arrow-down"></i></button>
+                <button onclick="executeReplace()"><i class="fa-solid fa-pen"></i> Replace</button>
+                <button class="primary" onclick="executeReplaceAll()"><i class="fa-solid fa-list-check"></i> All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="main-container">
+        <!-- Editor Pane -->
+        <div class="editor-pane" id="editorPane">
+            <div class="editor-header">
+                <span id="charCount">Chars: 0 | Lines: 1</span>
+                <span><i class="fa-solid fa-shield-halved"></i> Unrestricted Engine</span>
+            </div>
+            <textarea id="codeEditor" placeholder="Paste your HTML code here..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+        </div>
+        
+        <!-- Preview Pane -->
+        <div class="preview-pane" id="previewPane">
+            <button id="exitFsBtn" class="exit-fs"><i class="fa-solid fa-compress"></i> Exit</button>
+            
+            <div class="preview-wrapper" id="previewWrapper">
+                <!-- Added explicit src="about:blank" to stop the parent page from loading in the iframe -->
+                <iframe id="outputFrame" name="outputFrame" src="about:blank"></iframe>
+            </div>
+
+            <!-- Console Log Drawer -->
+            <div class="console-drawer" id="consoleDrawer">
+                <div class="console-header">
+                    <span><i class="fa-solid fa-terminal"></i> Console</span>
+                    <div>
+                        <button onclick="clearConsole()" style="padding: 2px 6px; font-size: 10px;">Clear</button>
+                        <button onclick="toggleConsole()" style="padding: 2px 6px; font-size: 10px;">Min/Max</button>
+                    </div>
+                </div>
+                <div class="console-logs" id="consoleLogs"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const codeEditor = document.getElementById('codeEditor');
+        const outputFrame = document.getElementById('outputFrame');
+        const previewWrapper = document.getElementById('previewWrapper');
+        const consoleLogs = document.getElementById('consoleLogs');
+        const charCount = document.getElementById('charCount');
+        const editorPane = document.getElementById('editorPane');
+        const previewPane = document.getElementById('previewPane');
+        const findModal = document.getElementById('findModal');
+
+        // Splash Screen Dismissal Animation
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                if(splash) {
+                    splash.style.opacity = '0';
+                    splash.style.visibility = 'hidden';
+                }
+            }, 2100);
+            
+            // Clean iframe document initialization on startup
+            renderCode();
+        });
+
+        // Mobile View Tab Controller
+        function setMobileViewTab(tab) {
+            document.getElementById('mobileTabCode').classList.remove('active');
+            document.getElementById('mobileTabPreview').classList.remove('active');
+
+            if(tab === 'code') {
+                document.getElementById('mobileTabCode').classList.add('active');
+                editorPane.style.display = 'flex';
+                previewPane.classList.remove('mobile-active');
+            } else {
+                document.getElementById('mobileTabPreview').classList.add('active');
+                editorPane.style.display = 'none';
+                previewPane.classList.add('mobile-active');
+                renderCode();
+            }
+        }
+
+        // Search & Replace (Find) Engine
+        let lastMatchIndex = 0;
+
+        function toggleFindModal(state) {
+            if(state !== undefined) {
+                findModal.classList.toggle('open', state);
+            } else {
+                findModal.classList.toggle('open');
+            }
+            if(findModal.classList.contains('open')) {
+                document.getElementById('findQuery').focus();
+            }
+        }
+
+        document.getElementById('findBtn').addEventListener('click', () => toggleFindModal());
+
+        function executeFind(dir = 0) {
+            const query = document.getElementById('findQuery').value;
+            const text = codeEditor.value;
+            const status = document.getElementById('findStatus');
+
+            if(!query) {
+                status.innerText = "0 matches";
+                return;
+            }
+
+            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            const matches = [...text.matchAll(regex)];
+
+            status.innerText = `${matches.length} match${matches.length === 1 ? '' : 'es'}`;
+
+            if(matches.length > 0) {
+                if(dir === 1) {
+                    lastMatchIndex = (lastMatchIndex + 1) % matches.length;
+                }
+                const match = matches[lastMatchIndex] || matches[0];
+                codeEditor.focus();
+                codeEditor.setSelectionRange(match.index, match.index + query.length);
+            }
+        }
+
+        function executeReplace() {
+            const query = document.getElementById('findQuery').value;
+            const replacement = document.getElementById('replaceQuery').value;
+            const text = codeEditor.value;
+
+            if(!query) return;
+
+            const start = codeEditor.selectionStart;
+            const end = codeEditor.selectionEnd;
+            const selectedText = text.substring(start, end);
+
+            if(selectedText.toLowerCase() === query.toLowerCase()) {
+                codeEditor.setRangeText(replacement, start, end, 'select');
+                updateStats();
+                executeFind();
+            } else {
+                executeFind(1);
+            }
+        }
+
+        function executeReplaceAll() {
+            const query = document.getElementById('findQuery').value;
+            const replacement = document.getElementById('replaceQuery').value;
+            if(!query) return;
+
+            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            codeEditor.value = codeEditor.value.replace(regex, replacement);
+            updateStats();
+            executeFind();
+        }
+
+        // 1. Render Execution Engine
+        function renderCode() {
+            const rawCode = codeEditor.value;
+            
+            const consoleCaptureScript = `
+                <script>
+                    (function(){
+                        const sendLog = (type, args) => {
+                            window.parent.postMessage({
+                                type: 'CONSOLE_LOG',
+                                logType: type,
+                                message: Array.from(args).map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ')
+                            }, '*');
+                        };
+                        console.log = (...args) => sendLog('log', args);
+                        console.error = (...args) => sendLog('error', args);
+                        console.warn = (...args) => sendLog('warn', args);
+                    })();
+                <\/script>
+            `;
+
+            const frameDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
+            frameDoc.open();
+            frameDoc.write(consoleCaptureScript + rawCode);
+            frameDoc.close();
+        }
+
+        document.getElementById('runBtn').addEventListener('click', () => {
+            renderCode();
+            if(window.innerWidth < 768) {
+                setMobileViewTab('preview');
+            }
+        });
+
+        // 2. Download File Handler
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const code = codeEditor.value;
+            if(!code.trim()) return alert("Write or paste some code first!");
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const defaultName = `webV1-${timestamp}.html`;
+
+            const userFileName = prompt("Enter filename to save:", defaultName);
+            if(!userFileName) return;
+
+            const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = userFileName.endsWith('.html') || userFileName.endsWith('.txt') ? userFileName : `${userFileName}.html`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        });
+
+        // 3. Open Local File Reader
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                codeEditor.value = event.target.result;
+                updateStats();
+                renderCode();
+            };
+            reader.readAsText(file);
+        });
+
+        // 4. Console Event Listener
+        window.addEventListener('message', (event) => {
+            if(event.data && event.data.type === 'CONSOLE_LOG') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${event.data.logType}`;
+                entry.innerText = `> ${event.data.message}`;
+                consoleLogs.appendChild(entry);
+                consoleLogs.scrollTop = consoleLogs.scrollHeight;
+            }
+        });
+
+        function clearConsole() { consoleLogs.innerHTML = ''; }
+        function toggleConsole() { 
+            const drawer = document.getElementById('consoleDrawer');
+            drawer.style.height = drawer.style.height === '26px' ? '100px' : '26px';
+        }
+
+        // 5. Code Formatter Utility
+        document.getElementById('formatBtn').addEventListener('click', () => {
+            let code = codeEditor.value;
+            let formatted = '', indent = 0;
+            code.split(/>\s*</).forEach(node => {
+                if (node.match( /^\/\w/ )) indent--;
+                formatted += '  '.repeat(Math.max(0, indent)) + '<' + node + '>\n';
+                if (node.match( /^<?\w[^>]*[^\/]$/ ) && !node.startsWith('input')) indent++;
+            });
+            codeEditor.value = formatted.trim();
+            updateStats();
+        });
+
+        // 6. View Controls
+        document.getElementById('desktopViewBtn').addEventListener('click', function() {
+            previewWrapper.className = 'preview-wrapper';
+            setActiveView(this);
+        });
+
+        document.getElementById('tabletViewBtn').addEventListener('click', function() {
+            previewWrapper.className = 'preview-wrapper tablet';
+            setActiveView(this);
+        });
+
+        document.getElementById('mobileViewBtn').addEventListener('click', function() {
+            previewWrapper.className = 'preview-wrapper mobile';
+            setActiveView(this);
+        });
+
+        function setActiveView(btn) {
+            document.querySelectorAll('#desktopViewBtn, #tabletViewBtn, #mobileViewBtn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // 7. Fullscreen Toggle
+        const toggleFS = () => document.body.classList.toggle('fullscreen');
+        document.getElementById('fullBtn').addEventListener('click', toggleFS);
+        document.getElementById('exitFsBtn').addEventListener('click', toggleFS);
+
+        // 8. Focus Preview Toggle
+        document.getElementById('splitToggleBtn').addEventListener('click', () => {
+            editorPane.style.width = editorPane.style.width === '0%' ? '45%' : '0%';
+        });
+
+        // 9. Utility Actions
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            if(confirm("Clear current code from editor?")) {
+                codeEditor.value = '';
+                updateStats();
+                renderCode();
+            }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(codeEditor.value);
+            alert("Code copied to clipboard!");
+        });
+
+        // Animated Theme Switcher Engine (Lavender vs Maroon)
+        document.getElementById('themeToggleBtn').addEventListener('click', () => {
+            document.body.classList.toggle('theme-dark');
+            document.body.classList.toggle('theme-light');
+        });
+
+        // Realtime Metrics & Shortcuts
+        function updateStats() {
+            const text = codeEditor.value;
+            const lines = text.split('\n').length;
+            charCount.innerText = `Chars: ${text.length} | Lines: ${lines}`;
+        }
+
+        codeEditor.addEventListener('input', updateStats);
+
+        codeEditor.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                toggleFindModal(true);
+            }
+        });
+    </script>
+</body>
+</html>
