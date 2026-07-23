@@ -3,103 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Web Developer Workspace & Sandbox</title>
-    <!-- FontAwesome Icons -->
+    <title>Aklavya's Runner - Code Studio</title>
+    <!-- FontAwesome & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
     <style>
+        /* --- Color Palettes --- */
         :root {
-            --bg-dark: #0f172a;
-            --bg-panel: #1e293b;
-            --border-color: #334155;
-            --accent-blue: #0284c7;
-            --accent-green: #10b981;
-            --accent-purple: #8b5cf6;
-            --text-light: #f8fafc;
-            --text-muted: #94a3b8;
+            /* Light Theme: Lavender & White */
+            --bg-main: #f3f0f9;
+            --bg-panel: #ffffff;
+            --bg-editor: #f8f6fc;
+            --border-color: #e2d9f3;
+            --text-primary: #2d2438;
+            --text-secondary: #7e6e90;
+            --accent-primary: #7c3aed; /* Deep Lavender Accent */
+            --accent-hover: #6d28d9;
+            --shadow-3d: 0 4px 0px #d1c4e9, 0 8px 15px rgba(124, 58, 237, 0.08);
+            --shadow-3d-active: 0 1px 0px #d1c4e9, 0 3px 8px rgba(124, 58, 237, 0.12);
+            --header-bg: #faf8fd;
+            --console-bg: #1c1825;
+            --console-text: #c084fc;
+        }
+
+        body.theme-dark {
+            /* Dark Theme: Maroon & Grey */
+            --bg-main: #121214;
+            --bg-panel: #1e1e24;
+            --bg-editor: #16161a;
+            --border-color: #3b1c24;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #9f1239; /* Rich Maroon */
+            --accent-hover: #be123c;
+            --shadow-3d: 0 4px 0px #4c0519, 0 8px 15px rgba(159, 18, 57, 0.25);
+            --shadow-3d-active: 0 1px 0px #4c0519, 0 3px 8px rgba(159, 18, 57, 0.3);
+            --header-bg: #191417;
+            --console-bg: #0d0a0c;
+            --console-text: #fda4af;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
         }
 
         body {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
+            background-color: var(--bg-main);
+            color: var(--text-primary);
             overflow: hidden;
         }
 
-        /* Top Toolbar */
+        /* --- Header & Top Controls --- */
         header {
-            background-color: var(--bg-panel);
-            padding: 10px 16px;
+            background-color: var(--header-bg);
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 2px solid var(--border-color);
             z-index: 20;
-            gap: 10px;
-            flex-wrap: wrap;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
         }
 
         .brand {
             font-weight: 800;
-            font-size: 1.1rem;
-            color: #38bdf8;
+            font-size: 1.25rem;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand i {
+            color: var(--accent-primary);
+            font-size: 1.4rem;
+        }
+
+        .brand span {
+            color: var(--accent-primary);
         }
 
         .toolbar {
             display: flex;
-            gap: 6px;
+            gap: 10px;
             align-items: center;
             flex-wrap: wrap;
         }
 
+        /* 3D Tactile Buttons */
         button, label.btn-label {
-            background-color: #334155;
-            color: white;
-            border: none;
-            padding: 7px 12px;
-            border-radius: 6px;
+            background-color: var(--bg-panel);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 12px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
+            gap: 8px;
+            box-shadow: 0 4px 0px var(--border-color);
+            transform: translateY(-2px);
+            user-select: none;
         }
 
         button:hover, label.btn-label:hover {
-            background-color: #475569;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 0px var(--border-color);
+        }
+
+        button:active, label.btn-label:active {
+            transform: translateY(0px);
+            box-shadow: 0 1px 0px var(--border-color);
         }
 
         button.primary {
-            background-color: var(--accent-blue);
-        }
-        button.primary:hover {
-            background-color: #0369a1;
+            background-color: var(--accent-primary);
+            color: white;
+            border-color: rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-3d);
         }
 
-        button.success {
-            background-color: var(--accent-green);
+        button.primary:hover {
+            background-color: var(--accent-hover);
+            box-shadow: var(--shadow-3d);
         }
-        button.success:hover {
-            background-color: #059669;
+
+        button.primary:active {
+            box-shadow: var(--shadow-3d-active);
         }
 
         button.active {
-            box-shadow: inset 0 0 0 2px #38bdf8;
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
         }
 
+        /* --- Main Layout --- */
         .main-container {
             display: flex;
             flex: 1;
@@ -107,52 +156,54 @@
             position: relative;
         }
 
-        /* Editor Section */
+        /* Left Editor Pane */
         .editor-pane {
             width: 45%;
             display: flex;
             flex-direction: column;
             background-color: var(--bg-panel);
-            border-right: 1px solid var(--border-color);
-            transition: width 0.3s ease;
+            border-right: 2px solid var(--border-color);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .editor-header {
-            padding: 8px 12px;
-            background-color: #0f172a;
+            padding: 10px 16px;
+            background-color: var(--bg-main);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 11px;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
         textarea {
             flex: 1;
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             border: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13.5px;
             resize: none;
             outline: none;
-            background-color: #0f172a;
-            color: #e2e8f0;
-            line-height: 1.5;
+            background-color: var(--bg-editor);
+            color: var(--text-primary);
+            line-height: 1.6;
         }
 
-        /* Preview Section */
+        /* Right Preview Pane */
         .preview-pane {
             width: 55%;
             display: flex;
             flex-direction: column;
-            background-color: #1e293b;
+            background-color: var(--bg-main);
             position: relative;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .preview-wrapper {
@@ -162,7 +213,7 @@
             justify-content: center;
             align-items: center;
             position: relative;
-            overflow: hidden;
+            padding: 15px;
         }
 
         iframe {
@@ -170,56 +221,60 @@
             height: 100%;
             border: none;
             background-color: #ffffff;
-            transition: all 0.3s ease;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Responsive Screen Modes */
+        /* Device Frame Simulations */
         .preview-wrapper.mobile iframe {
             width: 375px;
             height: 667px;
-            border: 12px solid #0f172a;
-            border-radius: 28px;
-            box-shadow: 0 20px 30px rgba(0,0,0,0.5);
+            border: 12px solid #1a1a24;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
         }
 
         .preview-wrapper.tablet iframe {
             width: 768px;
-            height: 1024px;
+            height: 980px;
             max-height: 95%;
-            border: 12px solid #0f172a;
-            border-radius: 20px;
-            box-shadow: 0 20px 30px rgba(0,0,0,0.5);
+            border: 12px solid #1a1a24;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
         }
 
         /* Console Log Drawer */
         .console-drawer {
-            height: 130px;
+            height: 120px;
             width: 100%;
-            background-color: #090d16;
+            background-color: var(--console-bg);
             border-top: 2px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            font-family: monospace;
+            font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
+            transition: height 0.2s ease;
         }
 
         .console-header {
-            background-color: #1e293b;
-            padding: 4px 10px;
+            background-color: rgba(255,255,255,0.03);
+            padding: 6px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: var(--text-muted);
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
         .console-logs {
             flex: 1;
-            padding: 8px;
+            padding: 10px;
             overflow-y: auto;
-            color: #38bdf8;
+            color: var(--console-text);
         }
 
-        .log-entry { margin-bottom: 3px; border-bottom: 1px dashed #1e293b; padding-bottom: 2px; }
+        .log-entry { margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         .log-error { color: #f87171; }
         .log-warn { color: #fbbf24; }
 
@@ -235,62 +290,72 @@
             height: 100vh !important;
         }
 
+        body.fullscreen .preview-wrapper {
+            padding: 0;
+        }
+
+        body.fullscreen iframe {
+            border-radius: 0;
+        }
+
         .exit-fs {
             display: none;
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 20px;
+            right: 20px;
             z-index: 99999;
-            background-color: rgba(15, 23, 42, 0.9);
-            color: white;
-            border: 1px solid var(--border-color);
+            background-color: var(--bg-panel);
+            color: var(--text-primary);
         }
 
-        body.fullscreen .exit-fs { display: block; }
+        body.fullscreen .exit-fs { display: flex; }
         .hidden { display: none !important; }
     </style>
 </head>
-<body>
+<body class="theme-light">
 
-    <!-- Header Controls Toolbar -->
+    <!-- Header Toolbar -->
     <header>
-        <div class="brand"><i class="fa-solid fa-code"></i> Workspace Studio</div>
+        <div class="brand">
+            <i class="fa-solid fa-bolt"></i>
+            Aklavya's <span>Runner</span>
+        </div>
         
         <div class="toolbar">
             <button id="runBtn" class="primary"><i class="fa-solid fa-play"></i> Run Code</button>
-            <button id="downloadBtn" class="success"><i class="fa-solid fa-download"></i> Save File</button>
+            <button id="downloadBtn"><i class="fa-solid fa-download"></i> Save File</button>
             
-            <label class="btn-label" for="fileInput"><i class="fa-solid fa-folder-open"></i> Open File</label>
+            <label class="btn-label" for="fileInput"><i class="fa-solid fa-folder-open"></i> Open</label>
             <input type="file" id="fileInput" class="hidden" accept=".html,.css,.js,.txt">
             
-            <button id="formatBtn"><i class="fa-solid fa-align-left"></i> Format</button>
-            <button id="clearBtn"><i class="fa-solid fa-trash"></i> Clear</button>
+            <button id="formatBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Format</button>
+            <button id="clearBtn"><i class="fa-solid fa-trash-can"></i> Clear</button>
             <button id="copyBtn"><i class="fa-solid fa-copy"></i> Copy</button>
 
-            <!-- Screen Views -->
-            <button id="desktopViewBtn" class="active"><i class="fa-solid fa-desktop"></i></button>
-            <button id="tabletViewBtn"><i class="fa-solid fa-tablet-screen-button"></i></button>
-            <button id="mobileViewBtn"><i class="fa-solid fa-mobile-screen-button"></i></button>
+            <!-- Screen View Mode Toggles -->
+            <button id="desktopViewBtn" class="active" title="Desktop View"><i class="fa-solid fa-desktop"></i></button>
+            <button id="tabletViewBtn" title="Tablet View"><i class="fa-solid fa-tablet-screen-button"></i></button>
+            <button id="mobileViewBtn" title="Mobile Phone View"><i class="fa-solid fa-mobile-screen-button"></i></button>
 
-            <!-- Mode Toggles -->
+            <!-- Mode Controls -->
             <button id="fullBtn"><i class="fa-solid fa-expand"></i> Full Screen</button>
-            <button id="themeToggleBtn"><i class="fa-solid fa-circle-half-stroke"></i> Theme</button>
-            <button id="splitToggleBtn"><i class="fa-solid fa-columns"></i> Focus Preview</button>
+            <button id="themeToggleBtn"><i class="fa-solid fa-palette"></i> Theme</button>
+            <button id="splitToggleBtn"><i class="fa-solid fa-maximize"></i> Focus Preview</button>
         </div>
     </header>
 
-    <!-- Main Workspace Area -->
+    <!-- Main Workspace -->
     <div class="main-container">
-        <!-- Editor Left Pane -->
+        <!-- Editor Pane -->
         <div class="editor-pane" id="editorPane">
             <div class="editor-header">
                 <span id="charCount">Chars: 0 | Lines: 1</span>
-                <span>Auto-Sync Local Storage Active</span>
+                <span><i class="fa-solid fa-shield-halved"></i> Unrestricted Mode</span>
             </div>
-            <textarea id="codeEditor" placeholder="Paste or open any HTML, CSS, JavaScript file here..."></textarea>
+            <textarea id="codeEditor" placeholder="Paste your HTML, CSS, JavaScript, Firebase, or Tailwind code here..."></textarea>
         </div>
         
-        <!-- Preview Right Pane -->
+        <!-- Preview Pane -->
         <div class="preview-pane" id="previewPane">
             <button id="exitFsBtn" class="exit-fs"><i class="fa-solid fa-compress"></i> Exit Full Screen</button>
             
@@ -301,7 +366,7 @@
             <!-- Console Log Drawer -->
             <div class="console-drawer" id="consoleDrawer">
                 <div class="console-header">
-                    <span><i class="fa-solid fa-terminal"></i> Preview Console</span>
+                    <span><i class="fa-solid fa-terminal"></i> Output Console</span>
                     <div>
                         <button onclick="clearConsole()" style="padding: 2px 6px; font-size: 10px;">Clear</button>
                         <button onclick="toggleConsole()" style="padding: 2px 6px; font-size: 10px;">Min/Max</button>
@@ -319,7 +384,7 @@
         const consoleLogs = document.getElementById('consoleLogs');
         const charCount = document.getElementById('charCount');
 
-        // 1. Core Render Code Engine
+        // 1. Render Execution Engine
         function renderCode() {
             const rawCode = codeEditor.value;
             
@@ -346,21 +411,20 @@
             frameDoc.write(consoleCaptureScript + rawCode);
             frameDoc.close();
 
-            // Save to localStorage automatically (Feature #20)
-            localStorage.setItem('workspace_saved_code', rawCode);
+            // Auto-save backup
+            localStorage.setItem('aklavya_runner_saved_code', rawCode);
         }
 
-        // 2. Custom Named File Download Functionality (Feature #1)
+        // 2. Download File with Custom Naming Prompt
         document.getElementById('downloadBtn').addEventListener('click', () => {
             const code = codeEditor.value;
-            if(!code.trim()) return alert("Write or paste some code to save!");
+            if(!code.trim()) return alert("Write or paste some code first!");
 
-            // Suggested dynamic default timestamp file name
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
             const defaultName = `webV1-${timestamp}.html`;
 
-            const userFileName = prompt("Enter a filename to download:", defaultName);
-            if(!userFileName) return; // Action cancelled
+            const userFileName = prompt("Enter filename to save:", defaultName);
+            if(!userFileName) return;
 
             const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
             const link = document.createElement('a');
@@ -370,7 +434,7 @@
             URL.revokeObjectURL(link.href);
         });
 
-        // 3. Open Any File Type (Feature #2)
+        // 3. Open Local File Reader
         document.getElementById('fileInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if(!file) return;
@@ -384,7 +448,7 @@
             reader.readAsText(file);
         });
 
-        // 4. Console Log Message Event Handler
+        // 4. Console Event Listener
         window.addEventListener('message', (event) => {
             if(event.data && event.data.type === 'CONSOLE_LOG') {
                 const entry = document.createElement('div');
@@ -398,23 +462,23 @@
         function clearConsole() { consoleLogs.innerHTML = ''; }
         function toggleConsole() { 
             const drawer = document.getElementById('consoleDrawer');
-            drawer.style.height = drawer.style.height === '25px' ? '130px' : '25px';
+            drawer.style.height = drawer.style.height === '26px' ? '120px' : '26px';
         }
 
-        // 5. Code Formatting Utility (Feature #5)
+        // 5. Code Formatter Utility
         document.getElementById('formatBtn').addEventListener('click', () => {
             let code = codeEditor.value;
             let formatted = '', indent = 0;
             code.split(/>\s*</).forEach(node => {
                 if (node.match( /^\/\w/ )) indent--;
-                formatted += '  '.repeat(indent) + '<' + node + '>\n';
+                formatted += '  '.repeat(Math.max(0, indent)) + '<' + node + '>\n';
                 if (node.match( /^<?\w[^>]*[^\/]$/ ) && !node.startsWith('input')) indent++;
             });
-            codeEditor.value = formatted.substring(1, formatted.length - 2);
+            codeEditor.value = formatted.trim();
             updateStats();
         });
 
-        // 6. View Controls & Toggles
+        // 6. View Controls
         document.getElementById('desktopViewBtn').addEventListener('click', function() {
             previewWrapper.className = 'preview-wrapper';
             setActiveView(this);
@@ -435,20 +499,20 @@
             btn.classList.add('active');
         }
 
-        // 7. Fullscreen Mode
+        // 7. Fullscreen Toggle
         const toggleFS = () => document.body.classList.toggle('fullscreen');
         document.getElementById('fullBtn').addEventListener('click', toggleFS);
         document.getElementById('exitFsBtn').addEventListener('click', toggleFS);
 
-        // 8. Focus Preview / Split Screen Toggle
+        // 8. Focus Preview Toggle
         document.getElementById('splitToggleBtn').addEventListener('click', () => {
             const pane = document.getElementById('editorPane');
             pane.style.width = pane.style.width === '0%' ? '45%' : '0%';
         });
 
-        // 9. Quick Actions
+        // 9. Utility Actions
         document.getElementById('clearBtn').addEventListener('click', () => {
-            if(confirm("Clear all code in editor?")) {
+            if(confirm("Clear current code from editor?")) {
                 codeEditor.value = '';
                 updateStats();
                 renderCode();
@@ -460,11 +524,13 @@
             alert("Code copied to clipboard!");
         });
 
+        // Theme Switcher Engine (Lavender/White vs Maroon/Grey)
         document.getElementById('themeToggleBtn').addEventListener('click', () => {
-            document.body.style.filter = document.body.style.filter === 'invert(0.9)' ? 'none' : 'invert(0.9)';
+            document.body.classList.toggle('theme-dark');
+            document.body.classList.toggle('theme-light');
         });
 
-        // 10. Realtime Metrics & Event Binding
+        // Realtime Editor Metrics
         function updateStats() {
             const text = codeEditor.value;
             const lines = text.split('\n').length;
@@ -474,7 +540,7 @@
         codeEditor.addEventListener('input', updateStats);
         document.getElementById('runBtn').addEventListener('click', renderCode);
 
-        // Ctrl + Enter shortcut to run code instantly
+        // Ctrl + Enter Shortcut Handler
         codeEditor.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
@@ -482,9 +548,9 @@
             }
         });
 
-        // Load auto-saved backup code on startup
+        // Load saved code on startup
         window.onload = () => {
-            const saved = localStorage.getItem('workspace_saved_code');
+            const saved = localStorage.getItem('aklavya_runner_saved_code');
             if(saved) {
                 codeEditor.value = saved;
                 updateStats();
