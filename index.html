@@ -3,8 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Local Source Matrix Sandboxing</title>
+    <title>Ultimate Web Developer Workspace & Sandbox</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-panel: #1e293b;
+            --border-color: #334155;
+            --accent-blue: #0284c7;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -16,89 +29,113 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background-color: #0f172a;
-            color: #f8fafc;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             overflow: hidden;
         }
 
+        /* Top Toolbar */
         header {
-            background-color: #1e293b;
-            padding: 12px 20px;
+            background-color: var(--bg-panel);
+            padding: 10px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #334155;
-            z-index: 10;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 20;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .logo {
+        .brand {
             font-weight: 800;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #38bdf8;
-        }
-
-        .controls {
             display: flex;
-            gap: 12px;
+            align-items: center;
+            gap: 8px;
         }
 
-        button {
-            background-color: #0284c7;
+        .toolbar {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button, label.btn-label {
+            background-color: #334155;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 7px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             transition: all 0.2s ease;
         }
 
-        button:hover {
-            background-color: #0369a1;
-        }
-
-        button.secondary {
+        button:hover, label.btn-label:hover {
             background-color: #475569;
         }
 
-        button.secondary:hover {
-            background-color: #334155;
+        button.primary {
+            background-color: var(--accent-blue);
+        }
+        button.primary:hover {
+            background-color: #0369a1;
+        }
+
+        button.success {
+            background-color: var(--accent-green);
+        }
+        button.success:hover {
+            background-color: #059669;
+        }
+
+        button.active {
+            box-shadow: inset 0 0 0 2px #38bdf8;
         }
 
         .main-container {
             display: flex;
             flex: 1;
             overflow: hidden;
-            background-color: #0f172a;
+            position: relative;
         }
 
+        /* Editor Section */
         .editor-pane {
             width: 45%;
             display: flex;
             flex-direction: column;
-            padding: 15px;
-            background-color: #1e293b;
-            border-right: 1px solid #334155;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            transition: width 0.3s ease;
         }
 
-        .pane-title {
+        .editor-header {
+            padding: 8px 12px;
+            background-color: #0f172a;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-size: 11px;
+            color: var(--text-muted);
             font-weight: 700;
-            text-transform: uppercase;
-            color: #94a3b8;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
         }
 
         textarea {
             flex: 1;
             width: 100%;
-            padding: 16px;
-            border: 1px solid #475569;
-            border-radius: 8px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
+            padding: 14px;
+            border: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
             resize: none;
             outline: none;
             background-color: #0f172a;
@@ -106,19 +143,26 @@
             line-height: 1.5;
         }
 
-        textarea:focus {
-            border-color: #38bdf8;
-        }
-
+        /* Preview Section */
         .preview-pane {
             width: 55%;
             display: flex;
+            flex-direction: column;
+            background-color: #1e293b;
+            position: relative;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .preview-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #334155;
-            padding: 24px;
-            transition: all 0.3s ease;
             position: relative;
+            overflow: hidden;
         }
 
         iframe {
@@ -126,156 +170,326 @@
             height: 100%;
             border: none;
             background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
         }
 
-        /* Mobile View Mode */
-        .preview-pane.mobile-mode {
-            background-color: #1e293b;
-        }
-
-        .preview-pane.mobile-mode iframe {
+        /* Responsive Screen Modes */
+        .preview-wrapper.mobile iframe {
             width: 375px;
             height: 667px;
-            border: 14px solid #0f172a;
-            border-radius: 32px;
+            border: 12px solid #0f172a;
+            border-radius: 28px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.5);
         }
 
-        /* Full Screen Preview Mode */
-        body.fullscreen-mode .editor-pane,
-        body.fullscreen-mode header {
-            display: none;
+        .preview-wrapper.tablet iframe {
+            width: 768px;
+            height: 1024px;
+            max-height: 95%;
+            border: 12px solid #0f172a;
+            border-radius: 20px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.5);
         }
 
-        body.fullscreen-mode .preview-pane {
+        /* Console Log Drawer */
+        .console-drawer {
+            height: 130px;
             width: 100%;
-            height: 100vh;
-            padding: 0;
+            background-color: #090d16;
+            border-top: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            font-family: monospace;
+            font-size: 11px;
         }
 
-        body.fullscreen-mode iframe {
-            border-radius: 0;
-            width: 100%;
-            height: 100%;
+        .console-header {
+            background-color: #1e293b;
+            padding: 4px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
         }
 
-        .exit-fs-btn {
+        .console-logs {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+            color: #38bdf8;
+        }
+
+        .log-entry { margin-bottom: 3px; border-bottom: 1px dashed #1e293b; padding-bottom: 2px; }
+        .log-error { color: #f87171; }
+        .log-warn { color: #fbbf24; }
+
+        /* Fullscreen Overlay Mode */
+        body.fullscreen .editor-pane,
+        body.fullscreen header,
+        body.fullscreen .console-drawer {
+            display: none !important;
+        }
+
+        body.fullscreen .preview-pane {
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+
+        .exit-fs {
             display: none;
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             z-index: 99999;
             background-color: rgba(15, 23, 42, 0.9);
-            color: #fff;
-            border: 1px solid #475569;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
+            color: white;
+            border: 1px solid var(--border-color);
         }
 
-        body.fullscreen-mode .exit-fs-btn {
-            display: block;
-        }
+        body.fullscreen .exit-fs { display: block; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
+    <!-- Header Controls Toolbar -->
     <header>
-        <div class="logo">Matrix Testing Frame</div>
-        <div id="virtualFileName" style="font-size: 13px; font-family: monospace; color: #a7f3d0;">File Node: Idle...</div>
-        <div class="controls">
-            <button id="runBtn">Go / Render Code</button>
-            <button id="mobileBtn" class="secondary">Mobile View</button>
-            <button id="fullBtn" class="secondary">Full Screen</button>
+        <div class="brand"><i class="fa-solid fa-code"></i> Workspace Studio</div>
+        
+        <div class="toolbar">
+            <button id="runBtn" class="primary"><i class="fa-solid fa-play"></i> Run Code</button>
+            <button id="downloadBtn" class="success"><i class="fa-solid fa-download"></i> Save File</button>
+            
+            <label class="btn-label" for="fileInput"><i class="fa-solid fa-folder-open"></i> Open File</label>
+            <input type="file" id="fileInput" class="hidden" accept=".html,.css,.js,.txt">
+            
+            <button id="formatBtn"><i class="fa-solid fa-align-left"></i> Format</button>
+            <button id="clearBtn"><i class="fa-solid fa-trash"></i> Clear</button>
+            <button id="copyBtn"><i class="fa-solid fa-copy"></i> Copy</button>
+
+            <!-- Screen Views -->
+            <button id="desktopViewBtn" class="active"><i class="fa-solid fa-desktop"></i></button>
+            <button id="tabletViewBtn"><i class="fa-solid fa-tablet-screen-button"></i></button>
+            <button id="mobileViewBtn"><i class="fa-solid fa-mobile-screen-button"></i></button>
+
+            <!-- Mode Toggles -->
+            <button id="fullBtn"><i class="fa-solid fa-expand"></i> Full Screen</button>
+            <button id="themeToggleBtn"><i class="fa-solid fa-circle-half-stroke"></i> Theme</button>
+            <button id="splitToggleBtn"><i class="fa-solid fa-columns"></i> Focus Preview</button>
         </div>
     </header>
 
+    <!-- Main Workspace Area -->
     <div class="main-container">
-        <div class="editor-pane">
-            <div class="pane-title">Paste Target App Code Below</div>
-            <textarea id="codeEditor" placeholder="Paste your HTML script here..."></textarea>
+        <!-- Editor Left Pane -->
+        <div class="editor-pane" id="editorPane">
+            <div class="editor-header">
+                <span id="charCount">Chars: 0 | Lines: 1</span>
+                <span>Auto-Sync Local Storage Active</span>
+            </div>
+            <textarea id="codeEditor" placeholder="Paste or open any HTML, CSS, JavaScript file here..."></textarea>
         </div>
         
+        <!-- Preview Right Pane -->
         <div class="preview-pane" id="previewPane">
-            <button id="exitFsBtn" class="exit-fs-btn">Exit Full Screen</button>
-            <iframe id="outputFrame" name="outputFrame"></iframe>
+            <button id="exitFsBtn" class="exit-fs"><i class="fa-solid fa-compress"></i> Exit Full Screen</button>
+            
+            <div class="preview-wrapper" id="previewWrapper">
+                <iframe id="outputFrame" name="outputFrame"></iframe>
+            </div>
+
+            <!-- Console Log Drawer -->
+            <div class="console-drawer" id="consoleDrawer">
+                <div class="console-header">
+                    <span><i class="fa-solid fa-terminal"></i> Preview Console</span>
+                    <div>
+                        <button onclick="clearConsole()" style="padding: 2px 6px; font-size: 10px;">Clear</button>
+                        <button onclick="toggleConsole()" style="padding: 2px 6px; font-size: 10px;">Min/Max</button>
+                    </div>
+                </div>
+                <div class="console-logs" id="consoleLogs"></div>
+            </div>
         </div>
     </div>
 
     <script>
         const codeEditor = document.getElementById('codeEditor');
-        const runBtn = document.getElementById('runBtn');
-        const mobileBtn = document.getElementById('mobileBtn');
-        const fullBtn = document.getElementById('fullBtn');
-        const exitFsBtn = document.getElementById('exitFsBtn');
-        const previewPane = document.getElementById('previewPane');
         const outputFrame = document.getElementById('outputFrame');
-        const virtualFileName = document.getElementById('virtualFileName');
-        const body = document.body;
+        const previewWrapper = document.getElementById('previewWrapper');
+        const consoleLogs = document.getElementById('consoleLogs');
+        const charCount = document.getElementById('charCount');
 
-        function renderActiveSnapshot() {
-            const codePayload = codeEditor.value;
-            if(!codePayload.trim()) return alert("Paste some code first!");
-
-            // 1. Generate the simulated timestamp string
-            const now = new Date();
-            const pad = (n) => String(n).padStart(2, '0');
-            const timestamp = now.getFullYear() + 
-                              pad(now.getMonth() + 1) + 
-                              pad(now.getDate()) + "-" + 
-                              pad(now.getHours()) + 
-                              pad(now.getMinutes()) + 
-                              pad(now.getSeconds());
+        // 1. Core Render Code Engine
+        function renderCode() {
+            const rawCode = codeEditor.value;
             
-            const dynamicFileName = `webcheckfolder/webV1(${timestamp}).html`;
-            
-            // 2. Display the simulated filename in the header layout
-            virtualFileName.innerText = `Running: ${dynamicFileName}`;
+            // Console capture script injected inside preview frame
+            const consoleCaptureScript = `
+                <script>
+                    (function(){
+                        const sendLog = (type, args) => {
+                            window.parent.postMessage({
+                                type: 'CONSOLE_LOG',
+                                logType: type,
+                                message: Array.from(args).map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ')
+                            }, '*');
+                        };
+                        console.log = (...args) => sendLog('log', args);
+                        console.error = (...args) => sendLog('error', args);
+                        console.warn = (...args) => sendLog('warn', args);
+                    })();
+                <\/script>
+            `;
 
-            // 3. Render directly using iframe window compilation method.
-            // This leaves the domain context open so external network pipelines (Firebase/Tailwind) function natively without security blocks.
-            const frameWindow = outputFrame.contentWindow || outputFrame.contentDocument.defaultView;
             const frameDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
-
             frameDoc.open();
-            frameDoc.write(codePayload);
+            frameDoc.write(consoleCaptureScript + rawCode);
             frameDoc.close();
+
+            // Save to localStorage automatically (Feature #20)
+            localStorage.setItem('workspace_saved_code', rawCode);
         }
 
-        // Click Handler bindings
-        runBtn.addEventListener('click', renderActiveSnapshot);
+        // 2. Custom Named File Download Functionality (Feature #1)
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const code = codeEditor.value;
+            if(!code.trim()) return alert("Write or paste some code to save!");
 
-        mobileBtn.addEventListener('click', () => {
-            previewPane.classList.toggle('mobile-mode');
-            if (previewPane.classList.contains('mobile-mode')) {
-                mobileBtn.textContent = 'Desktop View';
-                mobileBtn.style.backgroundColor = '#0ea5e9';
-            } else {
-                mobileBtn.textContent = 'Mobile View';
-                mobileBtn.style.backgroundColor = '';
+            // Suggested dynamic default timestamp file name
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const defaultName = `webV1-${timestamp}.html`;
+
+            const userFileName = prompt("Enter a filename to download:", defaultName);
+            if(!userFileName) return; // Action cancelled
+
+            const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = userFileName.endsWith('.html') || userFileName.endsWith('.txt') ? userFileName : `${userFileName}.html`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        });
+
+        // 3. Open Any File Type (Feature #2)
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                codeEditor.value = event.target.result;
+                updateStats();
+                renderCode();
+            };
+            reader.readAsText(file);
+        });
+
+        // 4. Console Log Message Event Handler
+        window.addEventListener('message', (event) => {
+            if(event.data && event.data.type === 'CONSOLE_LOG') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${event.data.logType}`;
+                entry.innerText = `> ${event.data.message}`;
+                consoleLogs.appendChild(entry);
+                consoleLogs.scrollTop = consoleLogs.scrollHeight;
             }
         });
 
-        function toggleFullScreenMode() {
-            body.classList.toggle('fullscreen-mode');
-            if(previewPane.classList.contains('mobile-mode') && body.classList.contains('fullscreen-mode')) {
-                 previewPane.classList.remove('mobile-mode');
-                 mobileBtn.textContent = 'Mobile View';
-                 mobileBtn.style.backgroundColor = '';
-            }
+        function clearConsole() { consoleLogs.innerHTML = ''; }
+        function toggleConsole() { 
+            const drawer = document.getElementById('consoleDrawer');
+            drawer.style.height = drawer.style.height === '25px' ? '130px' : '25px';
         }
 
-        fullBtn.addEventListener('click', toggleFullScreenMode);
-        exitFsBtn.addEventListener('click', toggleFullScreenMode);
+        // 5. Code Formatting Utility (Feature #5)
+        document.getElementById('formatBtn').addEventListener('click', () => {
+            let code = codeEditor.value;
+            let formatted = '', indent = 0;
+            code.split(/>\s*</).forEach(node => {
+                if (node.match( /^\/\w/ )) indent--;
+                formatted += '  '.repeat(indent) + '<' + node + '>\n';
+                if (node.match( /^<?\w[^>]*[^\/]$/ ) && !node.startsWith('input')) indent++;
+            });
+            codeEditor.value = formatted.substring(1, formatted.length - 2);
+            updateStats();
+        });
 
-        // Editor key bindings shortcut tracking (Ctrl+Enter)
+        // 6. View Controls & Toggles
+        document.getElementById('desktopViewBtn').addEventListener('click', function() {
+            previewWrapper.className = 'preview-wrapper';
+            setActiveView(this);
+        });
+
+        document.getElementById('tabletViewBtn').addEventListener('click', function() {
+            previewWrapper.className = 'preview-wrapper tablet';
+            setActiveView(this);
+        });
+
+        document.getElementById('mobileViewBtn').addEventListener('click', function() {
+            previewWrapper.className = 'preview-wrapper mobile';
+            setActiveView(this);
+        });
+
+        function setActiveView(btn) {
+            document.querySelectorAll('#desktopViewBtn, #tabletViewBtn, #mobileViewBtn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // 7. Fullscreen Mode
+        const toggleFS = () => document.body.classList.toggle('fullscreen');
+        document.getElementById('fullBtn').addEventListener('click', toggleFS);
+        document.getElementById('exitFsBtn').addEventListener('click', toggleFS);
+
+        // 8. Focus Preview / Split Screen Toggle
+        document.getElementById('splitToggleBtn').addEventListener('click', () => {
+            const pane = document.getElementById('editorPane');
+            pane.style.width = pane.style.width === '0%' ? '45%' : '0%';
+        });
+
+        // 9. Quick Actions
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            if(confirm("Clear all code in editor?")) {
+                codeEditor.value = '';
+                updateStats();
+                renderCode();
+            }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(codeEditor.value);
+            alert("Code copied to clipboard!");
+        });
+
+        document.getElementById('themeToggleBtn').addEventListener('click', () => {
+            document.body.style.filter = document.body.style.filter === 'invert(0.9)' ? 'none' : 'invert(0.9)';
+        });
+
+        // 10. Realtime Metrics & Event Binding
+        function updateStats() {
+            const text = codeEditor.value;
+            const lines = text.split('\n').length;
+            charCount.innerText = `Chars: ${text.length} | Lines: ${lines}`;
+        }
+
+        codeEditor.addEventListener('input', updateStats);
+        document.getElementById('runBtn').addEventListener('click', renderCode);
+
+        // Ctrl + Enter shortcut to run code instantly
         codeEditor.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
-                renderActiveSnapshot();
+                renderCode();
             }
         });
+
+        // Load auto-saved backup code on startup
+        window.onload = () => {
+            const saved = localStorage.getItem('workspace_saved_code');
+            if(saved) {
+                codeEditor.value = saved;
+                updateStats();
+            }
+        };
     </script>
 </body>
 </html>
