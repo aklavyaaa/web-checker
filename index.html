@@ -191,7 +191,6 @@
 
         .brand span { color: var(--accent-primary); }
 
-        /* Flexible Toolbar Wrapper */
         .toolbar {
             display: flex;
             gap: 6px;
@@ -646,7 +645,8 @@
             <button id="exitFsBtn" class="exit-fs"><i class="fa-solid fa-compress"></i> Exit</button>
             
             <div class="preview-wrapper" id="previewWrapper">
-                <iframe id="outputFrame" name="outputFrame"></iframe>
+                <!-- Added explicit src="about:blank" to stop the parent page from loading in the iframe -->
+                <iframe id="outputFrame" name="outputFrame" src="about:blank"></iframe>
             </div>
 
             <!-- Console Log Drawer -->
@@ -682,6 +682,9 @@
                     splash.style.visibility = 'hidden';
                 }
             }, 2100);
+            
+            // Clean iframe document initialization on startup
+            renderCode();
         });
 
         // Mobile View Tab Controller
