@@ -3,43 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aklavya's Runner - Mobile & Desktop Code Studio</title>
+    <title>Aklavya's Runner - Animated Mobile & Desktop Code Studio</title>
     <!-- FontAwesome & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- Color Palettes --- */
+        /* --- Color Palettes & Gradient Meshes --- */
         :root {
             /* Light Theme: Lavender & White */
-            --bg-main: #f3f0f9;
-            --bg-panel: #ffffff;
+            --bg-gradient: linear-gradient(-45deg, #f3f0f9, #e9d5ff, #f8f5fc, #ddd6fe);
+            --bg-panel: rgba(255, 255, 255, 0.85);
             --bg-editor: #f8f6fc;
             --border-color: #e2d9f3;
             --text-primary: #2d2438;
             --text-secondary: #7e6e90;
             --accent-primary: #7c3aed;
             --accent-hover: #6d28d9;
-            --shadow-3d: 0 4px 0px #d1c4e9, 0 8px 15px rgba(124, 58, 237, 0.08);
-            --shadow-3d-active: 0 1px 0px #d1c4e9, 0 3px 8px rgba(124, 58, 237, 0.12);
-            --header-bg: #faf8fd;
+            --shadow-3d: 0 4px 0px #d1c4e9, 0 8px 15px rgba(124, 58, 237, 0.12);
+            --shadow-3d-active: 0 1px 0px #d1c4e9, 0 3px 8px rgba(124, 58, 237, 0.15);
+            --header-bg: rgba(250, 248, 253, 0.85);
             --console-bg: #1c1825;
             --console-text: #c084fc;
         }
 
         body.theme-dark {
-            /* Dark Theme: Maroon & Grey */
-            --bg-main: #121214;
-            --bg-panel: #1e1e24;
+            /* Dark Theme: Maroon & Deep Grey */
+            --bg-gradient: linear-gradient(-45deg, #121214, #2a0812, #1a1618, #3b0717);
+            --bg-panel: rgba(30, 30, 36, 0.85);
             --bg-editor: #16161a;
-            --border-color: #3b1c24;
+            --border-color: #4a1926;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --accent-primary: #9f1239;
             --accent-hover: #be123c;
-            --shadow-3d: 0 4px 0px #4c0519, 0 8px 15px rgba(159, 18, 57, 0.25);
-            --shadow-3d-active: 0 1px 0px #4c0519, 0 3px 8px rgba(159, 18, 57, 0.3);
-            --header-bg: #191417;
+            --shadow-3d: 0 4px 0px #4c0519, 0 8px 15px rgba(159, 18, 57, 0.3);
+            --shadow-3d-active: 0 1px 0px #4c0519, 0 3px 8px rgba(159, 18, 57, 0.35);
+            --header-bg: rgba(25, 20, 23, 0.85);
             --console-bg: #0d0a0c;
             --console-text: #fda4af;
         }
@@ -49,22 +49,101 @@
             margin: 0;
             padding: 0;
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
 
+        /* --- Looping Animated Gradient Background --- */
         body {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            height: 100dvh; /* Dynamic Viewport Height for Mobile Keyboards */
-            background-color: var(--bg-main);
+            height: 100dvh;
+            background: var(--bg-gradient);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             color: var(--text-primary);
             overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- Splash Screen --- */
+        #splashScreen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-gradient);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s ease;
+        }
+
+        .splash-logo-box {
+            width: 100px;
+            height: 100px;
+            background: var(--bg-panel);
+            border: 2px solid var(--border-color);
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            color: var(--accent-primary);
+            box-shadow: var(--shadow-3d);
+            animation: pulseLogo 2s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes pulseLogo {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.08) translateY(-6px); }
+        }
+
+        .splash-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .splash-title span { color: var(--accent-primary); }
+
+        .splash-loader {
+            width: 140px;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 10px;
+            margin-top: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .splash-progress {
+            width: 100%;
+            height: 100%;
+            background: var(--accent-primary);
+            border-radius: 10px;
+            animation: splashBar 2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+            transform-origin: left;
+        }
+
+        @keyframes splashBar {
+            0% { transform: scaleX(0); }
+            100% { transform: scaleX(1); }
         }
 
         /* --- Header & Top Controls --- */
         header {
             background-color: var(--header-bg);
+            backdrop-filter: blur(12px);
             padding: 10px 14px;
             display: flex;
             flex-direction: column;
@@ -104,13 +183,17 @@
         .brand i {
             color: var(--accent-primary);
             font-size: 1.3rem;
+            animation: spinBolt 6s linear infinite;
         }
 
-        .brand span {
-            color: var(--accent-primary);
+        @keyframes spinBolt {
+            0%, 90%, 100% { transform: rotate(0deg); }
+            95% { transform: rotate(15deg); }
         }
 
-        /* Toolbar Container with Touch Scroll for Phones */
+        .brand span { color: var(--accent-primary); }
+
+        /* Toolbar Container with Touch Scroll */
         .toolbar {
             display: flex;
             gap: 8px;
@@ -122,44 +205,42 @@
             scrollbar-width: none;
         }
 
-        .toolbar::-webkit-scrollbar {
-            display: none;
-        }
+        .toolbar::-webkit-scrollbar { display: none; }
 
-        /* Mobile Workspace Segment Controller */
+        /* Mobile Segment Controller Tab Switcher */
         .mobile-tabs {
             display: flex;
             background: var(--bg-editor);
             padding: 3px;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
         }
 
         @media(min-width: 768px) {
-            .mobile-tabs {
-                display: none; /* Hide tab mode on desktop screens */
-            }
+            .mobile-tabs { display: none; }
         }
 
         .mobile-tab-btn {
-            padding: 6px 12px;
+            padding: 6px 14px;
             font-size: 11px;
             font-weight: 800;
-            border-radius: 7px;
+            border-radius: 9px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
             cursor: pointer;
             box-shadow: none !important;
             transform: none !important;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .mobile-tab-btn.active {
             background: var(--accent-primary);
             color: #ffffff;
+            transform: scale(1.02) !important;
         }
 
-        /* 3D Tactile Buttons */
+        /* 3D Tactile Animated Buttons */
         button, label.btn-label {
             background-color: var(--bg-panel);
             color: var(--text-primary);
@@ -177,15 +258,19 @@
             user-select: none;
             white-space: nowrap;
             flex-shrink: 0;
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        box-shadow 0.15s ease, 
+                        background-color 0.2s ease, 
+                        color 0.2s ease;
         }
 
         button:hover, label.btn-label:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 0px var(--border-color);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 6px 0px var(--border-color);
         }
 
         button:active, label.btn-label:active {
-            transform: translateY(0px);
+            transform: translateY(1px) scale(0.97);
             box-shadow: 0 1px 0px var(--border-color);
         }
 
@@ -208,6 +293,88 @@
         button.active {
             border-color: var(--accent-primary);
             color: var(--accent-primary);
+            animation: buttonGlow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes buttonGlow {
+            0% { box-shadow: 0 4px 0px var(--border-color), 0 0 0px var(--accent-primary); }
+            100% { box-shadow: 0 4px 0px var(--border-color), 0 0 10px var(--accent-primary); }
+        }
+
+        /* --- Find / Search Floating Modal --- */
+        #findModal {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 310px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #findModal.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .find-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .find-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .find-input {
+            width: 100%;
+            padding: 8px 10px;
+            background: var(--bg-editor);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .find-input:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .find-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .find-actions button {
+            padding: 6px 10px;
+            font-size: 11px;
+        }
+
+        .find-status {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
         }
 
         /* --- Main Layout --- */
@@ -224,19 +391,18 @@
             display: flex;
             flex-direction: column;
             background-color: var(--bg-panel);
+            backdrop-filter: blur(10px);
             border-right: 2px solid var(--border-color);
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
         }
 
         @media(min-width: 768px) {
-            .editor-pane {
-                width: 45%;
-            }
+            .editor-pane { width: 45%; }
         }
 
         .editor-header {
             padding: 8px 12px;
-            background-color: var(--bg-main);
+            background-color: var(--header-bg);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -254,7 +420,7 @@
             padding: 14px;
             border: none;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 14px; /* Set 14px+ to prevent iOS auto-zoom on input tap */
+            font-size: 14px;
             resize: none;
             outline: none;
             background-color: var(--bg-editor);
@@ -267,13 +433,13 @@
         /* Right Preview Pane */
         .preview-pane {
             width: 100%;
-            display: none; /* Controlled by mobile tabs or side-by-side on desktop */
+            display: none;
             flex-direction: column;
-            background-color: var(--bg-main);
+            background-color: transparent;
             position: relative;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @media(min-width: 768px) {
@@ -285,6 +451,12 @@
 
         .preview-pane.mobile-active {
             display: flex !important;
+            animation: fadeInTab 0.3s ease-out;
+        }
+
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .preview-wrapper {
@@ -298,9 +470,7 @@
         }
 
         @media(min-width: 768px) {
-            .preview-wrapper {
-                padding: 15px;
-            }
+            .preview-wrapper { padding: 15px; }
         }
 
         iframe {
@@ -308,12 +478,12 @@
             height: 100%;
             border: none;
             background-color: #ffffff;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Device Frame Simulations for Desktop Previewing */
+        /* Device Frame Animations & Simulations */
         .preview-wrapper.mobile iframe {
             width: 375px;
             height: 667px;
@@ -321,6 +491,7 @@
             border: 10px solid #1a1a24;
             border-radius: 28px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            animation: popFrame 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .preview-wrapper.tablet iframe {
@@ -330,6 +501,12 @@
             border: 10px solid #1a1a24;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            animation: popFrame 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popFrame {
+            from { transform: scale(0.95); opacity: 0.8; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         /* Console Log Drawer */
@@ -342,7 +519,7 @@
             flex-direction: column;
             font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
-            transition: height 0.2s ease;
+            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .console-header {
@@ -379,13 +556,8 @@
             height: 100vh !important;
         }
 
-        body.fullscreen .preview-wrapper {
-            padding: 0;
-        }
-
-        body.fullscreen iframe {
-            border-radius: 0;
-        }
+        body.fullscreen .preview-wrapper { padding: 0; }
+        body.fullscreen iframe { border-radius: 0; }
 
         .exit-fs {
             display: none;
@@ -408,6 +580,17 @@
 </head>
 <body class="theme-light">
 
+    <!-- Animated Splash Screen -->
+    <div id="splashScreen">
+        <div class="splash-logo-box">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+        <h2 class="splash-title">Aklavya's <span>Runner</span></h2>
+        <div class="splash-loader">
+            <div class="splash-progress"></div>
+        </div>
+    </div>
+
     <!-- Header Toolbar -->
     <header>
         <div class="header-top">
@@ -425,6 +608,7 @@
         
         <div class="toolbar">
             <button id="runBtn" class="primary"><i class="fa-solid fa-play"></i> Run</button>
+            <button id="findBtn"><i class="fa-solid fa-magnifying-glass"></i> Find</button>
             <button id="downloadBtn"><i class="fa-solid fa-download"></i> Save</button>
             
             <label class="btn-label" for="fileInput"><i class="fa-solid fa-folder-open"></i> Open</label>
@@ -446,13 +630,33 @@
         </div>
     </header>
 
+    <!-- Search & Replace Modal -->
+    <div id="findModal">
+        <div class="find-header">
+            <span><i class="fa-solid fa-magnifying-glass"></i> Search & Replace</span>
+            <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="toggleFindModal(false)"></i>
+        </div>
+        <div class="find-input-group">
+            <input type="text" id="findQuery" class="find-input" placeholder="Find text..." oninput="executeFind()">
+            <input type="text" id="replaceQuery" class="find-input" placeholder="Replace with...">
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="find-status" id="findStatus">0 matches</span>
+            <div class="find-actions">
+                <button onclick="executeFind(1)"><i class="fa-solid fa-arrow-down"></i></button>
+                <button onclick="executeReplace()"><i class="fa-solid fa-pen"></i> Replace</button>
+                <button class="primary" onclick="executeReplaceAll()"><i class="fa-solid fa-list-check"></i> All</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Workspace -->
     <div class="main-container">
         <!-- Editor Pane -->
         <div class="editor-pane" id="editorPane">
             <div class="editor-header">
                 <span id="charCount">Chars: 0 | Lines: 1</span>
-                <span><i class="fa-solid fa-shield-halved"></i> Mobile Ready</span>
+                <span><i class="fa-solid fa-shield-halved"></i> Unrestricted Engine</span>
             </div>
             <textarea id="codeEditor" placeholder="Paste your HTML code here..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
         </div>
@@ -487,6 +691,18 @@
         const charCount = document.getElementById('charCount');
         const editorPane = document.getElementById('editorPane');
         const previewPane = document.getElementById('previewPane');
+        const findModal = document.getElementById('findModal');
+
+        // Splash Screen Dismissal Animation
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                if(splash) {
+                    splash.style.opacity = '0';
+                    splash.style.visibility = 'hidden';
+                }
+            }, 2100);
+        });
 
         // Mobile View Tab Controller
         function setMobileViewTab(tab) {
@@ -501,8 +717,80 @@
                 document.getElementById('mobileTabPreview').classList.add('active');
                 editorPane.style.display = 'none';
                 previewPane.classList.add('mobile-active');
-                renderCode(); // Auto-trigger preview compilation on tab tap
+                renderCode();
             }
+        }
+
+        // Search & Replace (Find) Engine
+        let lastMatchIndex = 0;
+
+        function toggleFindModal(state) {
+            if(state !== undefined) {
+                findModal.classList.toggle('open', state);
+            } else {
+                findModal.classList.toggle('open');
+            }
+            if(findModal.classList.contains('open')) {
+                document.getElementById('findQuery').focus();
+            }
+        }
+
+        document.getElementById('findBtn').addEventListener('click', () => toggleFindModal());
+
+        function executeFind(dir = 0) {
+            const query = document.getElementById('findQuery').value;
+            const text = codeEditor.value;
+            const status = document.getElementById('findStatus');
+
+            if(!query) {
+                status.innerText = "0 matches";
+                return;
+            }
+
+            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            const matches = [...text.matchAll(regex)];
+
+            status.innerText = `${matches.length} match${matches.length === 1 ? '' : 'es'}`;
+
+            if(matches.length > 0) {
+                if(dir === 1) {
+                    lastMatchIndex = (lastMatchIndex + 1) % matches.length;
+                }
+                const match = matches[lastMatchIndex] || matches[0];
+                codeEditor.focus();
+                codeEditor.setSelectionRange(match.index, match.index + query.length);
+            }
+        }
+
+        function executeReplace() {
+            const query = document.getElementById('findQuery').value;
+            const replacement = document.getElementById('replaceQuery').value;
+            const text = codeEditor.value;
+
+            if(!query) return;
+
+            const start = codeEditor.selectionStart;
+            const end = codeEditor.selectionEnd;
+            const selectedText = text.substring(start, end);
+
+            if(selectedText.toLowerCase() === query.toLowerCase()) {
+                codeEditor.setRangeText(replacement, start, end, 'select');
+                updateStats();
+                executeFind();
+            } else {
+                executeFind(1);
+            }
+        }
+
+        function executeReplaceAll() {
+            const query = document.getElementById('findQuery').value;
+            const replacement = document.getElementById('replaceQuery').value;
+            if(!query) return;
+
+            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            codeEditor.value = codeEditor.value.replace(regex, replacement);
+            updateStats();
+            executeFind();
         }
 
         // 1. Render Execution Engine
@@ -530,11 +818,8 @@
             frameDoc.open();
             frameDoc.write(consoleCaptureScript + rawCode);
             frameDoc.close();
-
-            localStorage.setItem('aklavya_runner_saved_code', rawCode);
         }
 
-        // Auto-switch to preview on mobile when "Run" is tapped
         document.getElementById('runBtn').addEventListener('click', () => {
             renderCode();
             if(window.innerWidth < 768) {
@@ -650,13 +935,13 @@
             alert("Code copied to clipboard!");
         });
 
-        // Theme Switcher Engine
+        // Animated Theme Switcher
         document.getElementById('themeToggleBtn').addEventListener('click', () => {
             document.body.classList.toggle('theme-dark');
             document.body.classList.toggle('theme-light');
         });
 
-        // Realtime Editor Metrics
+        // Realtime Metrics & Shortcuts
         function updateStats() {
             const text = codeEditor.value;
             const lines = text.split('\n').length;
@@ -665,14 +950,12 @@
 
         codeEditor.addEventListener('input', updateStats);
 
-        // Load saved code on startup
-        window.onload = () => {
-            const saved = localStorage.getItem('aklavya_runner_saved_code');
-            if(saved) {
-                codeEditor.value = saved;
-                updateStats();
+        codeEditor.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                toggleFindModal(true);
             }
-        };
+        });
     </script>
 </body>
 </html>
