@@ -90,7 +90,7 @@
             100% { transform: translateY(-12px) rotateX(15deg) scale(1.05); }
         }
 
-        /* 3D Header */
+        /* Header */
         header {
             background: var(--bg);
             padding: 16px 20px;
@@ -155,7 +155,7 @@
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        /* Soft 3D Claymorphic Cards */
+        /* Claymorphic 3D Cards */
         .card {
             background: var(--card-bg);
             border-radius: 20px;
@@ -517,7 +517,7 @@
     <!-- Toast Notification -->
     <div id="toast">Message</div>
 
-    <!-- General Confirmation Modal Popup -->
+    <!-- General Confirmation Modal -->
     <div class="modal-overlay" id="custom-modal">
         <div class="modal-content">
             <h3 class="modal-title" id="modal-title">Alert</h3>
@@ -851,7 +851,7 @@
             if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
 
             const encodedMsg = encodeURIComponent(text);
-            // Uses standard wa.me format intercepted directly by WebViewClient
+            // Launches via standard web URL that MainActivity's WebViewClient will catch
             window.location.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
         };
 
