@@ -6,7 +6,6 @@
     <title>Sanchi Tuition Classes</title>
     <style>
         :root {
-            /* Soft Lavender Claymorphism Theme */
             --primary: #8B5CF6;
             --primary-dark: #6D28D9;
             --primary-light: #DDD6FE;
@@ -59,7 +58,7 @@
             overflow: hidden;
         }
 
-        /* Animated Splash Screen */
+        /* Splash Screen */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -372,12 +371,14 @@
             background: var(--card-bg);
             border-radius: 24px;
             padding: 24px;
-            width: 88%;
-            max-width: 400px;
+            width: 90%;
+            max-width: 420px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             text-align: center;
             transform: scale(0.8);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .modal-overlay.active .modal-content {
@@ -447,6 +448,30 @@
             100% { transform: scale(1.15); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
         }
 
+        /* Nav Tab Options in WhatsApp Modal */
+        .msg-option-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .msg-tab-btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 0.75rem;
+            border-radius: 10px;
+            border: none;
+            background: var(--bg);
+            color: var(--text-muted);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .msg-tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
         nav {
             position: fixed;
             bottom: 0;
@@ -511,7 +536,7 @@
     <div id="splash-screen">
         <div class="splash-logo">💜</div>
         <h2>Sanchi Tuition Classes</h2>
-        <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 6px;">Lavender Edition Ready...</p>
+        <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 6px;">Guardian Edition Ready...</p>
     </div>
 
     <!-- Toast Notification -->
@@ -529,10 +554,33 @@
         </div>
     </div>
 
+    <!-- WhatsApp Message Dispatcher Modal (English, Hindi, Custom) -->
+    <div class="modal-overlay" id="whatsapp-options-modal">
+        <div class="modal-content">
+            <h3 class="modal-title" id="wa-modal-title">Send Message to Guardian</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;" id="wa-modal-guardian-name">Guardian: Parent</p>
+
+            <div class="msg-option-tabs">
+                <button class="msg-tab-btn active" onclick="switchMsgMode('en')">English</button>
+                <button class="msg-tab-btn" onclick="switchMsgMode('hi')">Hindi</button>
+                <button class="msg-tab-btn" onclick="switchMsgMode('custom')">Custom</button>
+            </div>
+
+            <div class="form-group">
+                <textarea id="wa-editable-msg" rows="6" placeholder="Type custom message for guardian here..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn" style="background: var(--card-bg); color: var(--text);" onclick="closeWhatsAppModal()">Cancel</button>
+                <button type="button" class="btn btn-whatsapp" onclick="dispatchWhatsAppMessage()">Send via WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Student Modal Popup -->
     <div class="modal-overlay" id="edit-modal">
         <div class="modal-content">
-            <h3 class="modal-title">Edit Student</h3>
+            <h3 class="modal-title">Edit Student & Guardian Details</h3>
             <form id="edit-student-form" style="text-align: left; margin-top: 12px;">
                 <input type="hidden" id="edit-id">
                 <div class="form-group">
@@ -540,11 +588,11 @@
                     <input type="text" id="edit-name" required>
                 </div>
                 <div class="form-group">
-                    <label>Parent Guardian Name</label>
-                    <input type="text" id="edit-parent-name" placeholder="Parent Name">
+                    <label>Parent / Guardian Name</label>
+                    <input type="text" id="edit-parent-name" placeholder="Guardian Name" required>
                 </div>
                 <div class="form-group">
-                    <label>WhatsApp Number</label>
+                    <label>Guardian WhatsApp Number</label>
                     <input type="tel" id="edit-phone" required>
                 </div>
                 <div class="form-group">
@@ -582,7 +630,7 @@
         <div id="page-dashboard" class="page active">
             <div class="card" style="border-left: 5px solid var(--primary);">
                 <div class="card-title">📌 Tuition Notice <span class="badge-chip">Live</span></div>
-                <p style="font-size: 0.8rem; color: var(--text-muted);" id="dashboard-notice">Welcome to Sanchi Tuition Classes! All data auto-syncing in real time.</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);" id="dashboard-notice">Welcome to Sanchi Tuition Classes! All notifications are addressed to parents and guardians.</p>
             </div>
 
             <div id="dashboard-reminder-popups"></div>
@@ -616,7 +664,7 @@
                 <div class="card-title">Quick Actions</div>
                 <button class="btn" style="margin-bottom: 10px;" onclick="switchTab('attendance')">Mark Today's Attendance</button>
                 <button class="btn" style="background-color: #8B5CF6; margin-bottom: 10px;" onclick="switchTab('tests')">📝 Test Marks Manager</button>
-                <button class="btn btn-whatsapp" onclick="switchTab('broadcast')">📢 Send Mass Announcement</button>
+                <button class="btn btn-whatsapp" onclick="switchTab('broadcast')">📢 Mass Broadcast to All Guardians</button>
             </div>
 
             <div class="card">
@@ -628,7 +676,7 @@
         <!-- PAGE 2: STUDENTS DIRECTORY & MANAGEMENT -->
         <div id="page-students" class="page">
             <div class="card">
-                <div class="card-title">Add New Student</div>
+                <div class="card-title">Add New Student & Guardian</div>
                 <form id="student-form">
                     <div class="form-group">
                         <label>Student Name</label>
@@ -636,10 +684,10 @@
                     </div>
                     <div class="form-group">
                         <label>Parent / Guardian Name</label>
-                        <input type="text" id="student-parent-name" placeholder="e.g. Mr. Sharma">
+                        <input type="text" id="student-parent-name" placeholder="e.g. Mr. Sharma" required>
                     </div>
                     <div class="form-group">
-                        <label>Parent WhatsApp Number</label>
+                        <label>Guardian WhatsApp Number</label>
                         <input type="tel" id="student-phone" placeholder="e.g. 919876543210" required>
                     </div>
                     <div class="form-group">
@@ -658,7 +706,7 @@
                         <label>Monthly Due Day (1-31)</label>
                         <input type="number" id="student-due-day" placeholder="5" min="1" max="31" value="5" required>
                     </div>
-                    <button type="submit" class="btn">Save Student</button>
+                    <button type="submit" class="btn">Save Student & Guardian</button>
                 </form>
             </div>
 
@@ -668,7 +716,7 @@
                     <button class="btn btn-small" onclick="exportJSONBackup()">💾 Backup Data</button>
                 </div>
                 <div class="form-group">
-                    <input type="text" id="search-student-input" placeholder="🔍 Search student name..." onkeyup="filterStudentList()">
+                    <input type="text" id="search-student-input" placeholder="🔍 Search student or guardian name..." onkeyup="filterStudentList()">
                 </div>
                 <div id="students-list-container">Loading...</div>
             </div>
@@ -677,7 +725,7 @@
         <!-- PAGE 3: GROQ AI ASSISTANT & TEMPLATES -->
         <div id="page-ai-assistant" class="page">
             <div class="card">
-                <div class="card-title">⚡ Groq Short WhatsApp Update</div>
+                <div class="card-title">⚡ Groq Guardian Update AI</div>
                 <div class="form-group">
                     <label>Select Student</label>
                     <select id="ai-student-select">
@@ -690,32 +738,32 @@
                         <label style="margin:0;">Taught Topics & Homework</label>
                         <button type="button" class="voice-btn" id="mic-btn" title="Tap to Speak">🎙️</button>
                     </div>
-                    <textarea id="ai-input-text" rows="3" placeholder="e.g. Rahul ko Trigonometry Chapter 8 exercise 8.2 sikhaya. Homework: exercise 8.2 complete karo."></textarea>
+                    <textarea id="ai-input-text" rows="3" placeholder="e.g. Trigonometry Chapter 8 exercise 8.2 taught today. Homework: finish exercise 8.2."></textarea>
                 </div>
 
-                <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">⚡ Generate Short Message</button>
+                <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">⚡ Generate Update for Guardian</button>
             </div>
 
             <div class="card">
-                <div class="card-title">⚡ One-Tap Templates</div>
+                <div class="card-title">⚡ Quick Guardian Templates</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                     <button class="btn btn-small" onclick="applyTemplate('test-tomorrow')">📅 Test Tomorrow</button>
-                    <button class="btn btn-small" onclick="applyTemplate('fee-reminder')">💰 Fee Due Today</button>
+                    <button class="btn btn-small" onclick="applyTemplate('fee-reminder')">💰 Fee Due</button>
                     <button class="btn btn-small" onclick="applyTemplate('holiday-notice')">🎉 Holiday Notice</button>
                 </div>
             </div>
 
             <div class="card" id="ai-result-card" style="display: none;">
                 <div class="card-title">
-                    Message Output
+                    Message Preview
                     <button class="btn btn-small" onclick="copyAIText()">📋 Copy Text</button>
                 </div>
                 <textarea id="ai-output-text" rows="5"></textarea>
-                <button class="btn btn-whatsapp" style="margin-top: 10px;" onclick="sendAIWhatsApp()">📲 Launch WhatsApp App</button>
+                <button class="btn btn-whatsapp" style="margin-top: 10px;" onclick="sendAIWhatsApp()">📲 Open Message Options</button>
             </div>
         </div>
 
-        <!-- PAGE 4: TICK ATTENDANCE & TIMESTAMPS -->
+        <!-- PAGE 4: TICK ATTENDANCE -->
         <div id="page-attendance" class="page">
             <div class="card">
                 <div class="card-title">Mark Daily Attendance</div>
@@ -739,7 +787,7 @@
         <!-- PAGE 5: TEST MARKS MANAGER -->
         <div id="page-tests" class="page">
             <div class="card">
-                <div class="card-title">📝 Add Test Score</div>
+                <div class="card-title">📝 Add Test Score for Guardian Report</div>
                 <div class="form-group">
                     <label>Select Student</label>
                     <select id="test-student-select"></select>
@@ -756,14 +804,14 @@
                     <label>Total Marks</label>
                     <input type="number" id="test-total" placeholder="e.g. 20">
                 </div>
-                <button class="btn" onclick="saveTestScore()">Save Score & Share</button>
+                <button class="btn" onclick="saveTestScore()">Generate Test Report for Guardian</button>
             </div>
         </div>
 
         <!-- PAGE 6: REPORTS & FEES -->
         <div id="page-reports" class="page">
             <div class="card">
-                <div class="card-title">Fee Reminders & Invoices</div>
+                <div class="card-title">Fee Reminders for Guardians</div>
                 <div id="fee-list-container">Loading...</div>
             </div>
 
@@ -782,15 +830,19 @@
         <!-- PAGE 7: BROADCAST -->
         <div id="page-broadcast" class="page">
             <div class="card">
-                <div class="card-title">Mass Announcements</div>
+                <div class="card-title">Mass Broadcast Announcement</div>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+                    This announcement will be dispatched directly to all enrolled guardians.
+                </p>
                 <div class="form-group">
-                    <label>Broadcast Text</label>
-                    <textarea id="broadcast-msg" rows="4" placeholder="Dear Parents, Tuition will remain closed tomorrow..."></textarea>
+                    <label>Broadcast Message Text</label>
+                    <textarea id="broadcast-msg" rows="4" placeholder="Dear Guardian, Tuition will remain closed tomorrow due to..."></textarea>
                 </div>
+                <button class="btn btn-whatsapp" onclick="triggerMassBroadcastAll()">🚀 Send Mass Broadcast to ALL Guardians at Once</button>
             </div>
 
             <div class="card">
-                <div class="card-title">Send to Parents</div>
+                <div class="card-title">Send Individually to Guardians</div>
                 <div id="broadcast-list-container">Loading...</div>
             </div>
         </div>
@@ -844,6 +896,11 @@
         let attendance = {};
         let tempAttendanceState = {};
 
+        // Active WhatsApp Target Context
+        let activeTargetPhone = '';
+        let activeTargetGuardian = '';
+        let activeMessageContext = { en: '', hi: '', custom: '' };
+
         // Android WebView WhatsApp Launcher
         window.openWhatsAppNative = function(phone, text) {
             if (!phone) return showToast("Phone number missing!");
@@ -851,8 +908,40 @@
             if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
 
             const encodedMsg = encodeURIComponent(text);
-            // Launches via standard web URL that MainActivity's WebViewClient will catch
             window.location.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
+        };
+
+        // Open 3-Mode Message Modal (English, Hindi, Custom)
+        window.openMessageModal = function(phone, guardianName, msgTemplates) {
+            activeTargetPhone = phone;
+            activeTargetGuardian = guardianName || 'Guardian';
+            activeMessageContext = msgTemplates;
+
+            document.getElementById('wa-modal-guardian-name').innerText = `Guardian: ${activeTargetGuardian}`;
+            switchMsgMode('en'); // Default to English
+            document.getElementById('whatsapp-options-modal').classList.add('active');
+        };
+
+        window.closeWhatsAppModal = function() {
+            document.getElementById('whatsapp-options-modal').classList.remove('active');
+        };
+
+        window.switchMsgMode = function(mode) {
+            document.querySelectorAll('.msg-tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (mode === 'en') document.querySelectorAll('.msg-tab-btn')[0].classList.add('active');
+            if (mode === 'hi') document.querySelectorAll('.msg-tab-btn')[1].classList.add('active');
+            if (mode === 'custom') document.querySelectorAll('.msg-tab-btn')[2].classList.add('active');
+
+            const txtArea = document.getElementById('wa-editable-msg');
+            txtArea.value = activeMessageContext[mode] || '';
+        };
+
+        window.dispatchWhatsAppMessage = function() {
+            const finalMsg = document.getElementById('wa-editable-msg').value.trim();
+            if (!finalMsg) return showToast("Message text cannot be empty!");
+
+            closeWhatsAppModal();
+            openWhatsAppNative(activeTargetPhone, finalMsg);
         };
 
         function getInitials(name) {
@@ -921,7 +1010,7 @@
             e.preventDefault();
             const id = 'std_' + Date.now();
             const name = document.getElementById('student-name').value.trim();
-            const parentName = document.getElementById('student-parent-name').value.trim() || 'Parent';
+            const parentName = document.getElementById('student-parent-name').value.trim() || 'Guardian';
             let phone = document.getElementById('student-phone').value.trim();
             const classVal = document.getElementById('student-class').value.trim();
             const timing = document.getElementById('student-timing').value.trim() || 'Batch 1';
@@ -931,7 +1020,7 @@
             set(ref(db, 'students/' + id), {
                 id, name, parentName, phone, classVal, timing, fee, dueDay: parseInt(dueDay), feePaid: false
             }).then(() => {
-                showToast("Student saved!");
+                showToast("Student & Guardian saved!");
                 document.getElementById('student-form').reset();
             }).catch(err => showToast("Error: " + err.message));
         });
@@ -971,7 +1060,7 @@
 
             update(ref(db, `students/${id}`), updatedData)
                 .then(() => {
-                    showToast("Student updated!");
+                    showToast("Guardian record updated!");
                     closeEditModal();
                 })
                 .catch(err => showToast("Error: " + err.message));
@@ -979,11 +1068,11 @@
 
         window.deleteStudent = function(id) {
             showModal({
-                title: "Delete Student",
-                body: "Are you sure you want to delete this student?",
+                title: "Delete Record",
+                body: "Are you sure you want to delete this student and guardian?",
                 onConfirm: () => {
                     remove(ref(db, 'students/' + id))
-                        .then(() => showToast("Student deleted"))
+                        .then(() => showToast("Record deleted"))
                         .catch(err => showToast("Error deleting"));
                 }
             });
@@ -994,19 +1083,19 @@
             const keys = Object.keys(students);
 
             if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No students added yet.</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No student records found.</p>';
                 return;
             }
 
             container.innerHTML = keys.map(k => {
                 const s = students[k];
                 return `
-                    <div class="list-item student-card-item" data-name="${s.name.toLowerCase()}">
+                    <div class="list-item student-card-item" data-name="${s.name.toLowerCase()} ${s.parentName.toLowerCase()}">
                         <div class="avatar">${getInitials(s.name)}</div>
                         <div class="student-info" style="flex: 1;">
                             <h4>${s.name}</h4>
-                            <p>${s.classVal} • ₹${s.fee}/mo (Due: Day ${s.dueDay || 5})</p>
-                            <p>📱 ${s.phone} • ${s.timing || ''}</p>
+                            <p>Guardian: ${s.parentName || 'Parent'} • ${s.classVal}</p>
+                            <p>📱 ${s.phone} • Due: Day ${s.dueDay || 5}</p>
                         </div>
                         <div style="display:flex; gap:6px;">
                             <button class="btn btn-warning btn-small" onclick="openEditModal('${s.id}')">Edit ✏️</button>
@@ -1049,7 +1138,7 @@
                         <div class="avatar">${getInitials(s.name)}</div>
                         <div class="student-info" style="flex: 1;">
                             <h4>${s.name}</h4>
-                            <p>${s.classVal}</p>
+                            <p>Guardian: ${s.parentName || 'Parent'}</p>
                         </div>
                         <div class="tick-container" onclick="toggleTick('${s.id}')">
                             <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted)">
@@ -1112,18 +1201,20 @@
 
             const student = students[studentId];
             const btn = document.getElementById('generate-ai-btn');
-            btn.innerText = "⚡ Generating Short Message...";
+            btn.innerText = "⚡ Generating Message for Guardian...";
             btn.disabled = true;
 
-            const prompt = `You are a tuition assistant for "Sanchi Tuition Classes". Generate a VERY SHORT, clear, and professional Hinglish update message for WhatsApp.
-            Student: ${student.name}
+            const prompt = `You are a tuition assistant for "Sanchi Tuition Classes". Draft an update message for the student's GUARDIAN.
+            Guardian Name: ${student.parentName || 'Parent'}
+            Student Name: ${student.name}
             Class: ${student.classVal}
-            Notes: ${textInput}
+            Teacher Notes: ${textInput}
 
             RULES:
-            - Keep it maximum 3 bullet points long.
-            - Write in casual professional Hinglish with relevant emojis.
-            - DO NOT add markdown code blocks. Output plain ready-to-copy message text only.`;
+            - Address the GUARDIAN directly using "Respected ${student.parentName || 'Parent'}" or "Dear ${student.parentName || 'Parent'}".
+            - NO emojis in the middle of text.
+            - Keep it concise, formal, and clear in professional Hinglish.
+            - DO NOT output markdown. Output plain message text only.`;
 
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -1143,21 +1234,25 @@
                     const aiMsg = data.choices[0].message.content.trim();
                     document.getElementById('ai-output-text').value = aiMsg;
                     document.getElementById('ai-result-card').style.display = 'block';
-                    showToast("Message Ready!");
+                    showToast("Guardian Message Ready!");
                 }
             } catch (e) {
                 showToast("Groq API Error: " + e.message);
             } finally {
-                btn.innerText = "⚡ Generate Short Message";
+                btn.innerText = "⚡ Generate Update for Guardian";
                 btn.disabled = false;
             }
         };
 
         window.applyTemplate = function(type) {
+            const studentId = document.getElementById('ai-student-select').value;
+            const s = students[studentId] || { parentName: 'Parent', name: 'Student' };
+            const parent = s.parentName || 'Parent';
+
             const templates = {
-                'test-tomorrow': 'Kal Sanchi Tuition Classes mein Weekly Test hoga. Kripya acche se revision karke aayein. All the best! 👍',
-                'fee-reminder': 'Namaste! Monthly tuition fee due date aa gayi hai. Kripya fee clear kar dein. Dhanyawad! 🙏',
-                'holiday-notice': 'Dear Parents, Sanchi Tuition Classes kal band rahegi. Regular classes parson se hongi. Thank you! 🎉'
+                'test-tomorrow': `Respected ${parent}, please note that ${s.name} will have a weekly test tomorrow at Sanchi Tuition Classes. Kindly ensure proper revision. Thank you.`,
+                'fee-reminder': `Respected ${parent}, this is a gentle reminder regarding the monthly tuition fee for ${s.name}. Kindly clear the pending tuition fee at your earliest convenience. Thank you.`,
+                'holiday-notice': `Respected ${parent}, please note that Sanchi Tuition Classes will remain closed tomorrow. Regular classes will resume from the day after. Thank you.`
             };
             document.getElementById('ai-input-text').value = templates[type] || '';
         };
@@ -1171,9 +1266,16 @@
         window.sendAIWhatsApp = function() {
             const studentId = document.getElementById('ai-student-select').value;
             const text = document.getElementById('ai-output-text').value;
-            if (!studentId || !students[studentId]) return showToast("Invalid student.");
+            if (!studentId || !students[studentId]) return showToast("Invalid student selected.");
 
-            openWhatsAppNative(students[studentId].phone, text);
+            const s = students[studentId];
+            const pName = s.parentName || 'Parent';
+
+            openMessageModal(s.phone, pName, {
+                en: text,
+                hi: `आदरणीय ${pName}, यह सांची ट्यूशन क्लासेस से ${s.name} के संबंध में एक अपडेट है: ${text}`,
+                custom: text
+            });
         };
 
         const micBtn = document.getElementById('mic-btn');
@@ -1205,8 +1307,16 @@
 
             if (!id || !obt || !tot) return showToast("Fill all test fields!");
             const s = students[id];
-            const msg = `Sanchi Tuition Test Report 📝\nStudent: ${s.name}\nTest: ${name}\nScore: ${obt}/${tot}\nKeep up the hard work! 👍`;
-            openWhatsAppNative(s.phone, msg);
+            const pName = s.parentName || 'Parent';
+
+            const msgEn = `Respected ${pName}, here is the test performance report for ${s.name} at Sanchi Tuition Classes.\nTest: ${name}\nMarks Obtained: ${obt}/${tot}\nThank you.`;
+            const msgHi = `आदरणीय ${pName}, सांची ट्यूशन क्लासेस में ${s.name} का टेस्ट रिपोर्ट:\nटेस्ट: ${name}\nप्राप्त अंक: ${obt}/${tot}\nधन्यवाद।`;
+
+            openMessageModal(s.phone, pName, {
+                en: msgEn,
+                hi: msgHi,
+                custom: msgEn
+            });
         };
 
         function checkFeeReminders() {
@@ -1225,12 +1335,12 @@
                             <div class="card" style="border-left: 5px solid var(--warning);">
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
                                     <div>
-                                        <h4 style="font-size:0.9rem;">⏰ Fee Due Alert!</h4>
+                                        <h4 style="font-size:0.9rem;">⏰ Guardian Fee Alert</h4>
                                         <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
-                                            <strong>${s.name}</strong>'s fee (₹${s.fee}) is due in <strong>${daysRemaining === 0 ? 'Today!' : daysRemaining + ' day(s)'}</strong>.
+                                            <strong>${s.parentName || 'Parent'}</strong> (${s.name}) fee (₹${s.fee}) is due in <strong>${daysRemaining === 0 ? 'Today!' : daysRemaining + ' day(s)'}</strong>.
                                         </p>
                                     </div>
-                                    <button class="btn btn-whatsapp btn-small" onclick="sendFeeReminder('${s.id}')">Send</button>
+                                    <button class="btn btn-whatsapp btn-small" onclick="sendFeeReminder('${s.id}')">Remind</button>
                                 </div>
                             </div>
                         `;
@@ -1244,15 +1354,59 @@
         window.sendFeeReminder = function(studentId) {
             const s = students[studentId];
             if (!s) return;
-            const msg = `Namaste! Sanchi Tuition Classes se gentle reminder: ${s.name} ki monthly tuition fee (₹${s.fee}) due date paas hai. Kripya samay par clear karein. Dhanyawad! 🙏`;
-            openWhatsAppNative(s.phone, msg);
+            const pName = s.parentName || 'Parent';
+
+            const msgEn = `Respected ${pName}, this is a gentle reminder from Sanchi Tuition Classes regarding tuition fee for ${s.name}. Monthly Amount: ₹${s.fee}. Kindly clear it at your earliest convenience. Thank you.`;
+            const msgHi = `आदरणीय ${pName}, सांची ट्यूशन क्लासेस से ${s.name} की ट्यूशन फीस (₹${s.fee}) के संबंध में विनम्र रिमाइंडर है। कृपया समय पर भुगतान करें। धन्यवाद।`;
+
+            openMessageModal(s.phone, pName, {
+                en: msgEn,
+                hi: msgHi,
+                custom: msgEn
+            });
+        };
+
+        // Automated Mass Broadcast to ALL Guardians Loop
+        window.triggerMassBroadcastAll = function() {
+            const msg = document.getElementById('broadcast-msg').value.trim();
+            if (!msg) return showToast("Type broadcast text first!");
+
+            const keys = Object.keys(students);
+            if (keys.length === 0) return showToast("No guardians found!");
+
+            showToast(`Opening WhatsApp for ${keys.length} guardians...`);
+            
+            let delay = 0;
+            keys.forEach((k, index) => {
+                const s = students[k];
+                const pName = s.parentName || 'Parent';
+                const formattedText = `Dear ${pName}, Announcement from Sanchi Tuition Classes regarding ${s.name}:\n${msg}`;
+
+                setTimeout(() => {
+                    openWhatsAppNative(s.phone, formattedText);
+                }, delay);
+
+                delay += 3500; // 3.5s delay interval per guardian to prevent Android app freezes
+            });
+        };
+
+        window.sendBroadcastSingle = function(phone, pName, sName) {
+            const msg = document.getElementById('broadcast-msg').value.trim() || 'Tuition Announcement';
+            const msgEn = `Dear ${pName || 'Parent'}, Announcement from Sanchi Tuition Classes regarding ${sName}:\n${msg}`;
+            const msgHi = `आदरणीय ${pName || 'अभिभावक'}, सांची ट्यूशन क्लासेस से ${sName} के संबंध में सूचना:\n${msg}`;
+
+            openMessageModal(phone, pName, {
+                en: msgEn,
+                hi: msgHi,
+                custom: msgEn
+            });
         };
 
         window.exportJSONBackup = function() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ students, attendance }));
             const anchor = document.createElement('a');
             anchor.setAttribute("href", dataStr);
-            anchor.setAttribute("download", "Sanchi_Tuition_Backup.json");
+            anchor.setAttribute("download", "Sanchi_Tuition_Guardians_Backup.json");
             document.body.appendChild(anchor);
             anchor.click();
             anchor.remove();
@@ -1266,7 +1420,7 @@
             const keys = Object.keys(students);
 
             const optionsHtml = '<option value="">-- Choose Student --</option>' + 
-                keys.map(k => `<option value="${students[k].id}">${students[k].name} (${students[k].classVal})</option>`).join('');
+                keys.map(k => `<option value="${students[k].id}">${students[k].name} (Guardian: ${students[k].parentName || 'Parent'})</option>`).join('');
 
             aiSelect.innerHTML = optionsHtml;
             reportSelect.innerHTML = optionsHtml;
@@ -1278,7 +1432,7 @@
             const keys = Object.keys(students);
 
             if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No students added.</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No student records added.</p>';
                 return;
             }
 
@@ -1289,7 +1443,7 @@
                         <div class="avatar">${getInitials(s.name)}</div>
                         <div class="student-info" style="flex: 1;">
                             <h4>${s.name}</h4>
-                            <p>Fee: ₹${s.fee} • Due Day: ${s.dueDay || 5}</p>
+                            <p>Guardian: ${s.parentName || 'Parent'} • Fee: ₹${s.fee}</p>
                         </div>
                         <div style="display:flex; gap:6px;">
                             <button class="btn btn-small" style="background:${s.feePaid ? 'var(--success)' : 'var(--warning)'}" onclick="toggleFee('${s.id}', ${!s.feePaid})">
@@ -1313,7 +1467,7 @@
             const keys = Object.keys(students);
 
             if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No students available.</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No records available.</p>';
                 return;
             }
 
@@ -1323,20 +1477,14 @@
                     <div class="list-item">
                         <div class="avatar">${getInitials(s.name)}</div>
                         <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>📱 ${s.phone}</p>
+                            <h4>${s.parentName || 'Guardian'}</h4>
+                            <p>Student: ${s.name} • 📱 ${s.phone}</p>
                         </div>
-                        <button class="btn btn-whatsapp btn-small" onclick="sendBroadcast('${s.phone}')">Send 📲</button>
+                        <button class="btn btn-whatsapp btn-small" onclick="sendBroadcastSingle('${s.phone}', '${s.parentName}', '${s.name}')">Send 📲</button>
                     </div>
                 `;
             }).join('');
         }
-
-        window.sendBroadcast = function(phone) {
-            const msg = document.getElementById('broadcast-msg').value.trim();
-            if (!msg) return showToast("Type a message first!");
-            openWhatsAppNative(phone, msg);
-        };
 
         window.generateReport = function() {
             const studentId = document.getElementById('report-student-select').value;
@@ -1409,7 +1557,7 @@
             if (pendingList.length === 0) {
                 alerts.innerHTML = '<p style="color: var(--success); font-weight: 700; font-size: 0.85rem;">All fees are paid! 🎉</p>';
             } else {
-                alerts.innerHTML = `<p style="color: var(--danger); font-weight: 700; font-size: 0.85rem;">${pendingList.length} student(s) have unpaid fees (₹${pendingAmt}).</p>`;
+                alerts.innerHTML = `<p style="color: var(--danger); font-weight: 700; font-size: 0.85rem;">${pendingList.length} guardian(s) have pending fees (₹${pendingAmt}).</p>`;
             }
         }
 
@@ -1428,7 +1576,7 @@
             const titles = {
                 'dashboard': '💜 Sanchi Tuition',
                 'students': 'Student Directory',
-                'ai-assistant': 'Groq Short Message AI',
+                'ai-assistant': 'Groq Guardian Update AI',
                 'attendance': 'Mark Attendance',
                 'reports': 'Reports & Fees',
                 'tests': 'Test Scores Manager',
