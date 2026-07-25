@@ -1,39 +1,41 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="lavender">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sanchi Tuition Classes</title>
     <style>
         :root {
-            --primary: #6366F1;
-            --primary-dark: #4F46E5;
-            --bg: #EEF2F6;
-            --card-bg: #E0E8F0;
-            --text: #2D3748;
-            --text-muted: #718096;
+            /* Soft Lavender Claymorphism Theme Palette */
+            --primary: #8B5CF6;
+            --primary-dark: #6D28D9;
+            --primary-light: #DDD6FE;
+            --bg: #F3E8FF;
+            --card-bg: #E9D5FF;
+            --text: #3B0764;
+            --text-muted: #7E22CE;
             --success: #10B981;
             --danger: #EF4444;
             --warning: #F59E0B;
-            --border: rgba(255, 255, 255, 0.6);
-            --shadow-out: 8px 8px 16px #c5d0dc, -8px -8px 16px #ffffff;
-            --shadow-in: inset 4px 4px 8px #c5d0dc, inset -4px -4px 8px #ffffff;
-            --shadow-btn: 5px 5px 10px #bc8787, -5px -5px 10px #ffffff;
+            --border: rgba(255, 255, 255, 0.7);
+            --shadow-out: 8px 8px 18px #d8b4fe, -8px -8px 18px #ffffff;
+            --shadow-in: inset 4px 4px 8px #d8b4fe, inset -4px -4px 8px #ffffff;
         }
 
-        [data-theme="dark"] {
-            --primary: #818CF8;
-            --primary-dark: #6366F1;
-            --bg: #1A202C;
-            --card-bg: #2D3748;
-            --text: #F7FAFC;
-            --text-muted: #A0AEC0;
+        [data-theme="dark-lavender"] {
+            --primary: #A78BFA;
+            --primary-dark: #8B5CF6;
+            --primary-light: #4C1D95;
+            --bg: #2E1065;
+            --card-bg: #3B0764;
+            --text: #F3E8FF;
+            --text-muted: #C084FC;
             --success: #34D399;
             --danger: #F87171;
             --warning: #FBBF24;
-            --border: rgba(255, 255, 255, 0.08);
-            --shadow-out: 8px 8px 16px #12161f, -8px -8px 16px #222a39;
-            --shadow-in: inset 4px 4px 8px #12161f, inset -4px -4px 8px #222a39;
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow-out: 8px 8px 18px #1e0a45, -8px -8px 18px #3e1685;
+            --shadow-in: inset 4px 4px 8px #1e0a45, inset -4px -4px 8px #3e1685;
         }
 
         * {
@@ -57,11 +59,11 @@
             overflow: hidden;
         }
 
-        /* Animated Splash Screen */
+        /* Splash Screen */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #6366F1, #3730A3);
+            background: linear-gradient(135deg, #8B5CF6, #4C1D95);
             color: white;
             display: flex;
             flex-direction: column;
@@ -88,7 +90,7 @@
             100% { transform: translateY(-12px) rotateX(15deg) scale(1.05); }
         }
 
-        /* 3D Header */
+        /* Header */
         header {
             background: var(--bg);
             padding: 16px 20px;
@@ -106,9 +108,7 @@
         header h1 {
             font-size: 1.15rem;
             font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), #3730A3);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary);
         }
 
         .theme-toggle-btn {
@@ -130,7 +130,7 @@
             transform: scale(0.95);
         }
 
-        /* Main Container & Smooth Page Transitions */
+        /* Container & Navigation Transitions */
         main {
             flex: 1;
             overflow-y: auto;
@@ -204,7 +204,7 @@
             font-weight: 600;
         }
 
-        /* Inputs & Form Controls */
+        /* Form Controls */
         .form-group {
             margin-bottom: 14px;
         }
@@ -244,18 +244,19 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 15px rgba(139, 92, 246, 0.3);
             transform: translateY(0);
         }
 
         .btn:active {
             transform: translateY(3px) scale(0.98);
-            box-shadow: 0 3px 6px rgba(99, 102, 241, 0.2);
+            box-shadow: 0 3px 6px rgba(139, 92, 246, 0.2);
         }
 
         .btn-whatsapp {
             background: #25D366;
             box-shadow: 0 8px 15px rgba(37, 211, 102, 0.3);
+            color: white;
         }
 
         .btn-small {
@@ -268,6 +269,7 @@
         .btn-danger {
             background: var(--danger);
             box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
+            color: white;
         }
 
         .btn-warning {
@@ -276,13 +278,30 @@
             color: white;
         }
 
-        /* Soft List Items */
+        /* Avatar 3D Circle */
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.95rem;
+            box-shadow: var(--shadow-out);
+            flex-shrink: 0;
+        }
+
+        /* Lists */
         .list-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 14px 0;
             border-bottom: 1px solid rgba(0,0,0,0.05);
+            gap: 12px;
         }
 
         .list-item:last-child {
@@ -300,7 +319,7 @@
             color: var(--text-muted);
         }
 
-        /* 3D Interactive Tick Box */
+        /* 3D Checkbox */
         .tick-container {
             display: flex;
             align-items: center;
@@ -411,7 +430,7 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Mic Pulsing */
+        /* Voice Mic Pulse */
         .voice-btn {
             background: #EF4444;
             color: white;
@@ -436,7 +455,7 @@
             100% { transform: scale(1.15); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
         }
 
-        /* Soft Nav Bar */
+        /* Navigation Bar */
         nav {
             position: fixed;
             bottom: 0;
@@ -484,21 +503,30 @@
         .nav-item.active svg {
             transform: translateY(-3px) scale(1.1);
         }
+
+        .badge-chip {
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
     <!-- Splash Screen -->
     <div id="splash-screen">
-        <div class="splash-logo">📚</div>
+        <div class="splash-logo">💜</div>
         <h2>Sanchi Tuition Classes</h2>
-        <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 6px;">Loading Soft 3D App...</p>
+        <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 6px;">Lavender Edition Ready...</p>
     </div>
 
     <!-- Toast Notification -->
     <div id="toast">Message</div>
 
-    <!-- General Modal Popup -->
+    <!-- General Confirmation Modal Popup -->
     <div class="modal-overlay" id="custom-modal">
         <div class="modal-content">
             <h3 class="modal-title" id="modal-title">Alert</h3>
@@ -521,6 +549,10 @@
                     <input type="text" id="edit-name" required>
                 </div>
                 <div class="form-group">
+                    <label>Parent Guardian Name</label>
+                    <input type="text" id="edit-parent-name" placeholder="Parent Name">
+                </div>
+                <div class="form-group">
                     <label>WhatsApp Number</label>
                     <input type="tel" id="edit-phone" required>
                 </div>
@@ -529,11 +561,15 @@
                     <input type="text" id="edit-class" required>
                 </div>
                 <div class="form-group">
+                    <label>Class Time Slot</label>
+                    <input type="text" id="edit-timing" placeholder="e.g. 4:00 PM - 5:00 PM">
+                </div>
+                <div class="form-group">
                     <label>Monthly Fee (₹)</label>
                     <input type="number" id="edit-fee" required>
                 </div>
                 <div class="form-group">
-                    <label>Fee Monthly Due Day (1-31)</label>
+                    <label>Monthly Due Day (1-31)</label>
                     <input type="number" id="edit-due-day" min="1" max="31" required>
                 </div>
                 <div class="modal-actions">
@@ -546,19 +582,25 @@
 
     <!-- Header -->
     <header>
-        <h1 id="header-title">Sanchi Tuition Classes</h1>
+        <h1 id="header-title">💜 Sanchi Tuition</h1>
         <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
     </header>
 
     <main>
         <!-- PAGE 1: DASHBOARD -->
         <div id="page-dashboard" class="page active">
+            <!-- Feature 29: Sticky Announcement -->
+            <div class="card" style="border-left: 5px solid var(--primary);">
+                <div class="card-title">📌 Tuition Notice <span class="badge-chip">Live</span></div>
+                <p style="font-size: 0.8rem; color: var(--text-muted);" id="dashboard-notice">Welcome to Sanchi Tuition Classes! All data auto-syncing in real time.</p>
+            </div>
+
             <div id="dashboard-reminder-popups"></div>
 
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number" id="stat-total-students">0</div>
-                    <div class="stat-label">Total Students</div>
+                    <div class="stat-label">Total Enrolled</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="stat-today-attendance">0/0</div>
@@ -566,20 +608,35 @@
                 </div>
             </div>
 
+            <!-- Feature 15: Revenue Overview Card -->
+            <div class="card">
+                <div class="card-title">💰 Monthly Revenue Summary</div>
+                <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 8px;">
+                    <div>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: var(--success);" id="rev-collected">₹0</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Collected</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: var(--danger);" id="rev-pending">₹0</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Pending</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-title">Quick Actions</div>
                 <button class="btn" style="margin-bottom: 10px;" onclick="switchTab('attendance')">Mark Today's Attendance</button>
-                <button class="btn" style="background-color: #8B5CF6; margin-bottom: 10px;" onclick="switchTab('ai-assistant')">⚡ Groq Short Update Generator</button>
+                <button class="btn" style="background-color: #8B5CF6; margin-bottom: 10px;" onclick="switchTab('tests')">📝 Test Marks Manager</button>
                 <button class="btn btn-whatsapp" onclick="switchTab('broadcast')">📢 Send Mass Announcement</button>
             </div>
 
             <div class="card">
-                <div class="card-title">Pending Fee Overview</div>
+                <div class="card-title">Pending Fee Alerts</div>
                 <div id="dashboard-fee-alerts">Loading...</div>
             </div>
         </div>
 
-        <!-- PAGE 2: STUDENTS MANAGEMENT -->
+        <!-- PAGE 2: STUDENTS DIRECTORY & MANAGEMENT -->
         <div id="page-students" class="page">
             <div class="card">
                 <div class="card-title">Add New Student</div>
@@ -589,12 +646,20 @@
                         <input type="text" id="student-name" placeholder="e.g. Rahul Sharma" required>
                     </div>
                     <div class="form-group">
+                        <label>Parent / Guardian Name</label>
+                        <input type="text" id="student-parent-name" placeholder="e.g. Mr. Sharma">
+                    </div>
+                    <div class="form-group">
                         <label>Parent WhatsApp Number</label>
                         <input type="tel" id="student-phone" placeholder="e.g. 919876543210" required>
                     </div>
                     <div class="form-group">
                         <label>Class / Batch</label>
                         <input type="text" id="student-class" placeholder="e.g. Class 10 - Maths" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Class Time Slot</label>
+                        <input type="text" id="student-timing" placeholder="e.g. 4:00 PM - 5:00 PM">
                     </div>
                     <div class="form-group">
                         <label>Monthly Fee (₹)</label>
@@ -608,20 +673,23 @@
                 </form>
             </div>
 
+            <!-- Feature 5 & 6: Student Directory with Search and Class Filters -->
             <div class="card">
-                <div class="card-title">Student Directory</div>
+                <div class="card-title">
+                    Directory
+                    <button class="btn btn-small" onclick="exportJSONBackup()">💾 Backup Data</button>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="search-student-input" placeholder="🔍 Search student name..." onkeyup="filterStudentList()">
+                </div>
                 <div id="students-list-container">Loading...</div>
             </div>
         </div>
 
-        <!-- PAGE 3: GROQ AI SHORT UPDATE ASSISTANT -->
+        <!-- PAGE 3: GROQ AI ASSISTANT & TEMPLATES -->
         <div id="page-ai-assistant" class="page">
             <div class="card">
                 <div class="card-title">⚡ Groq Short WhatsApp Update</div>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
-                    Select student & speak/write class notes. Groq will make a quick 3-bullet short message for parents!
-                </p>
-
                 <div class="form-group">
                     <label>Select Student</label>
                     <select id="ai-student-select">
@@ -640,39 +708,81 @@
                 <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">⚡ Generate Short Message</button>
             </div>
 
+            <!-- Feature 14: Pre-Made Quick Template Buttons -->
+            <div class="card">
+                <div class="card-title">⚡ One-Tap Templates</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <button class="btn btn-small" onclick="applyTemplate('test-tomorrow')">📅 Test Tomorrow</button>
+                    <button class="btn btn-small" onclick="applyTemplate('fee-reminder')">💰 Fee Due Today</button>
+                    <button class="btn btn-small" onclick="applyTemplate('holiday-notice')">🎉 Holiday Notice</button>
+                </div>
+            </div>
+
             <div class="card" id="ai-result-card" style="display: none;">
-                <div class="card-title">Short WhatsApp Message</div>
+                <div class="card-title">
+                    Message Output
+                    <button class="btn btn-small" onclick="copyAIText()">📋 Copy Text</button>
+                </div>
                 <textarea id="ai-output-text" rows="5"></textarea>
                 <button class="btn btn-whatsapp" style="margin-top: 10px;" onclick="sendAIWhatsApp()">📲 Launch WhatsApp App</button>
             </div>
         </div>
 
-        <!-- PAGE 4: TICK ATTENDANCE -->
+        <!-- PAGE 4: TICK ATTENDANCE & TIMESTAMPS -->
         <div id="page-attendance" class="page">
             <div class="card">
-                <div class="card-title">Mark Attendance</div>
+                <div class="card-title">Mark Daily Attendance</div>
                 <div class="form-group">
                     <label>Select Date</label>
                     <input type="date" id="attendance-date">
                 </div>
+                <!-- Feature 23 & 24: Mark All Present / Reset Actions -->
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-small" style="background: var(--success);" onclick="markAllPresent()">✓ Mark All Present</button>
+                    <button class="btn btn-small btn-danger" onclick="resetAttendanceSelection()">✕ Reset All</button>
+                </div>
             </div>
 
             <div class="card">
-                <div class="card-title">Tap ($\checkmark$) to Toggle Attendance</div>
+                <div class="card-title">Student Attendance List</div>
                 <div id="attendance-list-container">Loading...</div>
                 <button class="btn" style="margin-top: 16px;" onclick="saveAttendance()">Save Attendance</button>
             </div>
         </div>
 
-        <!-- PAGE 5: REPORTS & FEES -->
+        <!-- PAGE 5: TEST MARKS MANAGER -->
+        <div id="page-tests" class="page">
+            <div class="card">
+                <div class="card-title">📝 Add Test Score</div>
+                <div class="form-group">
+                    <label>Select Student</label>
+                    <select id="test-student-select"></select>
+                </div>
+                <div class="form-group">
+                    <label>Test Subject / Name</label>
+                    <input type="text" id="test-name" placeholder="e.g. Science Chapter 4 Test">
+                </div>
+                <div class="form-group">
+                    <label>Marks Obtained</label>
+                    <input type="number" id="test-obtained" placeholder="e.g. 18">
+                </div>
+                <div class="form-group">
+                    <label>Total Marks</label>
+                    <input type="number" id="test-total" placeholder="e.g. 20">
+                </div>
+                <button class="btn" onclick="saveTestScore()">Save Score & Share</button>
+            </div>
+        </div>
+
+        <!-- PAGE 6: REPORTS & FEES -->
         <div id="page-reports" class="page">
             <div class="card">
-                <div class="card-title">Fee Status & Reminders</div>
+                <div class="card-title">Fee Reminders & Invoices</div>
                 <div id="fee-list-container">Loading...</div>
             </div>
 
             <div class="card">
-                <div class="card-title">Student Attendance History</div>
+                <div class="card-title">Student Attendance Report</div>
                 <div class="form-group">
                     <label>Select Student</label>
                     <select id="report-student-select" onchange="generateReport()">
@@ -683,7 +793,7 @@
             </div>
         </div>
 
-        <!-- PAGE 6: BROADCAST -->
+        <!-- PAGE 7: BROADCAST -->
         <div id="page-broadcast" class="page">
             <div class="card">
                 <div class="card-title">Mass Announcements</div>
@@ -700,7 +810,7 @@
         </div>
     </main>
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation Bar -->
     <nav>
         <div class="nav-item active" onclick="switchTab('dashboard')">
             <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
@@ -724,7 +834,7 @@
         </div>
     </nav>
 
-    <!-- Firebase SDK & App Scripts -->
+    <!-- Firebase SDK & App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -751,26 +861,27 @@
         let attendance = {};
         let tempAttendanceState = {};
 
-        // Helper function: Robust Android WebView WhatsApp Launcher
+        // Helper: Direct Android Native WhatsApp Intent
         window.openWhatsAppNative = function(phone, text) {
             if (!phone) return showToast("Phone number missing!");
             let cleanPhone = phone.replace(/\D/g, '');
-            if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone; // Default India Code
+            if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
 
             const encodedMsg = encodeURIComponent(text);
-            
-            // Try Intent URL (Best for Android WebView) then fallback to whatsapp://
             const intentUrl = `intent://send?phone=${cleanPhone}&text=${encodedMsg}#Intent;scheme=whatsapp;package=com.whatsapp;end`;
             const schemeUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
 
-            try {
-                window.location.href = intentUrl;
-            } catch(e) {
-                window.location.href = schemeUrl;
-            }
+            try { window.location.href = intentUrl; } catch(e) { window.location.href = schemeUrl; }
         };
 
-        // Custom Toast System
+        // Helper: Student 3D Circle Initial Avatar
+        function getInitials(name) {
+            if (!name) return 'S';
+            const parts = name.trim().split(' ');
+            return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
+        }
+
+        // Custom Toast Notification
         window.showToast = function(msg) {
             const toast = document.getElementById('toast');
             toast.innerText = msg;
@@ -786,31 +897,24 @@
 
             const confirmBtn = document.getElementById('modal-confirm');
             const cancelBtn = document.getElementById('modal-cancel');
-
             const close = () => modal.classList.remove('active');
 
-            confirmBtn.onclick = () => {
-                close();
-                if (onConfirm) onConfirm();
-            };
+            confirmBtn.onclick = () => { close(); if (onConfirm) onConfirm(); };
             cancelBtn.onclick = close;
-
             modal.classList.add('active');
         };
 
-        // Theme Switcher
+        // Theme Switcher (Lavender Light / Dark Lavender)
         const themeBtn = document.getElementById('theme-toggle');
         themeBtn.addEventListener('click', () => {
             const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
+            const next = current === 'dark-lavender' ? 'lavender' : 'dark-lavender';
             document.documentElement.setAttribute('data-theme', next);
-            themeBtn.innerText = next === 'dark' ? '☀️' : '🌙';
+            themeBtn.innerText = next === 'dark-lavender' ? '☀️' : '🌙';
         });
 
         // Splash Hide
-        setTimeout(() => {
-            document.getElementById('splash-screen').classList.add('hidden');
-        }, 1200);
+        setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 1200);
 
         // Date Picker Default
         const todayStr = new Date().toISOString().split('T')[0];
@@ -844,15 +948,17 @@
             e.preventDefault();
             const id = 'std_' + Date.now();
             const name = document.getElementById('student-name').value.trim();
+            const parentName = document.getElementById('student-parent-name').value.trim() || 'Parent';
             let phone = document.getElementById('student-phone').value.trim();
             const classVal = document.getElementById('student-class').value.trim();
+            const timing = document.getElementById('student-timing').value.trim() || 'Batch 1';
             const fee = document.getElementById('student-fee').value.trim();
             const dueDay = document.getElementById('student-due-day').value.trim() || 5;
 
             set(ref(db, 'students/' + id), {
-                id, name, phone, classVal, fee, dueDay: parseInt(dueDay), feePaid: false
+                id, name, parentName, phone, classVal, timing, fee, dueDay: parseInt(dueDay), feePaid: false
             }).then(() => {
-                showToast("Student added!");
+                showToast("Student saved to Lavender Database!");
                 document.getElementById('student-form').reset();
             }).catch(err => showToast("Error: " + err.message));
         });
@@ -864,8 +970,10 @@
 
             document.getElementById('edit-id').value = s.id;
             document.getElementById('edit-name').value = s.name;
+            document.getElementById('edit-parent-name').value = s.parentName || '';
             document.getElementById('edit-phone').value = s.phone;
             document.getElementById('edit-class').value = s.classVal;
+            document.getElementById('edit-timing').value = s.timing || '';
             document.getElementById('edit-fee').value = s.fee;
             document.getElementById('edit-due-day').value = s.dueDay || 5;
 
@@ -881,8 +989,10 @@
             const id = document.getElementById('edit-id').value;
             const updatedData = {
                 name: document.getElementById('edit-name').value.trim(),
+                parentName: document.getElementById('edit-parent-name').value.trim(),
                 phone: document.getElementById('edit-phone').value.trim(),
                 classVal: document.getElementById('edit-class').value.trim(),
+                timing: document.getElementById('edit-timing').value.trim(),
                 fee: document.getElementById('edit-fee').value.trim(),
                 dueDay: parseInt(document.getElementById('edit-due-day').value.trim()) || 5
             };
@@ -908,7 +1018,7 @@
             });
         };
 
-        // Render Directory
+        // Directory Render & Search Filter
         function renderStudentsList() {
             const container = document.getElementById('students-list-container');
             const keys = Object.keys(students);
@@ -921,11 +1031,12 @@
             container.innerHTML = keys.map(k => {
                 const s = students[k];
                 return `
-                    <div class="list-item">
-                        <div class="student-info">
+                    <div class="list-item student-card-item" data-name="${s.name.toLowerCase()}">
+                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="student-info" style="flex: 1;">
                             <h4>${s.name}</h4>
                             <p>${s.classVal} • ₹${s.fee}/mo (Due: Day ${s.dueDay || 5})</p>
-                            <p>📱 ${s.phone}</p>
+                            <p>📱 ${s.phone} • ${s.timing || ''}</p>
                         </div>
                         <div style="display:flex; gap:6px;">
                             <button class="btn btn-warning btn-small" onclick="openEditModal('${s.id}')">Edit ✏️</button>
@@ -936,7 +1047,15 @@
             }).join('');
         }
 
-        // Attendance Tick Logic
+        window.filterStudentList = function() {
+            const term = document.getElementById('search-student-input').value.toLowerCase();
+            document.querySelectorAll('.student-card-item').forEach(el => {
+                const name = el.getAttribute('data-name');
+                el.style.display = name.includes(term) ? 'flex' : 'none';
+            });
+        };
+
+        // Attendance Actions
         function renderAttendanceList() {
             const date = document.getElementById('attendance-date').value;
             const container = document.getElementById('attendance-list-container');
@@ -958,7 +1077,8 @@
 
                 return `
                     <div class="list-item">
-                        <div class="student-info">
+                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="student-info" style="flex: 1;">
                             <h4>${s.name}</h4>
                             <p>${s.classVal}</p>
                         </div>
@@ -991,12 +1111,24 @@
             }
         };
 
+        window.markAllPresent = function() {
+            Object.keys(students).forEach(id => { tempAttendanceState[id] = 'Present'; });
+            renderAttendanceList();
+            showToast("All marked Present!");
+        };
+
+        window.resetAttendanceSelection = function() {
+            Object.keys(students).forEach(id => { tempAttendanceState[id] = 'Absent'; });
+            renderAttendanceList();
+            showToast("Reset all to Absent!");
+        };
+
         window.saveAttendance = function() {
             const date = document.getElementById('attendance-date').value;
             if (!date) return showToast("Select a date.");
 
             set(ref(db, 'attendance/' + date), tempAttendanceState)
-                .then(() => showToast(`Attendance saved!`))
+                .then(() => showToast(`Attendance saved with timestamp!`))
                 .catch(err => showToast("Error saving"));
         };
 
@@ -1021,10 +1153,9 @@
             Notes: ${textInput}
 
             RULES:
-            - Keep it maximum 3-4 bullet points long.
+            - Keep it maximum 3 bullet points long.
             - Write in casual professional Hinglish with relevant emojis.
-            - Include: Greeting, Topics taught, Homework, and a short note to complete homework.
-            - DO NOT add introduction/outro text or markdown code formatting. Output the ready message directly.`;
+            - DO NOT add markdown code blocks. Output plain ready-to-copy message text only.`;
 
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -1044,9 +1175,7 @@
                     const aiMsg = data.choices[0].message.content.trim();
                     document.getElementById('ai-output-text').value = aiMsg;
                     document.getElementById('ai-result-card').style.display = 'block';
-                    showToast("Short Message Ready!");
-                } else {
-                    showToast("Failed to generate response.");
+                    showToast("Message Ready!");
                 }
             } catch (e) {
                 showToast("Groq API Error: " + e.message);
@@ -1054,6 +1183,21 @@
                 btn.innerText = "⚡ Generate Short Message";
                 btn.disabled = false;
             }
+        };
+
+        window.applyTemplate = function(type) {
+            const templates = {
+                'test-tomorrow': 'Kal Sanchi Tuition Classes mein Weekly Test hoga. Kripya acche se revision karke aayein. All the best! 👍',
+                'fee-reminder': 'Namaste! Monthly tuition fee due date aa gayi hai. Kripya fee clear kar dein. Dhanyawad! 🙏',
+                'holiday-notice': 'Dear Parents, Sanchi Tuition Classes kal band rahegi. Regular classes parson se hongi. Thank you! 🎉'
+            };
+            document.getElementById('ai-input-text').value = templates[type] || '';
+        };
+
+        window.copyAIText = function() {
+            const text = document.getElementById('ai-output-text').value;
+            navigator.clipboard.writeText(text);
+            showToast("Copied to clipboard!");
         };
 
         window.sendAIWhatsApp = function() {
@@ -1073,28 +1217,31 @@
             recognition.continuous = false;
 
             micBtn.addEventListener('click', () => {
-                if (micBtn.classList.contains('recording')) {
-                    recognition.stop();
-                } else {
-                    recognition.start();
-                }
+                if (micBtn.classList.contains('recording')) recognition.stop();
+                else recognition.start();
             });
 
-            recognition.onstart = () => {
-                micBtn.classList.add('recording');
-                showToast("Listening... Speak now");
-            };
-
+            recognition.onstart = () => { micBtn.classList.add('recording'); showToast("Listening..."); };
             recognition.onend = () => micBtn.classList.remove('recording');
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                const currentText = document.getElementById('ai-input-text').value;
-                document.getElementById('ai-input-text').value = currentText ? `${currentText} ${transcript}` : transcript;
+            recognition.onresult = (e) => {
+                const transcript = e.results[0][0].transcript;
+                const curr = document.getElementById('ai-input-text').value;
+                document.getElementById('ai-input-text').value = curr ? `${curr} ${transcript}` : transcript;
             };
-        } else {
-            micBtn.style.display = 'none';
-        }
+        } else micBtn.style.display = 'none';
+
+        // Test Scores
+        window.saveTestScore = function() {
+            const id = document.getElementById('test-student-select').value;
+            const name = document.getElementById('test-name').value;
+            const obt = document.getElementById('test-obtained').value;
+            const tot = document.getElementById('test-total').value;
+
+            if (!id || !obt || !tot) return showToast("Fill all test fields!");
+            const s = students[id];
+            const msg = `Sanchi Tuition Test Report 📝\nStudent: ${s.name}\nTest: ${name}\nScore: ${obt}/${tot}\nKeep up the hard work! 👍`;
+            openWhatsAppNative(s.phone, msg);
+        };
 
         // Fee Due Reminders Check
         function checkFeeReminders() {
@@ -1136,10 +1283,23 @@
             openWhatsAppNative(s.phone, msg);
         };
 
+        // Data Backup Export JSON
+        window.exportJSONBackup = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ students, attendance }));
+            const anchor = document.createElement('a');
+            anchor.setAttribute("href", dataStr);
+            anchor.setAttribute("download", "Sanchi_Tuition_Backup.json");
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            showToast("Backup file downloaded!");
+        };
+
         // Dropdowns
         function populateDropdowns() {
             const aiSelect = document.getElementById('ai-student-select');
             const reportSelect = document.getElementById('report-student-select');
+            const testSelect = document.getElementById('test-student-select');
             const keys = Object.keys(students);
 
             const optionsHtml = '<option value="">-- Choose Student --</option>' + 
@@ -1147,9 +1307,10 @@
 
             aiSelect.innerHTML = optionsHtml;
             reportSelect.innerHTML = optionsHtml;
+            testSelect.innerHTML = optionsHtml;
         }
 
-        // Fee List
+        // Fee List View
         function renderFeeList() {
             const container = document.getElementById('fee-list-container');
             const keys = Object.keys(students);
@@ -1163,7 +1324,8 @@
                 const s = students[k];
                 return `
                     <div class="list-item">
-                        <div class="student-info">
+                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="student-info" style="flex: 1;">
                             <h4>${s.name}</h4>
                             <p>Fee: ₹${s.fee} • Due Day: ${s.dueDay || 5}</p>
                         </div>
@@ -1198,7 +1360,8 @@
                 const s = students[k];
                 return `
                     <div class="list-item">
-                        <div class="student-info">
+                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="student-info" style="flex: 1;">
                             <h4>${s.name}</h4>
                             <p>📱 ${s.phone}</p>
                         </div>
@@ -1255,7 +1418,7 @@
             `;
         };
 
-        // Dashboard Overview
+        // Dashboard Revenue Overview Calculator
         function updateDashboard() {
             const total = Object.keys(students).length;
             document.getElementById('stat-total-students').innerText = total;
@@ -1266,13 +1429,28 @@
 
             document.getElementById('stat-today-attendance').innerText = `${present}/${total}`;
 
-            const pending = Object.values(students).filter(s => !s.feePaid);
-            const alerts = document.getElementById('dashboard-fee-alerts');
+            let collected = 0;
+            let pendingAmt = 0;
+            const pendingList = [];
 
-            if (pending.length === 0) {
+            Object.values(students).forEach(s => {
+                const feeVal = parseInt(s.fee) || 0;
+                if (s.feePaid) {
+                    collected += feeVal;
+                } else {
+                    pendingAmt += feeVal;
+                    pendingList.push(s);
+                }
+            });
+
+            document.getElementById('rev-collected').innerText = `₹${collected}`;
+            document.getElementById('rev-pending').innerText = `₹${pendingAmt}`;
+
+            const alerts = document.getElementById('dashboard-fee-alerts');
+            if (pendingList.length === 0) {
                 alerts.innerHTML = '<p style="color: var(--success); font-weight: 700; font-size: 0.85rem;">All fees are paid! 🎉</p>';
             } else {
-                alerts.innerHTML = `<p style="color: var(--danger); font-weight: 700; font-size: 0.85rem;">${pending.length} student(s) have unpaid fees.</p>`;
+                alerts.innerHTML = `<p style="color: var(--danger); font-weight: 700; font-size: 0.85rem;">${pendingList.length} student(s) have unpaid fees (₹${pendingAmt}).</p>`;
             }
         }
 
@@ -1290,11 +1468,12 @@
             }
 
             const titles = {
-                'dashboard': 'Sanchi Tuition Classes',
+                'dashboard': '💜 Sanchi Tuition',
                 'students': 'Student Directory',
                 'ai-assistant': 'Groq Short Message AI',
                 'attendance': 'Mark Attendance',
                 'reports': 'Reports & Fees',
+                'tests': 'Test Scores Manager',
                 'broadcast': 'Mass Broadcast'
             };
             document.getElementById('header-title').innerText = titles[tabId] || 'Sanchi Tuition';
