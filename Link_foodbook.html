@@ -1,1307 +1,1483 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="lavender">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoodBook.</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sanchi Tuition Classes</title>
     <style>
-        .theme-dark {
-            --bg-main: #0c111d;
-            --bg-card: #1f2a37;
-            --bg-input: #111827;
-            --text-main: #f9fafb;
-            --text-muted: #9ca3af;
-            --border: #374151;
-            --accent: #ff9f00;      
-            --accent-hover: #e08c00;
-            --accent-light: rgba(255, 159, 0, 0.15);
-            --success: #10b981;
-            --purple: #a855f7;
-            --nav-bg: #111827;
-            --danger: #ef4444;
+        :root {
+            /* Soft Lavender Claymorphism Theme Palette */
+            --primary: #8B5CF6;
+            --primary-dark: #6D28D9;
+            --primary-light: #DDD6FE;
+            --bg: #F3E8FF;
+            --card-bg: #E9D5FF;
+            --text: #3B0764;
+            --text-muted: #7E22CE;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --border: rgba(255, 255, 255, 0.7);
+            --shadow-out: 8px 8px 18px #d8b4fe, -8px -8px 18px #ffffff;
+            --shadow-in: inset 4px 4px 8px #d8b4fe, inset -4px -4px 8px #ffffff;
         }
-        
-        .theme-light {
-            --bg-main: #f4f3ef;      
-            --bg-card: #ffffff;
-            --bg-input: #fcfbf7;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --accent: #ff9f00;      
-            --accent-hover: #e08c00;
-            --accent-light: rgba(255, 159, 0, 0.15);
-            --success: #059669;
-            --purple: #7e22ce;
-            --nav-bg: #ffffff;
-            --danger: #dc2626;
+
+        [data-theme="dark-lavender"] {
+            --primary: #A78BFA;
+            --primary-dark: #8B5CF6;
+            --primary-light: #4C1D95;
+            --bg: #2E1065;
+            --card-bg: #3B0764;
+            --text: #F3E8FF;
+            --text-muted: #C084FC;
+            --success: #34D399;
+            --danger: #F87171;
+            --warning: #FBBF24;
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow-out: 8px 8px 18px #1e0a45, -8px -8px 18px #3e1685;
+            --shadow-in: inset 4px 4px 8px #1e0a45, inset -4px -4px 8px #3e1685;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 480px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #8B5CF6, #4C1D95);
+            color: white;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            padding-bottom: 110px;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, transform 0.6s ease, visibility 0.6s;
         }
 
-        .app-shell {
-            width: 100%;
-            max-width: 680px;
-            padding: 20px;
+        #splash-screen.hidden {
+            opacity: 0;
+            transform: scale(1.1);
+            visibility: hidden;
+        }
+
+        .splash-logo {
+            font-size: 3.5rem;
+            margin-bottom: 12px;
+            animation: float3d 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes float3d {
+            0% { transform: translateY(0) rotateX(0deg) scale(1); }
+            100% { transform: translateY(-12px) rotateX(15deg) scale(1.05); }
+        }
+
+        /* Header */
+        header {
+            background: var(--bg);
+            padding: 16px 20px;
             display: flex;
-            flex-direction: column;
-            flex-grow: 1;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-out);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
         }
 
+        header h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .theme-toggle-btn {
+            background: var(--bg);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            box-shadow: var(--shadow-out);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle-btn:active {
+            box-shadow: var(--shadow-in);
+            transform: scale(0.95);
+        }
+
+        /* Container & Navigation Transitions */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px;
+            padding-bottom: 90px;
+        }
+
+        .page {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px) scale(0.98);
+        }
+
+        .page.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Soft 3D Claymorphic Cards */
         .card {
-            background-color: var(--bg-card);
-            border: 2px solid var(--border);
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 18px;
-            margin-bottom: 18px;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.05);
-        }
-        .card:hover {
-            border-color: var(--accent);
-            box-shadow: 0 8px 20px var(--accent-light);
-        }
-
-        .input-box {
-            background-color: var(--bg-input);
-            border: 2px solid var(--border);
-            color: var(--text-main);
-            border-radius: 14px;
-            padding: 14px;
-            width: 100%;
-            font-size: 16px;
-            font-weight: 600;
-            outline: none;
-        }
-        .input-box:focus { border-color: var(--accent); }
-
-        .password-input-wrapper {
-            position: relative;
-            width: 100%;
-        }
-        .eye-toggle-btn {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px;
-            z-index: 10;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 16px;
             margin-bottom: 20px;
-            border-bottom: 2px solid var(--border);
-            width: 100%;
-        }
-        
-        .brand-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .brand-logo-img {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            object-fit: cover;
-            border: 2px solid var(--accent);
-        }
-        
-        .logo-area h1 { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; }
-        .logo-area h1 span { color: var(--accent); }
-        .logo-area p { font-size: 10px; text-transform: uppercase; opacity: 0.5; font-weight: bold; }
-
-        .action-btn-circle {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            border: 2px solid var(--border);
-            background-color: var(--bg-card);
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-        .action-btn-circle:active { transform: scale(0.9); }
-
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 18px;
-        }
-        .stat-card { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        .stat-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; opacity: 0.6; }
-        .stat-num { font-size: 24px; font-weight: 900; margin-top: 6px; }
-        .stat-num.c-total { color: var(--accent); }
-
-        .tabs-row {
-            display: flex;
-            background: rgba(128,128,128,0.08);
-            padding: 6px;
-            border-radius: 16px;
-            margin-bottom: 18px;
+            box-shadow: var(--shadow-out);
             border: 1px solid var(--border);
         }
-        .tab-btn {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 12px;
-            font-weight: 800;
-            font-size: 13px;
-            cursor: pointer;
-            border-radius: 12px;
-        }
-        .tab-btn.active {
-            background-color: var(--accent);
-            color: #0b0f19;
-        }
 
-        .list-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-height: calc(100vh - 350px);
-            overflow-y: auto;
-            padding-bottom: 20px;
-        }
-        .item-row {
+        .card-title {
+            font-weight: 800;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: var(--primary);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px;
-            border-radius: 16px;
-            background-color: var(--bg-card);
-            border: 2px solid var(--border);
         }
-        .row-info h4 { font-size: 15px; font-weight: 800; }
-        .row-info p { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
-        .row-right { display: flex; align-items: center; gap: 14px; }
-        .row-price { font-weight: 900; font-size: 16px; text-align: right; }
-        .row-badge { font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; border: 2px solid; display: inline-block; text-transform: uppercase; }
-        .row-badge.cash { color: var(--success); background: rgba(16,185,129,0.1); border-color: var(--success); }
-        .row-badge.upi { color: var(--purple); background: rgba(168,85,247,0.1); border-color: var(--purple); }
 
-        .wa-btn {
-            background-color: #25d366;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 13px;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--shadow-out);
+        }
+
+        .stat-number {
+            font-size: 1.6rem;
             font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: none;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            outline: none;
+            background: var(--bg);
+            color: var(--text);
+            box-shadow: var(--shadow-in);
+        }
+
+        /* 3D Soft Buttons */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 16px;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 8px 15px rgba(139, 92, 246, 0.3);
+            transform: translateY(0);
+        }
+
+        .btn:active {
+            transform: translateY(3px) scale(0.98);
+            box-shadow: 0 3px 6px rgba(139, 92, 246, 0.2);
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            box-shadow: 0 8px 15px rgba(37, 211, 102, 0.3);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            border-radius: 12px;
+            width: auto;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            box-shadow: 0 6px 12px rgba(245, 158, 11, 0.3);
+            color: white;
+        }
+
+        /* Avatar 3D Circle */
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.95rem;
+            box-shadow: var(--shadow-out);
+            flex-shrink: 0;
+        }
+
+        /* Lists */
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            gap: 12px;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .student-info h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .student-info p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* 3D Checkbox */
+        .tick-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             cursor: pointer;
         }
 
+        .tick-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: white;
+            background: var(--bg);
+            box-shadow: var(--shadow-out);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .tick-box.checked {
+            background: var(--success);
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+            transform: scale(1.08);
+        }
+
+        .tick-box.absent-check {
+            background: var(--danger);
+            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
+            transform: scale(1.08);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 24px;
+            width: 88%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .modal-body {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        /* Toast Popup */
+        #toast {
+            position: fixed;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--text);
+            color: var(--card-bg);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            z-index: 10000;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Voice Mic Pulse */
+        .voice-btn {
+            background: #EF4444;
+            color: white;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .voice-btn.recording {
+            animation: pulse3d 1s infinite alternate;
+        }
+
+        @keyframes pulse3d {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            100% { transform: scale(1.15); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        }
+
+        /* Navigation Bar */
         nav {
             position: fixed;
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
-            max-width: 680px;
-            background-color: var(--nav-bg);
-            border-top: 2px solid var(--border);
-            padding: 12px 20px;
+            max-width: 480px;
+            background: var(--bg);
+            box-shadow: 0 -8px 20px rgba(0,0,0,0.06);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 26px 26px 0 0;
-            z-index: 999;
-        }
-        .nav-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            font-size: 10px;
-            font-weight: 800;
-            width: 65px;
-        }
-        .nav-btn.active { color: var(--accent); }
-
-        .add-action-btn {
-            width: 58px;
-            height: 58px;
-            background: linear-gradient(135deg, var(--accent), #ff7c00);
-            color: #0b0f19;
-            border-radius: 50%;
-            border: 4px solid var(--bg-main);
-            position: relative;
-            top: -24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            font-weight: 900;
-            box-shadow: 0 8px 20px rgba(255,160,0,0.4);
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(12,17,29,0.85);
-            backdrop-filter: blur(6px);
-            z-index: 2000;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s, visibility 0.2s;
-        }
-        .overlay.open { opacity: 1; visibility: visible; }
-        .overlay-body {
-            background-color: var(--bg-card);
-            border-top: 3px solid var(--accent);
-            width: 100%;
-            max-width: 680px;
-            border-radius: 28px 28px 0 0;
-            padding: 24px;
-            transform: translateY(100%);
-            transition: transform 0.25s ease-out;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .overlay.open .overlay-body { transform: translateY(0); }
-
-        .overlay-header { display: flex; justify-content: space-between; align-items: center; }
-        .close-btn { background: rgba(128,128,128,0.15); border: none; color: var(--text-main); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px; }
-
-        .menu-tiles-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            overflow-y: auto;
-            padding: 4px;
-        }
-        .tile-card {
-            background-color: var(--bg-main);
-            border: 2px solid var(--border);
-            padding: 20px;
-            border-radius: 18px;
-            text-align: center;
-            cursor: pointer;
-        }
-        .tile-card h5 { font-size: 15px; font-weight: 800; margin-top: 6px; }
-        .tile-card p { font-size: 13px; color: var(--accent); font-weight: 800; margin-top: 2px; }
-
-        .variant-row {
-            display: flex;
-            background: var(--bg-main);
-            padding: 6px;
-            border-radius: 14px;
-            border: 2px solid var(--border);
-        }
-        .var-btn { flex: 1; padding: 12px; background: transparent; border: none; color: var(--text-muted); font-weight: 800; font-size: 13px; cursor: pointer; border-radius: 10px; }
-        .var-btn.active { background: var(--accent); color: #0b0f19; font-weight: 900; }
-
-        .math-counter {
-            display: flex;
-            background: var(--bg-main);
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            overflow: hidden;
-        }
-        .math-btn { flex: 1; padding: 14px; border: none; background: transparent; color: var(--text-main); font-size: 22px; font-weight: 900; cursor: pointer; }
-        .math-val { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; }
-
-        .breakdown-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; opacity: 0.8; margin-top: 4px; }
-        .settle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .pay-action-btn { padding: 18px; border-radius: 16px; border: none; color: white; font-weight: 900; cursor: pointer; font-size: 14px; }
-        .pay-action-btn.cash { background-color: var(--success); }
-        .pay-action-btn.upi { background-color: var(--purple); }
-
-        .contact-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
+            justify-content: space-around;
             padding: 10px 0;
-        }
-        .dev-avatar { font-size: 50px; margin-bottom: 4px; }
-        .dev-name { font-size: 20px; font-weight: 900; color: var(--accent); }
-        .dev-phone { font-size: 14px; font-weight: 700; opacity: 0.6; font-family: monospace; margin-top: 2px; margin-bottom: 16px; }
-        .contact-action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-        .contact-link-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-radius: 14px; font-weight: 800; text-decoration: none; font-size: 14px; color: white; }
-        .contact-link-btn.wa { background-color: #25d366; }
-        .contact-link-btn.call { background-color: #3b82f6; }
-
-        .license-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; font-weight: 600; border-bottom: 1px dashed var(--border); }
-        .license-row:last-child { border: none; }
-
-        .admin-menu-list-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-height: calc(100vh - 430px);
-            overflow-y: auto;
-            padding-bottom: 20px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            z-index: 10;
         }
 
-        #splashScreen {
-            position: fixed;
-            inset: 0;
-            background-color: #0c111d;
-            z-index: 999999;
+        .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 20%;
         }
-        .splash-logo {
-            width: 140px;
-            height: 140px;
-            border-radius: 28px;
-            object-fit: cover;
-            border: 4px solid #ff9f00;
-            box-shadow: 0 10px 30px rgba(255,159,0,0.2);
-            margin-bottom: 16px;
-        }
-        .splash-title { font-size: 32px; font-weight: 900; color: white; letter-spacing: -0.5px; }
-        .splash-title span { color: #ff9f00; }
 
-        .hidden { display: none !important; }
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            margin-bottom: 2px;
+            transition: transform 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active svg {
+            transform: translateY(-3px) scale(1.1);
+        }
+
+        .badge-chip {
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
-<body class="theme-dark">
+<body>
 
-    <div id="splashScreen">
-        <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" class="splash-logo">
-        <h2 class="splash-title">FoodBook<span>.</span></h2>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="splash-logo">💜</div>
+        <h2>Sanchi Tuition Classes</h2>
+        <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 6px;">Lavender Edition Ready...</p>
     </div>
 
-    <div class="app-shell">
-        
-        <div id="lockScreen" class="hidden" style="position:fixed; inset:0; background:#0c111d; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
-            <div style="text-align:center; margin-bottom:24px;">
-                <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" style="width:85px; height:80px; border-radius:18px; border:2px solid #ff9f00; margin-bottom:12px; object-fit:cover;">
-                <h2 style="color:white; font-size:28px; font-weight:900;">FoodBook<span>.</span></h2>
-                <p id="lockScreenSubtitle" style="color:#9ca3af; font-size:13px; font-weight:600; margin-top:2px;">Enter Cafe Account Token Below</p>
-            </div>
-            
-            <div id="stageLoginView" style="width:100%; max-width:280px; display:flex; flex-direction:column; gap:12px;">
-                <input type="text" id="passcodeInput" placeholder="" class="input-box" style="text-align:center; font-weight:900; text-transform: uppercase;">
-                <button onclick="verifyPasscode()" style="width:100%; padding:16px; font-weight:900; background:#ff9f00; color:#0c111d; border:none; border-radius:14px; cursor:pointer; font-size:14px;">ACCESS ACCOUNT</button>
-                <button onclick="showAdminVerificationScreen()" style="width:100%; padding:14px; font-weight:800; background:rgba(255,255,255,0.06); color:#9ca3af; border:2px dashed #374151; border-radius:14px; cursor:pointer; font-size:12px;">✨ GENERATE NEW ACCOUNT ID</button>
-            </div>
+    <!-- Toast Notification -->
+    <div id="toast">Message</div>
 
-            <div id="stageAdminVerifyView" class="hidden" style="width:100%; max-width:280px; display:flex; flex-direction:column; gap:12px;">
-                <div class="password-input-wrapper">
-                    <input type="password" id="adminSecretInput" placeholder="ENTER ADMIN PIN" class="input-box" style="text-align:center; padding-right:48px;">
-                    <button type="button" class="eye-toggle-btn" onclick="toggleAdminPasswordView()">👁️</button>
+    <!-- General Confirmation Modal Popup -->
+    <div class="modal-overlay" id="custom-modal">
+        <div class="modal-content">
+            <h3 class="modal-title" id="modal-title">Alert</h3>
+            <div class="modal-body" id="modal-body">Modal details...</div>
+            <div class="modal-actions" id="modal-actions">
+                <button class="btn" style="background: var(--card-bg); color: var(--text);" id="modal-cancel">Close</button>
+                <button class="btn" id="modal-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal Popup -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Edit Student</h3>
+            <form id="edit-student-form" style="text-align: left; margin-top: 12px;">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label>Student Name</label>
+                    <input type="text" id="edit-name" required>
                 </div>
-                <button onclick="verifyAdminMasterCode()" style="width:100%; padding:16px; font-weight:900; background:#ff9f00; color:#0c111d; border:none; border-radius:14px; cursor:pointer; font-size:14px;">VERIFY ADMIN KEY</button>
-                <button onclick="backToLoginStage()" style="width:100%; padding:12px; font-weight:700; background:transparent; color:#9ca3af; border:none; cursor:pointer; font-size:13px;">← Back</button>
+                <div class="form-group">
+                    <label>Parent Guardian Name</label>
+                    <input type="text" id="edit-parent-name" placeholder="Parent Name">
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp Number</label>
+                    <input type="tel" id="edit-phone" required>
+                </div>
+                <div class="form-group">
+                    <label>Class / Batch</label>
+                    <input type="text" id="edit-class" required>
+                </div>
+                <div class="form-group">
+                    <label>Class Time Slot</label>
+                    <input type="text" id="edit-timing" placeholder="e.g. 4:00 PM - 5:00 PM">
+                </div>
+                <div class="form-group">
+                    <label>Monthly Fee (₹)</label>
+                    <input type="number" id="edit-fee" required>
+                </div>
+                <div class="form-group">
+                    <label>Monthly Due Day (1-31)</label>
+                    <input type="number" id="edit-due-day" min="1" max="31" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn" style="background: var(--card-bg); color: var(--text);" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <h1 id="header-title">💜 Sanchi Tuition</h1>
+        <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+    </header>
+
+    <main>
+        <!-- PAGE 1: DASHBOARD -->
+        <div id="page-dashboard" class="page active">
+            <!-- Feature 29: Sticky Announcement -->
+            <div class="card" style="border-left: 5px solid var(--primary);">
+                <div class="card-title">📌 Tuition Notice <span class="badge-chip">Live</span></div>
+                <p style="font-size: 0.8rem; color: var(--text-muted);" id="dashboard-notice">Welcome to Sanchi Tuition Classes! All data auto-syncing in real time.</p>
             </div>
 
-            <div id="stageCreateCafeView" class="hidden" style="width:100%; max-width:280px; display:flex; flex-direction:column; gap:12px;">
-                <input type="text" id="newCafeIdInput" placeholder="NEW CAFE ID CODE" class="input-box" style="text-align:center; text-transform:uppercase; font-weight:900;">
-                <button onclick="commitNewCafeToFirebase()" style="width:100%; padding:16px; font-weight:900; background:#10b981; color:white; border:none; border-radius:14px; cursor:pointer; font-size:14px;">CREATE ACCOUNT</button>
-                <button onclick="backToLoginStage()" style="width:100%; padding:12px; font-weight:700; background:transparent; color:#9ca3af; border:none; cursor:pointer; font-size:13px;">Cancel</button>
+            <div id="dashboard-reminder-popups"></div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-total-students">0</div>
+                    <div class="stat-label">Total Enrolled</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-today-attendance">0/0</div>
+                    <div class="stat-label">Present Today</div>
+                </div>
             </div>
-            
-            <p id="loginError" style="color:#f87171; font-size:13px; font-weight:700; margin-top:14px; display:none;">Error loading target account branch parameters.</p>
+
+            <!-- Feature 15: Revenue Overview Card -->
+            <div class="card">
+                <div class="card-title">💰 Monthly Revenue Summary</div>
+                <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 8px;">
+                    <div>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: var(--success);" id="rev-collected">₹0</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Collected</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: var(--danger);" id="rev-pending">₹0</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Pending</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Quick Actions</div>
+                <button class="btn" style="margin-bottom: 10px;" onclick="switchTab('attendance')">Mark Today's Attendance</button>
+                <button class="btn" style="background-color: #8B5CF6; margin-bottom: 10px;" onclick="switchTab('tests')">📝 Test Marks Manager</button>
+                <button class="btn btn-whatsapp" onclick="switchTab('broadcast')">📢 Send Mass Announcement</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Pending Fee Alerts</div>
+                <div id="dashboard-fee-alerts">Loading...</div>
+            </div>
         </div>
 
-        <div id="expirationLockScreen" class="hidden" style="position:fixed; inset:0; background:#0c111d; z-index:99998; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center;">
-            <span style="font-size:64px; margin-bottom:16px;">⚠️</span>
-            <h2 style="color:#f87171; font-size:28px; font-weight:900; margin-bottom:8px;">License Suspended</h2>
-            <p style="color:#9ca3af; font-size:15px; max-width:320px; font-weight:600; margin-bottom:24px;">Your access period has expired. Please clear the pending usage balance to reopen this terminal console desk.</p>
-            <button onclick="logout()" style="width:100%; max-width:240px; padding:14px; font-weight:900; background:#374151; color:white; border:none; border-radius:14px; cursor:pointer;">Exit App</button>
+        <!-- PAGE 2: STUDENTS DIRECTORY & MANAGEMENT -->
+        <div id="page-students" class="page">
+            <div class="card">
+                <div class="card-title">Add New Student</div>
+                <form id="student-form">
+                    <div class="form-group">
+                        <label>Student Name</label>
+                        <input type="text" id="student-name" placeholder="e.g. Rahul Sharma" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Parent / Guardian Name</label>
+                        <input type="text" id="student-parent-name" placeholder="e.g. Mr. Sharma">
+                    </div>
+                    <div class="form-group">
+                        <label>Parent WhatsApp Number</label>
+                        <input type="tel" id="student-phone" placeholder="e.g. 919876543210" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Class / Batch</label>
+                        <input type="text" id="student-class" placeholder="e.g. Class 10 - Maths" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Class Time Slot</label>
+                        <input type="text" id="student-timing" placeholder="e.g. 4:00 PM - 5:00 PM">
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Fee (₹)</label>
+                        <input type="number" id="student-fee" placeholder="e.g. 1500" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Due Day (1-31)</label>
+                        <input type="number" id="student-due-day" placeholder="5" min="1" max="31" value="5" required>
+                    </div>
+                    <button type="submit" class="btn">Save Student</button>
+                </form>
+            </div>
+
+            <!-- Feature 5 & 6: Student Directory with Search and Class Filters -->
+            <div class="card">
+                <div class="card-title">
+                    Directory
+                    <button class="btn btn-small" onclick="exportJSONBackup()">💾 Backup Data</button>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="search-student-input" placeholder="🔍 Search student name..." onkeyup="filterStudentList()">
+                </div>
+                <div id="students-list-container">Loading...</div>
+            </div>
         </div>
 
-        <header id="appHeader" class="hidden">
-            <div class="brand-header">
-                <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784029002/Gemini_Generated_Image_qlzyyhqlzyyhqlzy_gqvvmo.png" alt="FoodBook Logo" class="brand-logo-img">
-                <div class="logo-area">
-                    <p id="headerAccountLabel" class="header-sub" style="color:var(--accent); font-weight:800;">---</p>
-                    <h1>FoodBook<span>.</span></h1>
-                </div>
-            </div>
-            <div style="display:flex; gap:12px;">
-                <button onclick="toggleAppTheme()" class="action-btn-circle">🎨</button>
-                <button onclick="logout()" class="action-btn-circle" style="color:#ef4444; border-color: rgba(239,68,68,0.3)">❌</button>
-            </div>
-        </header>
-
-        <div id="dashboardView" class="tab-view hidden">
-            <div class="stats-row">
-                <div class="card stat-card">
-                    <span class="stat-lbl">Today's Total Sales</span>
-                    <span id="statTotalSales" class="stat-num c-total">₹0</span>
-                </div>
-                <div class="card stat-card">
-                    <span class="stat-lbl">Today's Total Orders</span>
-                    <span id="statTotalOrdersCount" class="stat-num" style="color: var(--success);">0</span>
-                </div>
-            </div>
-
-            <div style="margin-bottom:10px; padding-left:2px;"><span class="stat-lbl">📜 Live Daily Streams</span></div>
-            <div id="ledgerContainer" class="list-container hide-scrollbar"></div>
-        </div>
-
-        <div id="reportsView" class="tab-view hidden">
-            <div class="card" style="padding: 16px;">
-                <h3 style="font-size:16px; font-weight:900; color:var(--accent); margin-bottom:12px;">Reports..</h3>
-                
-                <div style="margin-bottom:12px;">
-                    <label class="stat-lbl" style="display:block; margin-bottom:4px;">Date..</label>
-                    <input type="date" id="filterDateInput" class="input-box" style="padding:10px;">
-                </div>
-
-                <div style="margin-bottom:12px;">
-                    <label class="stat-lbl" style="display:block; margin-bottom:4px;">Filter By Food Item</label>
-                    <select id="filterItemDropdown" onchange="applyReportFilters()" class="input-box" style="padding:10px; font-weight:bold;">
-                        <option value="ALL">ALL Menu Items</option>
+        <!-- PAGE 3: GROQ AI ASSISTANT & TEMPLATES -->
+        <div id="page-ai-assistant" class="page">
+            <div class="card">
+                <div class="card-title">⚡ Groq Short WhatsApp Update</div>
+                <div class="form-group">
+                    <label>Select Student</label>
+                    <select id="ai-student-select">
+                        <option value="">-- Choose Student --</option>
                     </select>
                 </div>
 
-                <div class="tabs-row" style="margin-bottom:0px; margin-top:14px;">
-                    <button id="reportTabAll" onclick="setReportPaymentFilter('ALL')" class="tab-btn active">ALL MODES</button>
-                    <button id="reportTabCash" onclick="setReportPaymentFilter('CASH')" class="tab-btn">CASH Drawer</button>
-                    <button id="reportTabUpi" onclick="setReportPaymentFilter('UPI')" class="tab-btn">UPI Vault</button>
-                </div>
-            </div>
-
-            <div class="stats-row" style="grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom:14px;">
-                <div class="card stat-card" style="padding:10px;"><span class="stat-lbl">Filtered Sum</span><span id="repSum" style="font-size:15px; font-weight:900; color:var(--cyan);">₹0</span></div>
-                <div class="card stat-card" style="padding:10px;"><span class="stat-lbl">CASH Segment</span><span id="repCash" style="font-size:15px; font-weight:900; color:var(--success);">₹0</span></div>
-                <div class="card stat-card" style="padding:10px;"><span class="stat-lbl">UPI Segment</span><span id="repUpi" style="font-size:15px; font-weight:900; color:var(--purple);">₹0</span></div>
-            </div>
-
-            <div id="reportLedgerContainer" class="list-container hide-scrollbar"></div>
-        </div>
-
-        <div id="inventoryView" class="tab-view hidden">
-            <div class="card" style="display:flex; flex-direction:column; gap:14px; margin-bottom:14px;">
-                <h3 style="font-size:16px; font-weight:900; color:var(--cyan);">Add new Item..</h3>
-                <div style="display:grid; grid-template-columns: 70px 1fr; gap:10px;">
-                    <input type="text" id="adminItemIcon" placeholder="🍔" class="input-box" style="text-align:center; font-size:20px;">
-                    <input type="text" id="adminItemName" placeholder="Item Identifier Name" class="input-box">
-                </div>
-                <input type="number" id="adminItemPrice" placeholder="Standard Portions Base Price (₹)" class="input-box">
-                <button onclick="saveItemToMenu()" style="width:100%; padding:16px; font-weight:900; background:var(--accent); color:#0b0f19; border:none; border-radius:14px; cursor:pointer;">Save</button>
-            </div>
-
-            <div style="margin-bottom:8px; padding-left:2px;"><span class="stat-lbl">📦 Configured Inventory Matrix</span></div>
-            <div id="adminMenuGrid" class="admin-menu-list-container hide-scrollbar"></div>
-        </div>
-
-        <div id="helpView" class="tab-view hidden">
-            <div class="card" style="padding: 18px; margin-bottom: 16px;">
-                <h4 style="font-size:14px; font-weight:900; color:var(--accent); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">👑 System Premium License</h4>
-                <div class="license-row">
-                    <span style="opacity:0.7;">Premium Status:</span>
-                    <span id="licDaysLeft" style="color:var(--success); font-weight:900;">Calculating..</span>
-                </div>
-                <div class="license-row">
-                    <span style="opacity:0.7;">Last Payment Date:</span>
-                    <span id="licLastPay" style="font-family:monospace; font-weight:700;">--</span>
-                </div>
-                <div class="license-row">
-                    <span style="opacity:0.7;">Last Month's Payment Date:</span>
-                    <span id="licPrevPay" style="font-family:monospace; font-weight:700;">--</span>
-                </div>
-            </div>
-
-            <div class="card" style="padding: 24px;">
-                <div class="contact-box">
-                    <span class="dev-avatar">🧑‍💻</span>
-                    <h3 class="dev-name">Aklavyaaa</h3>
-                    <p class="dev-phone">+91 74648 70444</p>
-                    
-                    <div class="contact-action-row">
-                        <a href="tel:7464870444" class="contact-link-btn call"><span>📞 Call Now</span></a>
-                        <a href="https://api.whatsapp.com/send?phone=917464870444&text=Hello%20Aklavyaaa,%20I%20need%20support%20for%20FoodBook!" target="_blank" class="contact-link-btn wa"><span>💬 WhatsApp</span></a>
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin:0;">Taught Topics & Homework</label>
+                        <button type="button" class="voice-btn" id="mic-btn" title="Tap to Speak">🎙️</button>
                     </div>
+                    <textarea id="ai-input-text" rows="3" placeholder="e.g. Rahul ko Trigonometry Chapter 8 exercise 8.2 sikhaya. Homework: exercise 8.2 complete karo."></textarea>
+                </div>
+
+                <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">⚡ Generate Short Message</button>
+            </div>
+
+            <!-- Feature 14: Pre-Made Quick Template Buttons -->
+            <div class="card">
+                <div class="card-title">⚡ One-Tap Templates</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <button class="btn btn-small" onclick="applyTemplate('test-tomorrow')">📅 Test Tomorrow</button>
+                    <button class="btn btn-small" onclick="applyTemplate('fee-reminder')">💰 Fee Due Today</button>
+                    <button class="btn btn-small" onclick="applyTemplate('holiday-notice')">🎉 Holiday Notice</button>
                 </div>
             </div>
-        </div>
 
-    </div>
-
-    <div id="customConfirmOverlay" class="overlay" style="align-items:center;">
-        <div class="overlay-body" style="max-width:320px; border-radius:24px; padding:22px; gap:14px; text-align:center; border-top: 3px solid var(--danger);">
-            <span style="font-size:38px; display:block;">🗑️</span>
-            <h3 style="font-size:18px; font-weight:900;">Delete Menu Item?</h3>
-            <p style="font-size:13px; color:var(--text-muted); font-weight:500; line-height:1.4;">Are you sure you want to delete this menu item completely?</p>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px;">
-                <button onclick="cancelCustomDeletionCall()" class="input-box" style="cursor:pointer; font-size:13px; text-align:center; font-weight:800; padding:12px;">Cancel</button>
-                <button onclick="confirmCustomDeletionCall()" style="border:none; background:var(--danger); color:white; border-radius:14px; font-weight:900; cursor:pointer; font-size:13px; padding:12px;">Delete</button>
+            <div class="card" id="ai-result-card" style="display: none;">
+                <div class="card-title">
+                    Message Output
+                    <button class="btn btn-small" onclick="copyAIText()">📋 Copy Text</button>
+                </div>
+                <textarea id="ai-output-text" rows="5"></textarea>
+                <button class="btn btn-whatsapp" style="margin-top: 10px;" onclick="sendAIWhatsApp()">📲 Launch WhatsApp App</button>
             </div>
         </div>
-    </div>
 
-    <nav id="appNavigation" class="hidden">
-        <button id="navDashBtn" onclick="switchMainTab('dashboard')" class="nav-btn active"><span>📊</span><span>Ledger</span></button>
-        <button id="navRepBtn" onclick="switchMainTab('reports')" class="nav-btn"><span>📈</span><span>Reports</span></button>
-        <button onclick="openMenuWizard()" class="add-action-btn">+</button>
-        <button id="navInvBtn" onclick="switchMainTab('inventory')" class="nav-btn"><span>📦</span><span>Stock</span></button>
-        <button id="navHelpBtn" onclick="switchMainTab('help')" class="nav-btn"><span>💬</span><span>Support</span></button>
+        <!-- PAGE 4: TICK ATTENDANCE & TIMESTAMPS -->
+        <div id="page-attendance" class="page">
+            <div class="card">
+                <div class="card-title">Mark Daily Attendance</div>
+                <div class="form-group">
+                    <label>Select Date</label>
+                    <input type="date" id="attendance-date">
+                </div>
+                <!-- Feature 23 & 24: Mark All Present / Reset Actions -->
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-small" style="background: var(--success);" onclick="markAllPresent()">✓ Mark All Present</button>
+                    <button class="btn btn-small btn-danger" onclick="resetAttendanceSelection()">✕ Reset All</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Student Attendance List</div>
+                <div id="attendance-list-container">Loading...</div>
+                <button class="btn" style="margin-top: 16px;" onclick="saveAttendance()">Save Attendance</button>
+            </div>
+        </div>
+
+        <!-- PAGE 5: TEST MARKS MANAGER -->
+        <div id="page-tests" class="page">
+            <div class="card">
+                <div class="card-title">📝 Add Test Score</div>
+                <div class="form-group">
+                    <label>Select Student</label>
+                    <select id="test-student-select"></select>
+                </div>
+                <div class="form-group">
+                    <label>Test Subject / Name</label>
+                    <input type="text" id="test-name" placeholder="e.g. Science Chapter 4 Test">
+                </div>
+                <div class="form-group">
+                    <label>Marks Obtained</label>
+                    <input type="number" id="test-obtained" placeholder="e.g. 18">
+                </div>
+                <div class="form-group">
+                    <label>Total Marks</label>
+                    <input type="number" id="test-total" placeholder="e.g. 20">
+                </div>
+                <button class="btn" onclick="saveTestScore()">Save Score & Share</button>
+            </div>
+        </div>
+
+        <!-- PAGE 6: REPORTS & FEES -->
+        <div id="page-reports" class="page">
+            <div class="card">
+                <div class="card-title">Fee Reminders & Invoices</div>
+                <div id="fee-list-container">Loading...</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Student Attendance Report</div>
+                <div class="form-group">
+                    <label>Select Student</label>
+                    <select id="report-student-select" onchange="generateReport()">
+                        <option value="">-- Select Student --</option>
+                    </select>
+                </div>
+                <div id="report-results-container">Select a student to view report.</div>
+            </div>
+        </div>
+
+        <!-- PAGE 7: BROADCAST -->
+        <div id="page-broadcast" class="page">
+            <div class="card">
+                <div class="card-title">Mass Announcements</div>
+                <div class="form-group">
+                    <label>Broadcast Text</label>
+                    <textarea id="broadcast-msg" rows="4" placeholder="Dear Parents, Tuition will remain closed tomorrow..."></textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Send to Parents</div>
+                <div id="broadcast-list-container">Loading...</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav>
+        <div class="nav-item active" onclick="switchTab('dashboard')">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+            Home
+        </div>
+        <div class="nav-item" onclick="switchTab('students')">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+            Students
+        </div>
+        <div class="nav-item" onclick="switchTab('ai-assistant')">
+            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"></path></svg>
+            AI Update
+        </div>
+        <div class="nav-item" onclick="switchTab('attendance')">
+            <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            Attendance
+        </div>
+        <div class="nav-item" onclick="switchTab('reports')">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            Reports
+        </div>
     </nav>
 
-    <div id="wizardMenuDialog" class="overlay">
-        <div class="overlay-body">
-            <div class="overlay-header">
-                <div>
-                    <h3 style="font-size:18px; font-weight:900;">New Order Bill</h3>
-                    <p style="font-size:12px; color:var(--text-muted);">Tap options to stack inside invoice card</p>
-                </div>
-                <button onclick="closeWizardMenu()" class="close-btn">×</button>
-            </div>
-            <div id="wizardItemGrid" class="menu-tiles-grid hide-scrollbar"></div>
-            <div style="border-top:2px solid var(--border); padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <span id="wizardItemsCount" style="font-size:11px; display:block; opacity:0.6; font-weight:700;">Items Picked: 0</span>
-                    <span id="wizardRunningTotal" style="font-size:26px; font-weight:900; color:var(--success);">₹0</span>
-                </div>
-                <button onclick="advanceToCheckout()" style="padding:14px 28px; border:none; background:var(--success); color:white; border-radius:14px; font-weight:900; cursor:pointer;">PROCEED DUE</button>
-            </div>
-        </div>
-    </div>
+    <!-- Firebase SDK & App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    <div id="wizardModifierDialog" class="overlay" style="align-items:center;">
-        <div class="overlay-body" style="max-width:300px; border-radius:24px;">
-            <div style="text-align:center;">
-                <span id="modTargetIcon" style="font-size:44px; display:block;">🍔</span>
-                <h4 id="modTargetName" style="font-size:18px; font-weight:900; margin-top:4px;">Portion Modifier</h4>
-            </div>
-            <div class="variant-row">
-                <button id="portionFullBtn" onclick="selectPortionMode('FULL')" class="var-btn active">FULL</button>
-                <button id="portionHalfBtn" onclick="selectPortionMode('HALF')" class="var-btn">HALF</button>
-            </div>
-            <div>
-                <label style="font-size:11px; font-weight:800; opacity:0.5; display:block; margin-bottom:6px;">Portion Price Rate (₹)</label>
-                <input type="number" id="modTargetPrice" class="input-box" style="text-align:center; font-weight:900; font-size:18px;">
-            </div>
-            <div>
-                <label style="font-size:11px; font-weight:800; opacity:0.5; display:block; margin-bottom:6px;">Quantity Counter</label>
-                <div class="math-counter">
-                    <button onclick="adjustWizardQty(-1)" class="math-btn">-</button>
-                    <span id="modTargetQty" class="math-val">1</span>
-                    <button onclick="adjustWizardQty(1)" class="math-btn">+</button>
-                </div>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;">
-                <button onclick="closeModifierDialog()" class="input-box" style="cursor:pointer; font-size:13px; text-align:center; font-weight:700;">Cancel</button>
-                <button onclick="commitItemToWizardCart()" style="border:none; background:var(--accent); color:#0b0f19; border-radius:14px; font-weight:900; cursor:pointer;">STACK ROW</button>
-            </div>
-        </div>
-    </div>
+        // Groq API Key
+        const GROQ_API_KEY = "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";
 
-    <div id="wizardCheckoutDialog" class="overlay">
-        <div class="overlay-body">
-            <div class="overlay-header">
-                <h3 style="font-size:18px; font-weight:900;">Final Settle Slate</h3>
-                <button onclick="closeCheckoutDialog()" class="close-btn">×</button>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                <input type="text" id="checkoutCustomerName" placeholder="Note Tag (e.g. Table 4)" class="input-box">
-                <div style="display: grid; grid-template-columns: 80px 1fr; gap: 8px; width: 100%;">
-                    <input type="text" id="checkoutCountryCode" value="+91" class="input-box" style="text-align: center; font-weight: 700;">
-                    <input type="tel" id="checkoutCustomerPhone" placeholder="10-Digit Mobile Number" class="input-box" maxlength="10">
-                </div>
-            </div>
-            
-            <div style="background:var(--bg-main); border:2px solid var(--border); padding:14px; border-radius:16px;">
-                <div class="breakdown-row"><span>Items Subtotal:</span><span id="bdSubtotal">₹0</span></div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; margin-bottom:8px;">
-                    <span style="font-size:13px; font-weight:700; opacity:0.8;">Apply Discount (₹):</span>
-                    <input type="number" id="checkoutDiscountInput" value="0" oninput="runLiveBreakdownMath()" style="max-width:90px; padding:6px; border-radius:8px; border:2px solid var(--border); background:var(--bg-input); color:var(--text-main); font-weight:900; text-align:center;">
-                </div>
-                <div style="border-top:1px dashed var(--border); margin-top:8px; padding-top:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:14px; font-weight:900; color:var(--accent);">Net Total Due:</span>
-                    <span id="checkoutTotalDisplay" style="font-size:26px; font-weight:900; color:var(--success);">₹0</span>
-                </div>
-            </div>
-
-            <div class="settle-grid">
-                <button onclick="executeFinalOrderSave('CASH')" class="pay-action-btn cash">💵 SETTLE CASH</button>
-                <button onclick="executeFinalOrderSave('UPI')" class="pay-action-btn upi">📱 SETTLE UPI</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="whatsappPromptDialog" class="overlay" style="align-items:center;">
-        <div class="overlay-body" style="max-width:280px; border-radius:24px; text-align:center; gap:12px; padding:24px;">
-            <span style="font-size:40px; color:#25d366; display:block;">💬</span>
-            <h4 style="font-size:18px; font-weight:900;">Send Receipt String?</h4>
-            <p style="font-size:12px; color:var(--text-muted); font-weight:500;">Launch WhatsApp gateway api redirect framework instantly.</p>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <button onclick="handleWhatsappDecision(false)" class="input-box" style="cursor:pointer; font-size:13px; text-align:center; font-weight:700;">Skip</button>
-                <button onclick="handleWhatsappDecision(true)" style="border:none; background:#25d366; color:white; border-radius:14px; font-weight:900; cursor:pointer;">Send Bill</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
+        // Firebase Setup
         const firebaseConfig = {
-            apiKey: "AIzaSyDOoHnij3Dzc2OXbv4YSbboIMVafn6CODw",
-            authDomain: "foodbook-ea39d.firebaseapp.com",
-            databaseURL: "https://foodbook-ea39d-default-rtdb.firebaseio.com",
-            projectId: "foodbook-ea39d",
-            storageBucket: "foodbook-ea39d.firebasestorage.app",
-            messagingSenderId: "892105261772",
-            appId: "1:892105261772:web:efcc054ddf88b6ddf0b869"
+            apiKey: "AIzaSyDE_Tzjwmoh-xuFTFYpT5ElGjfN6T0VEsI",
+            authDomain: "sanchitution.firebaseapp.com",
+            projectId: "sanchitution",
+            storageBucket: "sanchitution.firebasestorage.app",
+            messagingSenderId: "349272071034",
+            appId: "1:349272071034:web:e06bb9e9218a93741314c3",
+            measurementId: "G-HM1LLDNN2R",
+            databaseURL: "https://sanchitution-default-rtdb.firebaseio.com"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        let currentAccountID = localStorage.getItem('foodbook_cafe_id') || "";
-        let activeMenu = {};
-        let activeOrders = {};
-        
-        let wizardCart = [];
-        let temporarySelectedKey = null;
-        let temporaryQtyCount = 1;
-        let selectedPortion = 'FULL'; 
-        let reportPaymentFilterMode = 'ALL';
-        let currentActiveWorkspacePayload = null;
-        let pendingItemDeletionTargetKey = null; // Memory state for layout targeting
+        let students = {};
+        let attendance = {};
+        let tempAttendanceState = {};
 
-        setTimeout(() => {
-            const splash = document.getElementById('splashScreen');
-            if(splash) {
-                splash.style.opacity = '0';
-                splash.style.visibility = 'hidden';
-                setTimeout(() => splash.remove(), 500);
+        // Helper: Direct Android Native WhatsApp Intent
+        window.openWhatsAppNative = function(phone, text) {
+            if (!phone) return showToast("Phone number missing!");
+            let cleanPhone = phone.replace(/\D/g, '');
+            if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+
+            const encodedMsg = encodeURIComponent(text);
+            const intentUrl = `intent://send?phone=${cleanPhone}&text=${encodedMsg}#Intent;scheme=whatsapp;package=com.whatsapp;end`;
+            const schemeUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
+
+            try { window.location.href = intentUrl; } catch(e) { window.location.href = schemeUrl; }
+        };
+
+        // Helper: Student 3D Circle Initial Avatar
+        function getInitials(name) {
+            if (!name) return 'S';
+            const parts = name.trim().split(' ');
+            return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
+        }
+
+        // Custom Toast Notification
+        window.showToast = function(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        };
+
+        // Confirmation Modal
+        window.showModal = function({ title, body, onConfirm }) {
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('modal-title').innerText = title || 'Alert';
+            document.getElementById('modal-body').innerHTML = body || 'Are you sure?';
+
+            const confirmBtn = document.getElementById('modal-confirm');
+            const cancelBtn = document.getElementById('modal-cancel');
+            const close = () => modal.classList.remove('active');
+
+            confirmBtn.onclick = () => { close(); if (onConfirm) onConfirm(); };
+            cancelBtn.onclick = close;
+            modal.classList.add('active');
+        };
+
+        // Theme Switcher (Lavender Light / Dark Lavender)
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark-lavender' ? 'lavender' : 'dark-lavender';
+            document.documentElement.setAttribute('data-theme', next);
+            themeBtn.innerText = next === 'dark-lavender' ? '☀️' : '🌙';
+        });
+
+        // Splash Hide
+        setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 1200);
+
+        // Date Picker Default
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('attendance-date').value = todayStr;
+
+        // Firebase Sync
+        onValue(ref(db, 'students'), (snapshot) => {
+            students = snapshot.val() || {};
+            renderAll();
+        });
+
+        onValue(ref(db, 'attendance'), (snapshot) => {
+            attendance = snapshot.val() || {};
+            renderAttendanceList();
+            updateDashboard();
+            generateReport();
+        });
+
+        function renderAll() {
+            renderStudentsList();
+            renderAttendanceList();
+            renderBroadcastList();
+            renderFeeList();
+            populateDropdowns();
+            updateDashboard();
+            checkFeeReminders();
+        }
+
+        // Add Student
+        document.getElementById('student-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = 'std_' + Date.now();
+            const name = document.getElementById('student-name').value.trim();
+            const parentName = document.getElementById('student-parent-name').value.trim() || 'Parent';
+            let phone = document.getElementById('student-phone').value.trim();
+            const classVal = document.getElementById('student-class').value.trim();
+            const timing = document.getElementById('student-timing').value.trim() || 'Batch 1';
+            const fee = document.getElementById('student-fee').value.trim();
+            const dueDay = document.getElementById('student-due-day').value.trim() || 5;
+
+            set(ref(db, 'students/' + id), {
+                id, name, parentName, phone, classVal, timing, fee, dueDay: parseInt(dueDay), feePaid: false
+            }).then(() => {
+                showToast("Student saved to Lavender Database!");
+                document.getElementById('student-form').reset();
+            }).catch(err => showToast("Error: " + err.message));
+        });
+
+        // Edit Student
+        window.openEditModal = function(id) {
+            const s = students[id];
+            if (!s) return;
+
+            document.getElementById('edit-id').value = s.id;
+            document.getElementById('edit-name').value = s.name;
+            document.getElementById('edit-parent-name').value = s.parentName || '';
+            document.getElementById('edit-phone').value = s.phone;
+            document.getElementById('edit-class').value = s.classVal;
+            document.getElementById('edit-timing').value = s.timing || '';
+            document.getElementById('edit-fee').value = s.fee;
+            document.getElementById('edit-due-day').value = s.dueDay || 5;
+
+            document.getElementById('edit-modal').classList.add('active');
+        };
+
+        window.closeEditModal = function() {
+            document.getElementById('edit-modal').classList.remove('active');
+        };
+
+        document.getElementById('edit-student-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const updatedData = {
+                name: document.getElementById('edit-name').value.trim(),
+                parentName: document.getElementById('edit-parent-name').value.trim(),
+                phone: document.getElementById('edit-phone').value.trim(),
+                classVal: document.getElementById('edit-class').value.trim(),
+                timing: document.getElementById('edit-timing').value.trim(),
+                fee: document.getElementById('edit-fee').value.trim(),
+                dueDay: parseInt(document.getElementById('edit-due-day').value.trim()) || 5
+            };
+
+            update(ref(db, `students/${id}`), updatedData)
+                .then(() => {
+                    showToast("Student updated!");
+                    closeEditModal();
+                })
+                .catch(err => showToast("Error: " + err.message));
+        });
+
+        // Delete Student
+        window.deleteStudent = function(id) {
+            showModal({
+                title: "Delete Student",
+                body: "Are you sure you want to delete this student?",
+                onConfirm: () => {
+                    remove(ref(db, 'students/' + id))
+                        .then(() => showToast("Student deleted"))
+                        .catch(err => showToast("Error deleting"));
+                }
+            });
+        };
+
+        // Directory Render & Search Filter
+        function renderStudentsList() {
+            const container = document.getElementById('students-list-container');
+            const keys = Object.keys(students);
+
+            if (keys.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No students added yet.</p>';
+                return;
             }
-            if (!currentAccountID) {
-                document.getElementById('lockScreen').classList.remove('hidden');
+
+            container.innerHTML = keys.map(k => {
+                const s = students[k];
+                return `
+                    <div class="list-item student-card-item" data-name="${s.name.toLowerCase()}">
+                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="student-info" style="flex: 1;">
+                            <h4>${s.name}</h4>
+                            <p>${s.classVal} • ₹${s.fee}/mo (Due: Day ${s.dueDay || 5})</p>
+                            <p>📱 ${s.phone} • ${s.timing || ''}</p>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-warning btn-small" onclick="openEditModal('${s.id}')">Edit ✏️</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteStudent('${s.id}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.filterStudentList = function() {
+            const term = document.getElementById('search-student-input').value.toLowerCase();
+            document.querySelectorAll('.student-card-item').forEach(el => {
+                const name = el.getAttribute('data-name');
+                el.style.display = name.includes(term) ? 'flex' : 'none';
+            });
+        };
+
+        // Attendance Actions
+        function renderAttendanceList() {
+            const date = document.getElementById('attendance-date').value;
+            const container = document.getElementById('attendance-list-container');
+            const keys = Object.keys(students);
+
+            if (keys.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Add students first.</p>';
+                return;
+            }
+
+            const current = attendance[date] || {};
+            tempAttendanceState = { ...current };
+
+            container.innerHTML = keys.map(k => {
+                const s = students[k];
+                const status = tempAttendanceState[s.id] || 'Present';
+                tempAttendanceState[s.id] = status;
+                const isPresent = status === 'Present';
+
+                return `
+                    <div class="list-item">
+                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="student-info" style="flex: 1;">
+                            <h4>${s.name}</h4>
+                            <p>${s.classVal}</p>
+                        </div>
+                        <div class="tick-container" onclick="toggleTick('${s.id}')">
+                            <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted)">
+                                ${isPresent ? 'Present' : 'Absent'}
+                            </span>
+                            <div id="tick-${s.id}" class="tick-box ${isPresent ? 'checked' : 'absent-check'}">
+                                ${isPresent ? '✓' : '✕'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.toggleTick = function(id) {
+            const next = tempAttendanceState[id] === 'Present' ? 'Absent' : 'Present';
+            tempAttendanceState[id] = next;
+
+            const box = document.getElementById(`tick-${id}`);
+            if (next === 'Present') {
+                box.className = "tick-box checked";
+                box.innerText = "✓";
+                box.previousElementSibling.innerText = "Present";
             } else {
-                bypassLockGate();
+                box.className = "tick-box absent-check";
+                box.innerText = "✕";
+                box.previousElementSibling.innerText = "Absent";
             }
-        }, 2500);
-
-        window.onload = function() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('filterDateInput').value = today;
-            document.getElementById('filterDateInput').addEventListener('change', applyReportFilters);
         };
 
-        function verifyPasscode() {
-            let inputID = document.getElementById('passcodeInput').value.trim().toUpperCase();
-            if(!inputID) return alert("Please type a valid account ID code.");
+        window.markAllPresent = function() {
+            Object.keys(students).forEach(id => { tempAttendanceState[id] = 'Present'; });
+            renderAttendanceList();
+            showToast("All marked Present!");
+        };
 
-            database.ref(inputID).once('value').then((snapshot) => {
-                if(snapshot.exists() && inputID !== "ADMIN") {
-                    currentAccountID = inputID;
-                    localStorage.setItem('foodbook_cafe_id', currentAccountID);
-                    bypassLockGate();
-                } else {
-                    document.getElementById('loginError').style.display = 'block';
-                    setTimeout(() => document.getElementById('loginError').style.display = 'none', 3000);
-                }
-            });
-        }
+        window.resetAttendanceSelection = function() {
+            Object.keys(students).forEach(id => { tempAttendanceState[id] = 'Absent'; });
+            renderAttendanceList();
+            showToast("Reset all to Absent!");
+        };
 
-        function showAdminVerificationScreen() {
-            document.getElementById('lockScreenSubtitle').innerText = "Admin Pin Required";
-            document.getElementById('stageLoginView').classList.add('hidden');
-            document.getElementById('stageAdminVerifyView').classList.remove('hidden');
-            document.getElementById('stageCreateCafeView').classList.add('hidden');
-            document.getElementById('adminSecretInput').value = '';
-        }
+        window.saveAttendance = function() {
+            const date = document.getElementById('attendance-date').value;
+            if (!date) return showToast("Select a date.");
 
-        function backToLoginStage() {
-            document.getElementById('lockScreenSubtitle').innerText = "Enter Cafe Account Token Below";
-            document.getElementById('stageLoginView').classList.remove('hidden');
-            document.getElementById('stageAdminVerifyView').classList.add('hidden');
-            document.getElementById('stageCreateCafeView').classList.add('hidden');
-        }
+            set(ref(db, 'attendance/' + date), tempAttendanceState)
+                .then(() => showToast(`Attendance saved with timestamp!`))
+                .catch(err => showToast("Error saving"));
+        };
 
-        function toggleAdminPasswordView() {
-            const field = document.getElementById('adminSecretInput');
-            field.type = (field.type === 'password') ? 'text' : 'password';
-        }
+        document.getElementById('attendance-date').addEventListener('change', renderAttendanceList);
 
-        function verifyAdminMasterCode() {
-            const inputSecret = document.getElementById('adminSecretInput').value.trim();
-            database.ref('admin').once('value').then((snapshot) => {
-                const globalAdminPin = snapshot.val() || "aklavyaaaa4040";
-                if(inputSecret === globalAdminPin) {
-                    document.getElementById('lockScreenSubtitle').innerText = "Register New Account";
-                    document.getElementById('stageAdminVerifyView').classList.add('hidden');
-                    document.getElementById('stageCreateCafeView').classList.remove('hidden');
-                    document.getElementById('newCafeIdInput').value = '';
-                } else {
-                    alert("Invalid Admin Authentication Pin Code!");
-                }
-            });
-        }
+        // GROQ AI SHORT MESSAGE GENERATOR
+        window.generateAIUpdate = async function() {
+            const studentId = document.getElementById('ai-student-select').value;
+            const textInput = document.getElementById('ai-input-text').value.trim();
 
-        function commitNewCafeToFirebase() {
-            const targetedId = document.getElementById('newCafeIdInput').value.trim().toUpperCase();
-            if(!targetedId || targetedId === "ADMIN") return alert("Provide a legitimate, unique label key code.");
+            if (!studentId) return showToast("Please select a student!");
+            if (!textInput) return showToast("Please enter or speak taught details!");
 
-            database.ref(targetedId).once('value').then((snapshot) => {
-                if(snapshot.exists()) {
-                    return alert("This Account ID registration label already exists!");
-                }
-                
-                const currentDayTimestampStr = new Date().toISOString().split('T')[0];
-                const cleanRegistrationSchema = {
-                    settings: {
-                        account_id: targetedId,
-                        last_payment_date: currentDayTimestampStr,
-                        prev_payment_date: currentDayTimestampStr
+            const student = students[studentId];
+            const btn = document.getElementById('generate-ai-btn');
+            btn.innerText = "⚡ Generating Short Message...";
+            btn.disabled = true;
+
+            const prompt = `You are a tuition assistant for "Sanchi Tuition Classes". Generate a VERY SHORT, clear, and professional Hinglish update message for WhatsApp.
+            Student: ${student.name}
+            Class: ${student.classVal}
+            Notes: ${textInput}
+
+            RULES:
+            - Keep it maximum 3 bullet points long.
+            - Write in casual professional Hinglish with relevant emojis.
+            - DO NOT add markdown code blocks. Output plain ready-to-copy message text only.`;
+
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${GROQ_API_KEY}`,
+                        "Content-Type": "application/json"
                     },
-                    menu: {
-                        "item_default": { name: "Special Tea", icon: "☕", base_price: 20 }
-                    },
-                    orders: {}
-                };
-
-                database.ref(targetedId).set(cleanRegistrationSchema).then(() => {
-                    currentAccountID = targetedId;
-                    localStorage.setItem('foodbook_cafe_id', currentAccountID);
-                    alert(`Account ${targetedId} Successfully Created!`);
-                    bypassLockGate();
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [{ role: "user", content: prompt }]
+                    })
                 });
-            });
-        }
 
-        function bypassLockGate() {
-            document.getElementById('lockScreen').classList.add('hidden');
-            
-            database.ref(`${currentAccountID}/settings`).once('value').then((snapshot) => {
-                const settings = snapshot.val() || {};
-                const lastPayDateStr = settings.last_payment_date || new Date().toISOString().split('T')[0];
-                
-                const deltaDaysLeft = 30 - Math.floor((new Date().getTime() - new Date(lastPayDateStr).getTime()) / (1000 * 3600 * 24));
-                
-                if(deltaDaysLeft <= 0) {
-                    document.getElementById('expirationLockScreen').classList.remove('hidden');
-                    document.getElementById('appHeader').classList.add('hidden');
-                    document.getElementById('appNavigation').classList.add('hidden');
-                } else {
-                    document.getElementById('expirationLockScreen').classList.add('hidden');
-                    document.getElementById('appHeader').classList.remove('hidden');
-                    document.getElementById('dashboardView').classList.remove('hidden');
-                    document.getElementById('appNavigation').classList.remove('hidden');
-                    
-                    document.getElementById('headerAccountLabel').innerText = currentAccountID;
-                    bindCloudListeners();
-                    syncLicenseCounters();
+                const data = await res.json();
+                if (data.choices && data.choices[0]) {
+                    const aiMsg = data.choices[0].message.content.trim();
+                    document.getElementById('ai-output-text').value = aiMsg;
+                    document.getElementById('ai-result-card').style.display = 'block';
+                    showToast("Message Ready!");
                 }
-            });
-        }
-
-        function logout() {
-            localStorage.removeItem('foodbook_cafe_id');
-            location.reload();
-        }
-
-        function toggleAppTheme() {
-            const b = document.body;
-            b.className = (b.className === 'theme-dark') ? "theme-light" : "theme-dark";
-        }
-
-        function switchMainTab(targetKey) {
-            document.querySelectorAll('.tab-view').forEach(view => view.classList.add('hidden'));
-            document.getElementById('navDashBtn').classList.remove('active');
-            document.getElementById('navRepBtn').classList.remove('active');
-            document.getElementById('navInvBtn').classList.remove('active');
-            document.getElementById('navHelpBtn').classList.remove('active');
-
-            if(targetKey === 'dashboard') {
-                document.getElementById('dashboardView').classList.remove('hidden');
-                document.getElementById('navDashBtn').classList.add('active');
-                renderDashboardLedger();
-            } else if(targetKey === 'reports') {
-                document.getElementById('reportsView').classList.remove('hidden');
-                document.getElementById('navRepBtn').classList.add('active');
-                applyReportFilters();
-            } else if(targetKey === 'inventory') {
-                document.getElementById('inventoryView').classList.remove('hidden');
-                document.getElementById('navInvBtn').classList.add('active');
-            } else if(targetKey === 'help') {
-                document.getElementById('helpView').classList.remove('hidden');
-                document.getElementById('navHelpBtn').classList.add('active');
-                syncLicenseCounters();
+            } catch (e) {
+                showToast("Groq API Error: " + e.message);
+            } finally {
+                btn.innerText = "⚡ Generate Short Message";
+                btn.disabled = false;
             }
-        }
+        };
 
-        function syncLicenseCounters() {
-            database.ref(`${currentAccountID}/settings`).once('value').then((snapshot) => {
-                const settings = snapshot.val() || {};
-                const lastPayStr = settings.last_payment_date || "2026-07-01";
-                const prevPayStr = settings.prev_payment_date || "2026-06-01";
+        window.applyTemplate = function(type) {
+            const templates = {
+                'test-tomorrow': 'Kal Sanchi Tuition Classes mein Weekly Test hoga. Kripya acche se revision karke aayein. All the best! 👍',
+                'fee-reminder': 'Namaste! Monthly tuition fee due date aa gayi hai. Kripya fee clear kar dein. Dhanyawad! 🙏',
+                'holiday-notice': 'Dear Parents, Sanchi Tuition Classes kal band rahegi. Regular classes parson se hongi. Thank you! 🎉'
+            };
+            document.getElementById('ai-input-text').value = templates[type] || '';
+        };
 
-                document.getElementById('licLastPay').innerText = lastPayStr;
-                document.getElementById('licPrevPay').innerText = prevPayStr;
+        window.copyAIText = function() {
+            const text = document.getElementById('ai-output-text').value;
+            navigator.clipboard.writeText(text);
+            showToast("Copied to clipboard!");
+        };
 
-                const deltaDaysLeft = 30 - Math.floor((new Date().getTime() - new Date(lastPayStr).getTime()) / (1000 * 3600 * 24));
-                let daysLeft = deltaDaysLeft < 0 ? 0 : deltaDaysLeft;
+        window.sendAIWhatsApp = function() {
+            const studentId = document.getElementById('ai-student-select').value;
+            const text = document.getElementById('ai-output-text').value;
+            if (!studentId || !students[studentId]) return showToast("Invalid student.");
 
-                document.getElementById('licDaysLeft').innerText = `${daysLeft} Days Remaining`;
-                document.getElementById('licDaysLeft').style.color = (daysLeft <= 5) ? '#ef4444' : 'var(--success)';
-            });
-        }
+            openWhatsAppNative(students[studentId].phone, text);
+        };
 
-        function bindCloudListeners() {
-            database.ref(`${currentAccountID}/menu`).on('value', (snapshot) => {
-                activeMenu = snapshot.val() || {};
-                populateWizardGrid();
-                populateAdminMenuRows();
-                populateFilterDropdown();
+        // Voice Input
+        const micBtn = document.getElementById('mic-btn');
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'hi-IN';
+            recognition.continuous = false;
+
+            micBtn.addEventListener('click', () => {
+                if (micBtn.classList.contains('recording')) recognition.stop();
+                else recognition.start();
             });
 
-            database.ref(`${currentAccountID}/orders`).on('value', (snapshot) => {
-                activeOrders = snapshot.val() || {};
-                renderDashboardLedger();
-                applyReportFilters();
-            });
-        }
+            recognition.onstart = () => { micBtn.classList.add('recording'); showToast("Listening..."); };
+            recognition.onend = () => micBtn.classList.remove('recording');
+            recognition.onresult = (e) => {
+                const transcript = e.results[0][0].transcript;
+                const curr = document.getElementById('ai-input-text').value;
+                document.getElementById('ai-input-text').value = curr ? `${curr} ${transcript}` : transcript;
+            };
+        } else micBtn.style.display = 'none';
 
-        function populateFilterDropdown() {
-            const dropdown = document.getElementById('filterItemDropdown');
-            if(!dropdown) return;
-            dropdown.innerHTML = '<option value="ALL">ALL Menu Items</option>';
-            for(let key in activeMenu) {
-                const opt = document.createElement('option');
-                opt.value = activeMenu[key].name;
-                opt.innerText = `${activeMenu[key].icon || '🍽️'} ${activeMenu[key].name}`;
-                dropdown.appendChild(opt);
-            }
-        }
+        // Test Scores
+        window.saveTestScore = function() {
+            const id = document.getElementById('test-student-select').value;
+            const name = document.getElementById('test-name').value;
+            const obt = document.getElementById('test-obtained').value;
+            const tot = document.getElementById('test-total').value;
 
-        function renderDashboardLedger() {
-            const container = document.getElementById('ledgerContainer');
-            if(!container) return;
-            container.innerHTML = '';
+            if (!id || !obt || !tot) return showToast("Fill all test fields!");
+            const s = students[id];
+            const msg = `Sanchi Tuition Test Report 📝\nStudent: ${s.name}\nTest: ${name}\nScore: ${obt}/${tot}\nKeep up the hard work! 👍`;
+            openWhatsAppNative(s.phone, msg);
+        };
 
-            const todayKey = new Date().toISOString().split('T')[0]; 
-            let salesTotal = 0, orderCount = 0;
-            let collections = [];
+        // Fee Due Reminders Check
+        function checkFeeReminders() {
+            const today = new Date();
+            const currentDay = today.getDate();
+            const container = document.getElementById('dashboard-reminder-popups');
+            let upcomingRemindersHtml = '';
 
-            for(let key in activeOrders) {
-                const order = activeOrders[key];
-                if(order.date_string !== todayKey) continue;
-                
-                salesTotal += order.total_amount;
-                orderCount++;
-                collections.push(order);
-            }
+            Object.values(students).forEach(s => {
+                if (!s.feePaid) {
+                    const dueDay = s.dueDay || 5;
+                    const daysRemaining = dueDay - currentDay;
 
-            document.getElementById('statTotalSales').innerText = `₹${salesTotal}`;
-            document.getElementById('statTotalOrdersCount').innerText = orderCount;
-
-            if(collections.length === 0) {
-                container.innerHTML = `<p style="font-size:13px; text-align:center; opacity:0.4; padding:36px 0; font-style:italic;">No orders generated today yet.</p>`;
-                return;
-            }
-
-            collections.sort((a, b) => b.bill_id.localeCompare(a.bill_id)).forEach((order) => {
-                const div = document.createElement('div');
-                div.className = "item-row";
-                let summary = order.items.map(i => `${i.name} x${i.quantity}`).join(', ');
-                let tagClass = order.payment_method === 'UPI' ? 'row-badge upi' : 'row-badge cash';
-
-                div.innerHTML = `
-                    <div class="row-info">
-                        <h4>${order.bill_id} - ${order.customer_details || 'Counter'} <span style="font-size:10px; color:var(--cyan); margin-left:4px;">(${order.customer_id})</span></h4>
-                        <p>${summary}</p>
-                    </div>
-                    <div class="row-right">
-                        <div style="text-align:right;">
-                            <span class="row-price">₹${order.total_amount}</span><br>
-                            <span class="${tagClass}">${order.payment_method}</span>
-                        </div>
-                        <button class="wa-btn" onclick='dispatchWhatsAppTextBill(${JSON.stringify(order)})'>💬 Bill</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function setReportPaymentFilter(mode) {
-            document.getElementById('reportTabAll').className = "tab-btn";
-            document.getElementById('reportTabCash').className = "tab-btn";
-            document.getElementById('reportTabUpi').className = "tab-btn";
-            
-            if(mode === 'ALL') document.getElementById('reportTabAll').className = "tab-btn active";
-            if(mode === 'CASH') document.getElementById('reportTabCash').className = "tab-btn active";
-            if(mode === 'UPI') document.getElementById('reportTabUpi').className = "tab-btn active";
-            
-            reportPaymentFilterMode = mode;
-            applyReportFilters();
-        }
-
-        function applyReportFilters() {
-            const dateKey = document.getElementById('filterDateInput').value;
-            const selectedItemFilter = document.getElementById('filterItemDropdown').value;
-            const container = document.getElementById('reportLedgerContainer');
-            if(!container) return;
-            container.innerHTML = '';
-
-            let filteredSum = 0, cashSum = 0, upiSum = 0;
-            let collections = [];
-
-            for(let key in activeOrders) {
-                const order = activeOrders[key];
-                
-                if(order.date_string !== dateKey) continue;
-                if(reportPaymentFilterMode !== 'ALL' && order.payment_method !== reportPaymentFilterMode) continue;
-                
-                if(selectedItemFilter !== 'ALL') {
-                    let verified = order.items && order.items.some(i => i.name.startsWith(selectedItemFilter));
-                    if(!verified) continue;
-                }
-
-                filteredSum += order.total_amount;
-                if(order.payment_method === 'CASH') cashSum += order.total_amount;
-                if(order.payment_method === 'UPI') upiSum += order.total_amount;
-
-                collections.push(order);
-            }
-
-            document.getElementById('repSum').innerText = `₹${filteredSum}`;
-            document.getElementById('repCash').innerText = `₹${cashSum}`;
-            document.getElementById('repUpi').innerText = `₹${upiSum}`;
-
-            if(collections.length === 0) {
-                container.innerHTML = `<p style="font-size:12px; text-align:center; opacity:0.4; padding:20px 0; font-style:italic;">No matched parameters listed on this day window.</p>`;
-                return;
-            }
-
-            collections.sort((a, b) => b.bill_id.localeCompare(a.bill_id)).forEach((order) => {
-                const div = document.createElement('div');
-                div.className = "item-row";
-                let summary = order.items.map(i => `${i.name} x${i.quantity}`).join(', ');
-                let tagClass = order.payment_method === 'UPI' ? 'row-badge upi' : 'row-badge cash';
-
-                div.innerHTML = `
-                    <div class="row-info">
-                        <h4>${order.bill_id} - ${order.customer_details || 'Counter'}</h4>
-                        <p>${summary}</p>
-                    </div>
-                    <div class="row-right">
-                        <div style="text-align:right;">
-                            <span class="row-price">₹${order.total_amount}</span><br>
-                            <span class="${tagClass}">${order.payment_method}</span>
-                        </div>
-                        <button class="wa-btn" onclick='dispatchWhatsAppTextBill(${JSON.stringify(order)})'>💬 Bill</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function openMenuWizard() {
-            wizardCart = [];
-            updateWizardUIRuntime();
-            document.getElementById('wizardMenuDialog').classList.add('open');
-        }
-
-        function closeWizardMenu() {
-            document.getElementById('wizardMenuDialog').classList.remove('open');
-        }
-
-        function populateWizardGrid() {
-            const grid = document.getElementById('wizardItemGrid');
-            if(!grid) return;
-            grid.innerHTML = '';
-            for(let key in activeMenu) {
-                const item = activeMenu[key];
-                const tile = document.createElement('div');
-                tile.className = "tile-card";
-                tile.onclick = () => openModifierDialog(key);
-                tile.innerHTML = `
-                    <span style="font-size:36px; display:block;">${item.icon || '🍽️'}</span>
-                    <h5>${item.name}</h5>
-                    <p>₹${item.base_price}</p>
-                `;
-                grid.appendChild(tile);
-            }
-        }
-
-        function openModifierDialog(key) {
-            temporarySelectedKey = key;
-            const item = activeMenu[key];
-            temporaryQtyCount = 1;
-            selectedPortion = 'FULL';
-
-            document.getElementById('portionFullBtn').className = "var-btn active";
-            document.getElementById('portionHalfBtn').className = "var-btn";
-
-            document.getElementById('modTargetIcon').innerText = item.icon || '🍽️';
-            document.getElementById('modTargetName').innerText = item.name;
-            document.getElementById('modTargetPrice').value = item.base_price;
-            document.getElementById('modTargetQty').innerText = temporaryQtyCount;
-
-            document.getElementById('wizardModifierDialog').classList.add('open');
-        }
-
-        function selectPortionMode(mode) {
-            selectedPortion = mode;
-            const base = parseFloat(activeMenu[temporarySelectedKey].base_price);
-            document.getElementById('portionFullBtn').className = "var-btn";
-            document.getElementById('portionHalfBtn').className = "var-btn";
-            
-            if(mode === 'FULL') {
-                document.getElementById('portionFullBtn').classList.add('active');
-                document.getElementById('modTargetPrice').value = base;
-            } else {
-                document.getElementById('portionHalfBtn').classList.add('active');
-                document.getElementById('modTargetPrice').value = base / 2;
-            }
-        }
-
-        function closeModifierDialog() {
-            document.getElementById('wizardModifierDialog').classList.remove('open');
-        }
-
-        function adjustWizardQty(amt) {
-            temporaryQtyCount += amt;
-            if(temporaryQtyCount < 1) temporaryQtyCount = 1;
-            document.getElementById('modTargetQty').innerText = temporaryQtyCount;
-        }
-
-        function commitItemToWizardCart() {
-            const item = activeMenu[temporarySelectedKey];
-            const p = parseFloat(document.getElementById('modTargetPrice').value) || item.base_price;
-            
-            wizardCart.push({
-                name: `${item.name} (${selectedPortion})`,
-                price: p,
-                quantity: temporaryQtyCount,
-                subtotal: p * temporaryQtyCount
-            });
-
-            updateWizardUIRuntime();
-            closeModifierDialog();
-        }
-
-        function updateWizardUIRuntime() {
-            let running = wizardCart.reduce((sum, i) => sum + i.subtotal, 0);
-            document.getElementById('wizardRunningTotal').innerText = `₹${running}`;
-            document.getElementById('wizardItemsCount').innerText = `Items Picked: ${wizardCart.length}`;
-        }
-
-        function advanceToCheckout() {
-            if(wizardCart.length === 0) return alert("Pick items first!");
-            closeWizardMenu();
-            
-            document.getElementById('checkoutDiscountInput').value = "0";
-            document.getElementById('checkoutCustomerName').value = '';
-            document.getElementById('checkoutCustomerPhone').value = '';
-            
-            runLiveBreakdownMath();
-            document.getElementById('wizardCheckoutDialog').classList.add('open');
-        }
-
-        function runLiveBreakdownMath() {
-            let subtotal = wizardCart.reduce((sum, i) => sum + i.subtotal, 0);
-            let discount = parseFloat(document.getElementById('checkoutDiscountInput').value) || 0;
-            let netTotal = subtotal - discount;
-            if(netTotal < 0) netTotal = 0;
-
-            document.getElementById('bdSubtotal').innerText = `₹${subtotal}`;
-            document.getElementById('checkoutTotalDisplay').innerText = `₹${netTotal}`;
-        }
-
-        function closeCheckoutDialog() {
-            document.getElementById('wizardCheckoutDialog').classList.remove('open');
-        }
-
-        function executeFinalOrderSave(payMethod) {
-            const name = document.getElementById('checkoutCustomerName').value.trim() || "Walk-in Customer";
-            const code = document.getElementById('checkoutCountryCode').value.trim();
-            const rawPhone = document.getElementById('checkoutCustomerPhone').value.trim();
-            
-            let finalPhoneMapping = "";
-            if(rawPhone.length >= 10) finalPhoneMapping = code + rawPhone;
-
-            let subtotal = wizardCart.reduce((sum, i) => sum + i.subtotal, 0);
-            let discount = parseFloat(document.getElementById('checkoutDiscountInput').value) || 0;
-            let netTotal = subtotal - discount;
-            if(netTotal < 0) netTotal = 0;
-            
-            const rightNow = new Date();
-            const dString = rightNow.toISOString().split('T')[0];
-
-            database.ref(`${currentAccountID}/orders`).once('value').then((snapshot) => {
-                let ordersMap = snapshot.val() || {};
-                let nextIndexNumber = Object.keys(ordersMap).length + 1;
-                
-                let formattedBillId = "B" + String(nextIndexNumber).padStart(5, '0');
-                let formattedCustomerId = "C" + String(nextIndexNumber).padStart(5, '0');
-
-                const payload = {
-                    bill_id: formattedBillId,
-                    customer_id: formattedCustomerId,
-                    timestamp: rightNow.getTime(),
-                    date_string: dString,
-                    customer_details: name,
-                    customer_phone: finalPhoneMapping,
-                    items: wizardCart,
-                    subtotal_amount: subtotal,
-                    discount_amount: discount,
-                    total_amount: netTotal,
-                    payment_method: payMethod
-                };
-
-                database.ref(`${currentAccountID}/orders/${formattedBillId}`).set(payload).then(() => {
-                    closeCheckoutDialog();
-                    if(finalPhoneMapping.length >= 10) {
-                        currentActiveWorkspacePayload = payload;
-                        document.getElementById('whatsappPromptDialog').classList.add('open');
-                    } else {
-                        switchMainTab('dashboard');
+                    if (daysRemaining >= 0 && daysRemaining <= 3) {
+                        upcomingRemindersHtml += `
+                            <div class="card" style="border-left: 5px solid var(--warning);">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <h4 style="font-size:0.9rem;">⏰ Fee Due Alert!</h4>
+                                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
+                                            <strong>${s.name}</strong>'s fee (₹${s.fee}) is due in <strong>${daysRemaining === 0 ? 'Today!' : daysRemaining + ' day(s)'}</strong>.
+                                        </p>
+                                    </div>
+                                    <button class="btn btn-whatsapp btn-small" onclick="sendFeeReminder('${s.id}')">Send</button>
+                                </div>
+                            </div>
+                        `;
                     }
-                }).catch(e => alert(e.message));
+                }
             });
+
+            container.innerHTML = upcomingRemindersHtml;
         }
 
-        function handleWhatsappDecision(agreed) {
-            document.getElementById('whatsappPromptDialog').classList.remove('open');
-            if(agreed && currentActiveWorkspacePayload) {
-                dispatchWhatsAppTextBill(currentActiveWorkspacePayload);
+        window.sendFeeReminder = function(studentId) {
+            const s = students[studentId];
+            if (!s) return;
+            const msg = `Namaste! Sanchi Tuition Classes se gentle reminder: ${s.name} ki monthly tuition fee (₹${s.fee}) due date paas hai. Kripya samay par clear karein. Dhanyawad! 🙏`;
+            openWhatsAppNative(s.phone, msg);
+        };
+
+        // Data Backup Export JSON
+        window.exportJSONBackup = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ students, attendance }));
+            const anchor = document.createElement('a');
+            anchor.setAttribute("href", dataStr);
+            anchor.setAttribute("download", "Sanchi_Tuition_Backup.json");
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            showToast("Backup file downloaded!");
+        };
+
+        // Dropdowns
+        function populateDropdowns() {
+            const aiSelect = document.getElementById('ai-student-select');
+            const reportSelect = document.getElementById('report-student-select');
+            const testSelect = document.getElementById('test-student-select');
+            const keys = Object.keys(students);
+
+            const optionsHtml = '<option value="">-- Choose Student --</option>' + 
+                keys.map(k => `<option value="${students[k].id}">${students[k].name} (${students[k].classVal})</option>`).join('');
+
+            aiSelect.innerHTML = optionsHtml;
+            reportSelect.innerHTML = optionsHtml;
+            testSelect.innerHTML = optionsHtml;
+        }
+
+        // Fee List View
+        function renderFeeList() {
+            const container = document.getElementById('fee-list-container');
+            const keys = Object.keys(students);
+
+            if (keys.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No students added.</p>';
+                return;
             }
-            currentActiveWorkspacePayload = null;
-            switchMainTab('dashboard');
-        }
 
-        function dispatchWhatsAppTextBill(order) {
-            let txt = `*📚 RECEIPT SUMMARY*\n`;
-            txt += `=========================\n`;
-            txt += `*Bill No:* ${order.bill_id}\n`;
-            txt += `*Customer ID:* ${order.customer_id}\n`;
-            txt += `*Details:* ${order.customer_details}\n`;
-            txt += `*Payment:* ${order.payment_method}\n`;
-            txt += `=========================\n`;
-            order.items.forEach(i => {
-                txt += `• ${i.name}\n   _${i.quantity} x ₹${i.price}_  ->  ₹${i.subtotal}\n`;
-            });
-            txt += `=========================\n`;
-            txt += `*Gross Subtotal:* ₹${order.subtotal_amount}\n`;
-            if(order.discount_amount > 0) {
-                txt += `*Discount Applied:* -₹${order.discount_amount}\n`;
-            }
-            txt += `*NET PAID SUMMARY: ₹${order.total_amount}*\n\n`;
-            txt += `Thank you! 🙏`;
-            
-            const url = `https://api.whatsapp.com/send?phone=${order.customer_phone || ''}&text=${encodeURIComponent(txt)}`;
-            window.open(url, '_blank');
-        }
-
-        function populateAdminMenuRows() {
-            const container = document.getElementById('adminMenuGrid');
-            if(!container) return;
-            container.innerHTML = '';
-            for(let key in activeMenu) {
-                const item = activeMenu[key];
-                const div = document.createElement('div');
-                div.className = "item-row";
-                div.style.marginBottom = "0px";
-                
-                div.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <span style="font-size:24px;">${item.icon || '🍽️'}</span>
-                        <div>
-                            <span style="font-size:14px; font-weight:800; display:block;">${item.name}</span>
-                            <span style="font-size:11px; opacity:0.6; font-family:monospace;">Rate: ₹${item.base_price}</span>
+            container.innerHTML = keys.map(k => {
+                const s = students[k];
+                return `
+                    <div class="list-item">
+                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="student-info" style="flex: 1;">
+                            <h4>${s.name}</h4>
+                            <p>Fee: ₹${s.fee} • Due Day: ${s.dueDay || 5}</p>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-small" style="background:${s.feePaid ? 'var(--success)' : 'var(--warning)'}" onclick="toggleFee('${s.id}', ${!s.feePaid})">
+                                ${s.feePaid ? 'Paid ✓' : 'Mark Paid'}
+                            </button>
+                            ${!s.feePaid ? `<button class="btn btn-whatsapp btn-small" onclick="sendFeeReminder('${s.id}')">Reminder</button>` : ''}
                         </div>
                     </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="wa-btn" style="color:var(--text-main); border: 2px solid var(--border); background:rgba(128,128,128,0.1); box-shadow:none;" onclick="editItemFromAdmin('${key}')">Edit</button>
-                        <button class="wa-btn" style="color:var(--danger); background:rgba(239,68,68,0.08); box-shadow:none;" onclick="triggerCustomDeletionWorkflow('${key}')">Delete</button>
+                `;
+            }).join('');
+        }
+
+        window.toggleFee = function(id, status) {
+            update(ref(db, `students/${id}`), { feePaid: status })
+                .then(() => showToast("Status updated!"))
+                .catch(err => showToast("Error updating"));
+        };
+
+        // Broadcast List
+        function renderBroadcastList() {
+            const container = document.getElementById('broadcast-list-container');
+            const keys = Object.keys(students);
+
+            if (keys.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No students available.</p>';
+                return;
+            }
+
+            container.innerHTML = keys.map(k => {
+                const s = students[k];
+                return `
+                    <div class="list-item">
+                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="student-info" style="flex: 1;">
+                            <h4>${s.name}</h4>
+                            <p>📱 ${s.phone}</p>
+                        </div>
+                        <button class="btn btn-whatsapp btn-small" onclick="sendBroadcast('${s.phone}')">Send 📲</button>
                     </div>
                 `;
-                container.appendChild(div);
-            }
+            }).join('');
         }
 
-        function saveItemToMenu() {
-            const icon = document.getElementById('adminItemIcon').value.trim() || '🍽️';
-            const name = document.getElementById('adminItemName').value.trim();
-            const price = parseFloat(document.getElementById('adminItemPrice').value);
+        window.sendBroadcast = function(phone) {
+            const msg = document.getElementById('broadcast-msg').value.trim();
+            if (!msg) return showToast("Type a message first!");
+            openWhatsAppNative(phone, msg);
+        };
 
-            if(!name || isNaN(price)) return alert("Please fill fields accurately.");
-            const targetKey = 'item_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        // Reports
+        window.generateReport = function() {
+            const studentId = document.getElementById('report-student-select').value;
+            const container = document.getElementById('report-results-container');
 
-            database.ref(`${currentAccountID}/menu/${targetKey}`).set({ name, icon, base_price: price }).then(() => {
-                document.getElementById('adminItemIcon').value = '';
-                document.getElementById('adminItemName').value = '';
-                document.getElementById('adminItemPrice').value = '';
+            if (!studentId) {
+                container.innerHTML = '<p style="font-size:0.85rem; color: var(--text-muted);">Select a student to view history.</p>';
+                return;
+            }
+
+            let total = 0, present = 0, html = '';
+
+            Object.keys(attendance).sort().reverse().forEach(date => {
+                const rec = attendance[date];
+                if (rec && rec[studentId]) {
+                    total++;
+                    const st = rec[studentId];
+                    if (st === 'Present') present++;
+
+                    html += `
+                        <div class="list-item" style="padding: 8px 0;">
+                            <span style="font-size: 0.85rem;">📅 ${date}</span>
+                            <span style="font-weight: bold; font-size: 0.85rem; color: ${st === 'Present' ? 'var(--success)' : 'var(--danger)'}">${st}</span>
+                        </div>
+                    `;
+                }
             });
-        }
 
-        function editItemFromAdmin(k) {
-            const i = activeMenu[k];
-            document.getElementById('adminItemIcon').value = i.icon || '';
-            document.getElementById('adminItemName').value = i.name || '';
-            document.getElementById('adminItemPrice').value = i.base_price || '';
-        }
+            const pct = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
 
-        /* UPGRADED NATIVE HTML OVERLAY CODES FOR WEBVIEW COMPATIBILITY */
-        function triggerCustomDeletionWorkflow(targetMenuChildKey) {
-            pendingItemDeletionTargetKey = targetMenuChildKey;
-            document.getElementById('customConfirmOverlay').classList.add('open');
-        }
+            container.innerHTML = `
+                <div style="background: var(--bg); padding: 14px; border-radius: 16px; margin-bottom: 12px; text-align: center; box-shadow: var(--shadow-in);">
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">${pct}%</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">${present} Present out of ${total} Total Classes</div>
+                </div>
+                <div style="max-height: 200px; overflow-y: auto;">
+                    ${html || '<p style="font-size:0.8rem; color:var(--text-muted)">No history found.</p>'}
+                </div>
+            `;
+        };
 
-        function cancelCustomDeletionCall() {
-            pendingItemDeletionTargetKey = null;
-            document.getElementById('customConfirmOverlay').classList.remove('open');
-        }
+        // Dashboard Revenue Overview Calculator
+        function updateDashboard() {
+            const total = Object.keys(students).length;
+            document.getElementById('stat-total-students').innerText = total;
 
-        function confirmCustomDeletionCall() {
-            if(pendingItemDeletionTargetKey) {
-                database.ref(`${currentAccountID}/menu/${pendingItemDeletionTargetKey}`).remove().then(() => {
-                    cancelCustomDeletionCall();
-                }).catch(err => {
-                    alert("Database write error: " + err.message);
-                });
+            const today = new Date().toISOString().split('T')[0];
+            const todayRecords = attendance[today] || {};
+            const present = Object.values(todayRecords).filter(v => v === 'Present').length;
+
+            document.getElementById('stat-today-attendance').innerText = `${present}/${total}`;
+
+            let collected = 0;
+            let pendingAmt = 0;
+            const pendingList = [];
+
+            Object.values(students).forEach(s => {
+                const feeVal = parseInt(s.fee) || 0;
+                if (s.feePaid) {
+                    collected += feeVal;
+                } else {
+                    pendingAmt += feeVal;
+                    pendingList.push(s);
+                }
+            });
+
+            document.getElementById('rev-collected').innerText = `₹${collected}`;
+            document.getElementById('rev-pending').innerText = `₹${pendingAmt}`;
+
+            const alerts = document.getElementById('dashboard-fee-alerts');
+            if (pendingList.length === 0) {
+                alerts.innerHTML = '<p style="color: var(--success); font-weight: 700; font-size: 0.85rem;">All fees are paid! 🎉</p>';
+            } else {
+                alerts.innerHTML = `<p style="color: var(--danger); font-weight: 700; font-size: 0.85rem;">${pendingList.length} student(s) have unpaid fees (₹${pendingAmt}).</p>`;
             }
         }
+
+        // Navigation Switcher
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            const target = document.getElementById(`page-${tabId}`);
+            if (target) target.classList.add('active');
+
+            const indexMap = { 'dashboard': 0, 'students': 1, 'ai-assistant': 2, 'attendance': 3, 'reports': 4 };
+            if (indexMap[tabId] !== undefined) {
+                document.querySelectorAll('.nav-item')[indexMap[tabId]].classList.add('active');
+            }
+
+            const titles = {
+                'dashboard': '💜 Sanchi Tuition',
+                'students': 'Student Directory',
+                'ai-assistant': 'Groq Short Message AI',
+                'attendance': 'Mark Attendance',
+                'reports': 'Reports & Fees',
+                'tests': 'Test Scores Manager',
+                'broadcast': 'Mass Broadcast'
+            };
+            document.getElementById('header-title').innerText = titles[tabId] || 'Sanchi Tuition';
+        };
     </script>
 </body>
 </html>
