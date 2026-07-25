@@ -6,7 +6,7 @@
     <title>Sanchi Tuition Classes</title>
     <style>
         :root {
-            /* Soft Lavender Claymorphism Theme Palette */
+            /* Soft Lavender Claymorphism Theme */
             --primary: #8B5CF6;
             --primary-dark: #6D28D9;
             --primary-light: #DDD6FE;
@@ -59,7 +59,7 @@
             overflow: hidden;
         }
 
-        /* Splash Screen */
+        /* Animated Splash Screen */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -90,7 +90,7 @@
             100% { transform: translateY(-12px) rotateX(15deg) scale(1.05); }
         }
 
-        /* Header */
+        /* 3D Header */
         header {
             background: var(--bg);
             padding: 16px 20px;
@@ -130,7 +130,6 @@
             transform: scale(0.95);
         }
 
-        /* Container & Navigation Transitions */
         main {
             flex: 1;
             overflow-y: auto;
@@ -204,7 +203,6 @@
             font-weight: 600;
         }
 
-        /* Form Controls */
         .form-group {
             margin-bottom: 14px;
         }
@@ -278,7 +276,6 @@
             color: white;
         }
 
-        /* Avatar 3D Circle */
         .avatar {
             width: 42px;
             height: 42px;
@@ -294,7 +291,6 @@
             flex-shrink: 0;
         }
 
-        /* Lists */
         .list-item {
             display: flex;
             align-items: center;
@@ -319,7 +315,6 @@
             color: var(--text-muted);
         }
 
-        /* 3D Checkbox */
         .tick-container {
             display: flex;
             align-items: center;
@@ -354,7 +349,6 @@
             transform: scale(1.08);
         }
 
-        /* Modals */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -409,7 +403,6 @@
             margin-top: 14px;
         }
 
-        /* Toast Popup */
         #toast {
             position: fixed;
             top: 25px;
@@ -430,7 +423,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Voice Mic Pulse */
         .voice-btn {
             background: #EF4444;
             color: white;
@@ -455,7 +447,6 @@
             100% { transform: scale(1.15); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
         }
 
-        /* Navigation Bar */
         nav {
             position: fixed;
             bottom: 0;
@@ -589,7 +580,6 @@
     <main>
         <!-- PAGE 1: DASHBOARD -->
         <div id="page-dashboard" class="page active">
-            <!-- Feature 29: Sticky Announcement -->
             <div class="card" style="border-left: 5px solid var(--primary);">
                 <div class="card-title">📌 Tuition Notice <span class="badge-chip">Live</span></div>
                 <p style="font-size: 0.8rem; color: var(--text-muted);" id="dashboard-notice">Welcome to Sanchi Tuition Classes! All data auto-syncing in real time.</p>
@@ -608,7 +598,6 @@
                 </div>
             </div>
 
-            <!-- Feature 15: Revenue Overview Card -->
             <div class="card">
                 <div class="card-title">💰 Monthly Revenue Summary</div>
                 <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 8px;">
@@ -673,7 +662,6 @@
                 </form>
             </div>
 
-            <!-- Feature 5 & 6: Student Directory with Search and Class Filters -->
             <div class="card">
                 <div class="card-title">
                     Directory
@@ -708,7 +696,6 @@
                 <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">⚡ Generate Short Message</button>
             </div>
 
-            <!-- Feature 14: Pre-Made Quick Template Buttons -->
             <div class="card">
                 <div class="card-title">⚡ One-Tap Templates</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 8px;">
@@ -736,7 +723,6 @@
                     <label>Select Date</label>
                     <input type="date" id="attendance-date">
                 </div>
-                <!-- Feature 23 & 24: Mark All Present / Reset Actions -->
                 <div style="display: flex; gap: 8px;">
                     <button class="btn btn-small" style="background: var(--success);" onclick="markAllPresent()">✓ Mark All Present</button>
                     <button class="btn btn-small btn-danger" onclick="resetAttendanceSelection()">✕ Reset All</button>
@@ -810,7 +796,6 @@
         </div>
     </main>
 
-    <!-- Bottom Navigation Bar -->
     <nav>
         <div class="nav-item active" onclick="switchTab('dashboard')">
             <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
@@ -839,10 +824,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Groq API Key
         const GROQ_API_KEY = "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";
 
-        // Firebase Setup
         const firebaseConfig = {
             apiKey: "AIzaSyDE_Tzjwmoh-xuFTFYpT5ElGjfN6T0VEsI",
             authDomain: "sanchitution.firebaseapp.com",
@@ -861,27 +844,23 @@
         let attendance = {};
         let tempAttendanceState = {};
 
-        // Helper: Direct Android Native WhatsApp Intent
+        // Android WebView WhatsApp Launcher
         window.openWhatsAppNative = function(phone, text) {
             if (!phone) return showToast("Phone number missing!");
             let cleanPhone = phone.replace(/\D/g, '');
             if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
 
             const encodedMsg = encodeURIComponent(text);
-            const intentUrl = `intent://send?phone=${cleanPhone}&text=${encodedMsg}#Intent;scheme=whatsapp;package=com.whatsapp;end`;
-            const schemeUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
-
-            try { window.location.href = intentUrl; } catch(e) { window.location.href = schemeUrl; }
+            // Uses standard wa.me format intercepted directly by WebViewClient
+            window.location.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
         };
 
-        // Helper: Student 3D Circle Initial Avatar
         function getInitials(name) {
             if (!name) return 'S';
             const parts = name.trim().split(' ');
             return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
         }
 
-        // Custom Toast Notification
         window.showToast = function(msg) {
             const toast = document.getElementById('toast');
             toast.innerText = msg;
@@ -889,7 +868,6 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         };
 
-        // Confirmation Modal
         window.showModal = function({ title, body, onConfirm }) {
             const modal = document.getElementById('custom-modal');
             document.getElementById('modal-title').innerText = title || 'Alert';
@@ -904,7 +882,6 @@
             modal.classList.add('active');
         };
 
-        // Theme Switcher (Lavender Light / Dark Lavender)
         const themeBtn = document.getElementById('theme-toggle');
         themeBtn.addEventListener('click', () => {
             const current = document.documentElement.getAttribute('data-theme');
@@ -913,14 +890,11 @@
             themeBtn.innerText = next === 'dark-lavender' ? '☀️' : '🌙';
         });
 
-        // Splash Hide
         setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 1200);
 
-        // Date Picker Default
         const todayStr = new Date().toISOString().split('T')[0];
         document.getElementById('attendance-date').value = todayStr;
 
-        // Firebase Sync
         onValue(ref(db, 'students'), (snapshot) => {
             students = snapshot.val() || {};
             renderAll();
@@ -943,7 +917,6 @@
             checkFeeReminders();
         }
 
-        // Add Student
         document.getElementById('student-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = 'std_' + Date.now();
@@ -958,12 +931,11 @@
             set(ref(db, 'students/' + id), {
                 id, name, parentName, phone, classVal, timing, fee, dueDay: parseInt(dueDay), feePaid: false
             }).then(() => {
-                showToast("Student saved to Lavender Database!");
+                showToast("Student saved!");
                 document.getElementById('student-form').reset();
             }).catch(err => showToast("Error: " + err.message));
         });
 
-        // Edit Student
         window.openEditModal = function(id) {
             const s = students[id];
             if (!s) return;
@@ -1005,7 +977,6 @@
                 .catch(err => showToast("Error: " + err.message));
         });
 
-        // Delete Student
         window.deleteStudent = function(id) {
             showModal({
                 title: "Delete Student",
@@ -1018,7 +989,6 @@
             });
         };
 
-        // Directory Render & Search Filter
         function renderStudentsList() {
             const container = document.getElementById('students-list-container');
             const keys = Object.keys(students);
@@ -1055,7 +1025,6 @@
             });
         };
 
-        // Attendance Actions
         function renderAttendanceList() {
             const date = document.getElementById('attendance-date').value;
             const container = document.getElementById('attendance-list-container');
@@ -1128,13 +1097,12 @@
             if (!date) return showToast("Select a date.");
 
             set(ref(db, 'attendance/' + date), tempAttendanceState)
-                .then(() => showToast(`Attendance saved with timestamp!`))
+                .then(() => showToast(`Attendance saved!`))
                 .catch(err => showToast("Error saving"));
         };
 
         document.getElementById('attendance-date').addEventListener('change', renderAttendanceList);
 
-        // GROQ AI SHORT MESSAGE GENERATOR
         window.generateAIUpdate = async function() {
             const studentId = document.getElementById('ai-student-select').value;
             const textInput = document.getElementById('ai-input-text').value.trim();
@@ -1208,7 +1176,6 @@
             openWhatsAppNative(students[studentId].phone, text);
         };
 
-        // Voice Input
         const micBtn = document.getElementById('mic-btn');
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1230,7 +1197,6 @@
             };
         } else micBtn.style.display = 'none';
 
-        // Test Scores
         window.saveTestScore = function() {
             const id = document.getElementById('test-student-select').value;
             const name = document.getElementById('test-name').value;
@@ -1243,7 +1209,6 @@
             openWhatsAppNative(s.phone, msg);
         };
 
-        // Fee Due Reminders Check
         function checkFeeReminders() {
             const today = new Date();
             const currentDay = today.getDate();
@@ -1283,7 +1248,6 @@
             openWhatsAppNative(s.phone, msg);
         };
 
-        // Data Backup Export JSON
         window.exportJSONBackup = function() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ students, attendance }));
             const anchor = document.createElement('a');
@@ -1295,7 +1259,6 @@
             showToast("Backup file downloaded!");
         };
 
-        // Dropdowns
         function populateDropdowns() {
             const aiSelect = document.getElementById('ai-student-select');
             const reportSelect = document.getElementById('report-student-select');
@@ -1310,7 +1273,6 @@
             testSelect.innerHTML = optionsHtml;
         }
 
-        // Fee List View
         function renderFeeList() {
             const container = document.getElementById('fee-list-container');
             const keys = Object.keys(students);
@@ -1346,7 +1308,6 @@
                 .catch(err => showToast("Error updating"));
         };
 
-        // Broadcast List
         function renderBroadcastList() {
             const container = document.getElementById('broadcast-list-container');
             const keys = Object.keys(students);
@@ -1377,7 +1338,6 @@
             openWhatsAppNative(phone, msg);
         };
 
-        // Reports
         window.generateReport = function() {
             const studentId = document.getElementById('report-student-select').value;
             const container = document.getElementById('report-results-container');
@@ -1418,7 +1378,6 @@
             `;
         };
 
-        // Dashboard Revenue Overview Calculator
         function updateDashboard() {
             const total = Object.keys(students).length;
             document.getElementById('stat-total-students').innerText = total;
@@ -1454,7 +1413,6 @@
             }
         }
 
-        // Navigation Switcher
         window.switchTab = function(tabId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
