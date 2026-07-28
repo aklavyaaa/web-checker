@@ -805,10 +805,10 @@
                         <label style="margin:0;">Taught Topics & Homework (Tap Mic to Speak)</label>
                         <button type="button" class="voice-btn" id="mic-btn" title="Tap to Speak">🎙️</button>
                     </div>
-                    <textarea id="ai-input-text" rows="3" placeholder="e.g. Trigonometry Chapter 8 exercise 8.2 taught today. Homework: finish exercise 8.2."></textarea>
+                    <textarea id="ai-input-text" rows="3" placeholder="e.g. poems in english sums in maths homework is essay"></textarea>
                 </div>
 
-                <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">✨ Generate Update with Gemini</button>
+                <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">✨ Generate Formal Guardian Message</button>
             </div>
 
             <div class="card">
@@ -938,11 +938,12 @@
         </div>
     </nav>
 
+    <!-- Firebase SDK & App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Gemini API Configuration
+        // Gemini API Key
         const GEMINI_API_KEY = "AQ.Ab8RN6KRxIlR2k904pOC0dLokrzvp0GK6-LNR9f5yS8VzaaEeA";
 
         const firebaseConfig = {
@@ -956,16 +957,34 @@
             databaseURL: "https://sanchitution-default-rtdb.firebaseio.com"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // Initialize Firebase
+        let app, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getDatabase(app);
+        } catch(e) {
+            console.error("Firebase init fallback:", e);
+        }
 
-        let students = {};
-        let attendance = {};
+        // Local Storage Keys
+        const STORAGE_STUDENTS_KEY = 'sanchi_students_cache';
+        const STORAGE_ATTENDANCE_KEY = 'sanchi_attendance_cache';
+
+        // Load cached state immediately so UI NEVER stays stuck on "Loading..."
+        let students = JSON.parse(localStorage.getItem(STORAGE_STUDENTS_KEY) || '{}');
+        let attendance = JSON.parse(localStorage.getItem(STORAGE_ATTENDANCE_KEY) || '{}');
         let tempAttendanceState = {};
 
         let activeTargetPhone = '';
         let activeTargetGuardian = '';
         let activeMessageContext = { en: '', hi: '', custom: '' };
+
+        function persistLocalState() {
+            try {
+                localStorage.setItem(STORAGE_STUDENTS_KEY, JSON.stringify(students));
+                localStorage.setItem(STORAGE_ATTENDANCE_KEY, JSON.stringify(attendance));
+            } catch(e) {}
+        }
 
         window.openWhatsAppNative = function(phone, text) {
             if (!phone) return showToast("Phone number missing!");
@@ -1048,16 +1067,36 @@
         const todayStr = new Date().toISOString().split('T')[0];
         document.getElementById('attendance-date').value = todayStr;
 
-        onValue(ref(db, 'students'), (snapshot) => {
-            students = snapshot.val() || {};
-            renderAll();
-        });
+        // Synchronize from Firebase when connected
+        if (db) {
+            onValue(ref(db, 'students'), (snapshot) => {
+                if (snapshot.exists()) {
+                    students = snapshot.val() || {};
+                    persistLocalState();
+                }
+                renderAll();
+            }, (error) => {
+                console.warn("Firebase Students read notice:", error);
+                renderAll();
+            });
 
-        onValue(ref(db, 'attendance'), (snapshot) => {
-            attendance = snapshot.val() || {};
-            renderAttendanceList();
-            updateDashboard();
-            generateReport();
+            onValue(ref(db, 'attendance'), (snapshot) => {
+                if (snapshot.exists()) {
+                    attendance = snapshot.val() || {};
+                    persistLocalState();
+                }
+                renderAttendanceList();
+                updateDashboard();
+                generateReport();
+            }, (error) => {
+                console.warn("Firebase Attendance read notice:", error);
+                renderAll();
+            });
+        }
+
+        // Render immediate local view right now so user NEVER sees blank loading screens
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAll();
         });
 
         function renderAll() {
@@ -1081,12 +1120,20 @@
             const fee = document.getElementById('student-fee').value.trim();
             const dueDay = document.getElementById('student-due-day').value.trim() || 5;
 
-            set(ref(db, 'students/' + id), {
+            const newStudent = {
                 id, name, parentName, phone, classVal, timing, fee, dueDay: parseInt(dueDay), feePaid: false
-            }).then(() => {
-                showToast("Student & Guardian saved!");
-                document.getElementById('student-form').reset();
-            }).catch(err => showToast("Error: " + err.message));
+            };
+
+            students[id] = newStudent;
+            persistLocalState();
+            renderAll();
+
+            if (db) {
+                set(ref(db, 'students/' + id), newStudent).catch(err => console.error("Firebase sync error:", err));
+            }
+
+            showToast("Student & Guardian saved!");
+            document.getElementById('student-form').reset();
         });
 
         window.openEditModal = function(id) {
@@ -1094,12 +1141,12 @@
             if (!s) return;
 
             document.getElementById('edit-id').value = s.id;
-            document.getElementById('edit-name').value = s.name;
+            document.getElementById('edit-name').value = s.name || '';
             document.getElementById('edit-parent-name').value = s.parentName || '';
-            document.getElementById('edit-phone').value = s.phone;
-            document.getElementById('edit-class').value = s.classVal;
+            document.getElementById('edit-phone').value = s.phone || '';
+            document.getElementById('edit-class').value = s.classVal || '';
             document.getElementById('edit-timing').value = s.timing || '';
-            document.getElementById('edit-fee').value = s.fee;
+            document.getElementById('edit-fee').value = s.fee || '';
             document.getElementById('edit-due-day').value = s.dueDay || 5;
 
             document.getElementById('edit-modal').classList.add('active');
@@ -1122,12 +1169,16 @@
                 dueDay: parseInt(document.getElementById('edit-due-day').value.trim()) || 5
             };
 
-            update(ref(db, `students/${id}`), updatedData)
-                .then(() => {
-                    showToast("Guardian record updated!");
-                    closeEditModal();
-                })
-                .catch(err => showToast("Error: " + err.message));
+            students[id] = { ...students[id], ...updatedData };
+            persistLocalState();
+            renderAll();
+
+            if (db) {
+                update(ref(db, `students/${id}`), updatedData).catch(err => console.error("Firebase sync error:", err));
+            }
+
+            showToast("Guardian record updated!");
+            closeEditModal();
         });
 
         window.deleteStudent = function(id) {
@@ -1135,9 +1186,14 @@
                 title: "Delete Record",
                 body: "Are you sure you want to delete this student and guardian?",
                 onConfirm: () => {
-                    remove(ref(db, 'students/' + id))
-                        .then(() => showToast("Record deleted"))
-                        .catch(err => showToast("Error deleting"));
+                    delete students[id];
+                    persistLocalState();
+                    renderAll();
+
+                    if (db) {
+                        remove(ref(db, 'students/' + id)).catch(err => console.error("Firebase delete error:", err));
+                    }
+                    showToast("Record deleted");
                 }
             });
         };
@@ -1147,19 +1203,23 @@
             const keys = Object.keys(students);
 
             if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No student records found.</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0;">No student records found. Add one above!</p>';
                 return;
             }
 
             container.innerHTML = keys.map(k => {
-                const s = students[k];
+                const s = students[k] || {};
+                const sName = s.name || 'Unnamed Student';
+                const pName = s.parentName || 'Guardian';
+                const searchData = (sName + ' ' + pName).toLowerCase();
+
                 return `
-                    <div class="list-item student-card-item" data-name="${s.name.toLowerCase()} ${s.parentName.toLowerCase()}">
-                        <div class="avatar">${getInitials(s.name)}</div>
+                    <div class="list-item student-card-item" data-name="${searchData}">
+                        <div class="avatar">${getInitials(sName)}</div>
                         <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>Guardian: ${s.parentName || 'Parent'} • ${s.classVal}</p>
-                            <p>📱 ${s.phone} • Due: Day ${s.dueDay || 5}</p>
+                            <h4>${sName}</h4>
+                            <p>Guardian: ${pName} • ${s.classVal || 'N/A'}</p>
+                            <p>📱 ${s.phone || 'N/A'} • Due: Day ${s.dueDay || 5}</p>
                         </div>
                         <div style="display:flex; gap:6px;">
                             <button class="btn btn-warning btn-small" onclick="openEditModal('${s.id}')">Edit ✏️</button>
@@ -1173,7 +1233,7 @@
         window.filterStudentList = function() {
             const term = document.getElementById('search-student-input').value.toLowerCase();
             document.querySelectorAll('.student-card-item').forEach(el => {
-                const name = el.getAttribute('data-name');
+                const name = el.getAttribute('data-name') || '';
                 el.style.display = name.includes(term) ? 'flex' : 'none';
             });
         };
@@ -1184,7 +1244,7 @@
             const keys = Object.keys(students);
 
             if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Add students first.</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0;">Add students first to mark attendance.</p>';
                 return;
             }
 
@@ -1192,17 +1252,19 @@
             tempAttendanceState = { ...current };
 
             container.innerHTML = keys.map(k => {
-                const s = students[k];
+                const s = students[k] || {};
+                const sName = s.name || 'Unnamed Student';
+                const pName = s.parentName || 'Guardian';
                 const status = tempAttendanceState[s.id] || 'Present';
                 tempAttendanceState[s.id] = status;
                 const isPresent = status === 'Present';
 
                 return `
                     <div class="list-item">
-                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="avatar">${getInitials(sName)}</div>
                         <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>Guardian: ${s.parentName || 'Parent'}</p>
+                            <h4>${sName}</h4>
+                            <p>Guardian: ${pName}</p>
                         </div>
                         <div class="tick-container" onclick="toggleTick('${s.id}')">
                             <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted)">
@@ -1249,14 +1311,19 @@
             const date = document.getElementById('attendance-date').value;
             if (!date) return showToast("Select a date.");
 
-            set(ref(db, 'attendance/' + date), tempAttendanceState)
-                .then(() => showToast(`Attendance saved!`))
-                .catch(err => showToast("Error saving"));
+            attendance[date] = tempAttendanceState;
+            persistLocalState();
+
+            if (db) {
+                set(ref(db, 'attendance/' + date), tempAttendanceState).catch(err => console.error("Firebase sync error:", err));
+            }
+
+            showToast("Attendance saved!");
         };
 
         document.getElementById('attendance-date').addEventListener('change', renderAttendanceList);
 
-        // GEMINI AI INTEGRATION
+        // ENHANCED GEMINI AI GENERATOR
         window.generateAIUpdate = async function() {
             const studentId = document.getElementById('ai-student-select').value;
             const textInput = document.getElementById('ai-input-text').value.trim();
@@ -1264,76 +1331,85 @@
             if (!studentId) return showToast("Please select a student!");
             if (!textInput) return showToast("Please enter or speak taught details!");
 
-            const student = students[studentId];
+            const student = students[studentId] || {};
             const parentName = student.parentName || 'Parent';
+            const sName = student.name || 'Student';
             const btn = document.getElementById('generate-ai-btn');
-            btn.innerText = "✨ Generating Gemini Message...";
+            btn.innerText = "✨ Generating Message...";
             btn.disabled = true;
 
-            const promptText = `You are a tuition assistant for "Sanchi Tuition Classes". Draft an update message for the student's GUARDIAN.
-Guardian Name: ${parentName}
-Student Name: ${student.name}
-Class: ${student.classVal}
-Teacher Notes: ${textInput}
+            const promptText = `You are a warm, polite, and professional assistant for "Sanchi Tuition Classes".
+Draft a formal, respectful, and clear WhatsApp message sent directly to the student's GUARDIAN (${parentName}).
 
-RULES:
-- Address the GUARDIAN directly using "Respected ${parentName}" or "Dear ${parentName}".
-- NO emojis in the middle of text.
-- Keep it concise, formal, and clear in professional Hinglish.
-- DO NOT output markdown code blocks. Output plain ready-to-copy message text only.`;
+DETAILS:
+- Guardian Name: ${parentName}
+- Student Name: ${sName}
+- Subject/Class: ${student.classVal || 'Tuition'}
+- Teacher's Quick Notes: "${textInput}"
+
+WRITING RULES:
+1. Address the guardian respectfully (e.g., "Respected ${parentName}," or "Dear ${parentName},").
+2. Contextually rephrase the teacher's quick notes into natural, elegant sentences.
+3. If the notes mention illness, absence, or no work done, write a sympathetic, caring update wishing the student good health. Do NOT mention homework unless homework was actually given.
+4. If topics and homework are mentioned, explain clearly what was studied and what task was assigned.
+5. NO emojis inside or at the end of the message.
+6. NO markdown code blocks, bold text, or backticks. Output plain, clean, ready-to-copy text ONLY.`;
 
             try {
-                const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent", {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+                const res = await fetch(url, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-goog-api-key": GEMINI_API_KEY
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: promptText }]
-                        }]
+                        contents: [{ parts: [{ text: promptText }] }]
                     })
                 });
 
                 const data = await res.json();
                 
-                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
                     const aiMsg = data.candidates[0].content.parts[0].text.trim();
                     document.getElementById('ai-output-text').value = aiMsg;
                     document.getElementById('ai-result-card').style.display = 'block';
-                    showToast("Gemini Message Ready!");
-                } else if (data.error) {
-                    console.error("Gemini API Error:", data.error);
-                    showToast("Gemini Error. Generating local message...");
-                    generateLocalFallback(student, parentName, textInput);
+                    showToast("AI Message Ready!");
                 } else {
                     generateLocalFallback(student, parentName, textInput);
                 }
             } catch (e) {
-                console.error("Fetch Exception:", e);
-                showToast("Network Error. Loaded Local Message!");
+                console.error("Gemini Fetch Error:", e);
                 generateLocalFallback(student, parentName, textInput);
             } finally {
-                btn.innerText = "✨ Generate Update with Gemini";
+                btn.innerText = "✨ Generate Formal Guardian Message";
                 btn.disabled = false;
             }
         };
 
+        // SMART CONTEXTUAL FALLBACK
         function generateLocalFallback(student, parentName, notes) {
-            const fallbackMsg = `Respected ${parentName},\n\nThis is an update from Sanchi Tuition Classes regarding ${student.name} (${student.classVal}).\n\nClass Topics & Homework:\n${notes}\n\nKindly ensure homework is completed. Thank you.`;
+            const sName = student.name || 'Student';
+            const lower = notes.toLowerCase();
+            let fallbackMsg = `Respected ${parentName},\n\n`;
+
+            if (lower.includes('unwell') || lower.includes('sick') || lower.includes('not feeling well') || lower.includes('fever')) {
+                fallbackMsg += `This is an update from Sanchi Tuition Classes. ${sName} was not feeling well today, so no new topics were covered in class. Please take care of ${sName}'s health, and we wish them a speedy recovery.\n\nThank you.`;
+            } else {
+                fallbackMsg += `In tuition class today, we worked on: ${notes}.\n\nKindly ensure ${sName} reviews today's work. Thank you.`;
+            }
+
             document.getElementById('ai-output-text').value = fallbackMsg;
             document.getElementById('ai-result-card').style.display = 'block';
+            showToast("Guardian Message Formatted!");
         }
 
         window.applyTemplate = function(type) {
             const studentId = document.getElementById('ai-student-select').value;
             const s = students[studentId] || { parentName: 'Parent', name: 'Student' };
             const parent = s.parentName || 'Parent';
+            const sName = s.name || 'Student';
 
             const templates = {
-                'test-tomorrow': `Respected ${parent}, please note that ${s.name} will have a weekly test tomorrow at Sanchi Tuition Classes. Kindly ensure proper revision. Thank you.`,
-                'fee-reminder': `Respected ${parent}, this is a gentle reminder regarding the monthly tuition fee for ${s.name}. Kindly clear the pending tuition fee at your earliest convenience. Thank you.`,
+                'test-tomorrow': `Respected ${parent}, please note that ${sName} will have a weekly test tomorrow at Sanchi Tuition Classes. Kindly ensure proper revision. Thank you.`,
+                'fee-reminder': `Respected ${parent}, this is a gentle reminder regarding the monthly tuition fee for ${sName}. Kindly clear the pending tuition fee at your earliest convenience. Thank you.`,
                 'holiday-notice': `Respected ${parent}, please note that Sanchi Tuition Classes will remain closed tomorrow. Regular classes will resume from the day after. Thank you.`
             };
             document.getElementById('ai-input-text').value = templates[type] || '';
@@ -1355,7 +1431,7 @@ RULES:
 
             openMessageModal(s.phone, pName, {
                 en: text,
-                hi: `आदरणीय ${pName}, यह सांची ट्यूशन क्लासेस से ${s.name} के संबंध में एक अपडेट है:\n${text}`,
+                hi: `आदरणीय ${pName}, यह सांची ट्यूशन क्लासेस से ${s.name || 'छात्र'} के संबंध में एक अपडेट है:\n${text}`,
                 custom: text
             });
         };
@@ -1374,7 +1450,7 @@ RULES:
                     try {
                         recognition.start();
                     } catch (err) {
-                        showToast("Mic active or starting...");
+                        showToast("Mic starting...");
                     }
                 }
             });
@@ -1401,11 +1477,12 @@ RULES:
             const tot = document.getElementById('test-total').value;
 
             if (!id || !obt || !tot) return showToast("Fill all test fields!");
-            const s = students[id];
+            const s = students[id] || {};
             const pName = s.parentName || 'Parent';
+            const sName = s.name || 'Student';
 
-            const msgEn = `Respected ${pName}, here is the test performance report for ${s.name} at Sanchi Tuition Classes.\nTest: ${name}\nMarks Obtained: ${obt}/${tot}\nThank you.`;
-            const msgHi = `आदरणीय ${pName}, सांची ट्यूशन क्लासेस में ${s.name} का टेस्ट रिपोर्ट:\nटेस्ट: ${name}\nप्राप्त अंक: ${obt}/${tot}\nधन्यवाद।`;
+            const msgEn = `Respected ${pName}, here is the test performance report for ${sName} at Sanchi Tuition Classes.\nTest: ${name}\nMarks Obtained: ${obt}/${tot}\nThank you.`;
+            const msgHi = `आदरणीय ${pName}, सांची ट्यूशन क्लासेस में ${sName} का टेस्ट रिपोर्ट:\nटेस्ट: ${name}\nप्राप्त अंक: ${obt}/${tot}\nधन्यवाद।`;
 
             openMessageModal(s.phone, pName, {
                 en: msgEn,
@@ -1432,7 +1509,7 @@ RULES:
                                     <div>
                                         <h4 style="font-size:0.9rem;">⏰ Guardian Fee Alert</h4>
                                         <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
-                                            <strong>${s.parentName || 'Parent'}</strong> (${s.name}) fee (₹${s.fee}) is due in <strong>${daysRemaining === 0 ? 'Today!' : daysRemaining + ' day(s)'}</strong>.
+                                            <strong>${s.parentName || 'Parent'}</strong> (${s.name || 'Student'}) fee (₹${s.fee || 0}) is due in <strong>${daysRemaining === 0 ? 'Today!' : daysRemaining + ' day(s)'}</strong>.
                                         </p>
                                     </div>
                                     <button class="btn btn-whatsapp btn-small" onclick="sendFeeReminder('${s.id}')">Remind</button>
@@ -1450,9 +1527,10 @@ RULES:
             const s = students[studentId];
             if (!s) return;
             const pName = s.parentName || 'Parent';
+            const sName = s.name || 'Student';
 
-            const msgEn = `Respected ${pName}, this is a gentle reminder from Sanchi Tuition Classes regarding tuition fee for ${s.name}. Monthly Amount: ₹${s.fee}. Kindly clear it at your earliest convenience. Thank you.`;
-            const msgHi = `आदरणीय ${pName}, सांची ट्यूशन क्लासेस से ${s.name} की ट्यूशन फीस (₹${s.fee}) के संबंध में विनम्र रिमाइंडर है। कृपया समय पर भुगतान करें। धन्यवाद।`;
+            const msgEn = `Respected ${pName}, this is a gentle reminder from Sanchi Tuition Classes regarding tuition fee for ${sName}. Monthly Amount: ₹${s.fee || 0}. Kindly clear it at your earliest convenience. Thank you.`;
+            const msgHi = `आदरणीय ${pName}, सांची ट्यूशन क्लासेस से ${sName} की ट्यूशन फीस (₹${s.fee || 0}) के संबंध में विनम्र रिमाइंडर है। कृपया समय पर भुगतान करें। धन्यवाद।`;
 
             openMessageModal(s.phone, pName, {
                 en: msgEn,
@@ -1472,9 +1550,10 @@ RULES:
             
             let delay = 0;
             keys.forEach((k) => {
-                const s = students[k];
+                const s = students[k] || {};
                 const pName = s.parentName || 'Parent';
-                const formattedText = `Dear ${pName}, Announcement from Sanchi Tuition Classes regarding ${s.name}:\n${msg}`;
+                const sName = s.name || 'Student';
+                const formattedText = `Dear ${pName}, Announcement from Sanchi Tuition Classes regarding ${sName}:\n${msg}`;
 
                 setTimeout(() => {
                     openWhatsAppNative(s.phone, formattedText);
@@ -1486,10 +1565,12 @@ RULES:
 
         window.sendBroadcastSingle = function(phone, pName, sName) {
             const msg = document.getElementById('broadcast-msg').value.trim() || 'Tuition Announcement';
-            const msgEn = `Dear ${pName || 'Parent'}, Announcement from Sanchi Tuition Classes regarding ${sName}:\n${msg}`;
-            const msgHi = `आदरणीय ${pName || 'अभिभावक'}, सांची ट्यूशन क्लासेस से ${sName} के संबंध में सूचना:\n${msg}`;
+            const guardian = pName || 'Parent';
+            const student = sName || 'Student';
+            const msgEn = `Dear ${guardian}, Announcement from Sanchi Tuition Classes regarding ${student}:\n${msg}`;
+            const msgHi = `आदरणीय ${guardian}, सांची ट्यूशन क्लासेस से ${student} के संबंध में सूचना:\n${msg}`;
 
-            openMessageModal(phone, pName, {
+            openMessageModal(phone, guardian, {
                 en: msgEn,
                 hi: msgHi,
                 custom: msgEn
@@ -1514,11 +1595,14 @@ RULES:
             const keys = Object.keys(students);
 
             const optionsHtml = '<option value="">-- Choose Student --</option>' + 
-                keys.map(k => `<option value="${students[k].id}">${students[k].name} (Guardian: ${students[k].parentName || 'Parent'})</option>`).join('');
+                keys.map(k => {
+                    const s = students[k] || {};
+                    return `<option value="${s.id}">${s.name || 'Unnamed'} (Guardian: ${s.parentName || 'Parent'})</option>`;
+                }).join('');
 
-            aiSelect.innerHTML = optionsHtml;
-            reportSelect.innerHTML = optionsHtml;
-            testSelect.innerHTML = optionsHtml;
+            if (aiSelect) aiSelect.innerHTML = optionsHtml;
+            if (reportSelect) reportSelect.innerHTML = optionsHtml;
+            if (testSelect) testSelect.innerHTML = optionsHtml;
         }
 
         function renderFeeList() {
@@ -1526,18 +1610,20 @@ RULES:
             const keys = Object.keys(students);
 
             if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No student records added.</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0;">No student records added yet.</p>';
                 return;
             }
 
             container.innerHTML = keys.map(k => {
-                const s = students[k];
+                const s = students[k] || {};
+                const sName = s.name || 'Unnamed Student';
+                const pName = s.parentName || 'Parent';
                 return `
                     <div class="list-item">
-                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="avatar">${getInitials(sName)}</div>
                         <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>Guardian: ${s.parentName || 'Parent'} • Fee: ₹${s.fee}</p>
+                            <h4>${sName}</h4>
+                            <p>Guardian: ${pName} • Fee: ₹${s.fee || 0}</p>
                         </div>
                         <div style="display:flex; gap:6px;">
                             <button class="btn btn-small" style="background:${s.feePaid ? 'var(--success)' : 'var(--warning)'}" onclick="toggleFee('${s.id}', ${!s.feePaid})">
@@ -1551,9 +1637,16 @@ RULES:
         }
 
         window.toggleFee = function(id, status) {
-            update(ref(db, `students/${id}`), { feePaid: status })
-                .then(() => showToast("Status updated!"))
-                .catch(err => showToast("Error updating"));
+            if (students[id]) {
+                students[id].feePaid = status;
+                persistLocalState();
+                renderAll();
+            }
+
+            if (db) {
+                update(ref(db, `students/${id}`), { feePaid: status }).catch(err => console.error(err));
+            }
+            showToast("Status updated!");
         };
 
         function renderBroadcastList() {
@@ -1561,20 +1654,22 @@ RULES:
             const keys = Object.keys(students);
 
             if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No records available.</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0;">No records available.</p>';
                 return;
             }
 
             container.innerHTML = keys.map(k => {
-                const s = students[k];
+                const s = students[k] || {};
+                const sName = s.name || 'Student';
+                const pName = s.parentName || 'Guardian';
                 return `
                     <div class="list-item">
-                        <div class="avatar">${getInitials(s.name)}</div>
+                        <div class="avatar">${getInitials(sName)}</div>
                         <div class="student-info" style="flex: 1;">
-                            <h4>${s.parentName || 'Guardian'}</h4>
-                            <p>Student: ${s.name} • 📱 ${s.phone}</p>
+                            <h4>${pName}</h4>
+                            <p>Student: ${sName} • 📱 ${s.phone || 'N/A'}</p>
                         </div>
-                        <button class="btn btn-whatsapp btn-small" onclick="sendBroadcastSingle('${s.phone}', '${s.parentName}', '${s.name}')">Send 📲</button>
+                        <button class="btn btn-whatsapp btn-small" onclick="sendBroadcastSingle('${s.phone || ''}', '${pName.replace(/'/g, "\\'")}', '${sName.replace(/'/g, "\\'")}')">Send 📲</button>
                     </div>
                 `;
             }).join('');
@@ -1585,7 +1680,7 @@ RULES:
             const container = document.getElementById('report-results-container');
 
             if (!studentId) {
-                container.innerHTML = '<p style="font-size:0.85rem; color: var(--text-muted);">Select a student to view history.</p>';
+                container.innerHTML = '<p style="font-size:0.85rem; color: var(--text-muted); padding: 10px 0;">Select a student to view history.</p>';
                 return;
             }
 
