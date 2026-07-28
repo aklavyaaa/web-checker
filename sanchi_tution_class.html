@@ -600,7 +600,7 @@
     <div id="splash-screen">
         <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784999225/a2172aef-fa8f-44e3-9c6d-b086aa17f5bd_ietgnb.jpg" alt="Sanchi Tuition Logo" class="splash-logo-img">
         <h2>Sanchi Tuition Classes</h2>
-        <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 6px;">Gemini AI Powered...</p>
+        <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 6px;">Smart Management System...</p>
     </div>
 
     <!-- Toast Notification -->
@@ -789,10 +789,10 @@
             </div>
         </div>
 
-        <!-- PAGE 3: GEMINI AI ASSISTANT & VOICE INPUT -->
+        <!-- PAGE 3: SMART GUARDIAN UPDATE ASSISTANT -->
         <div id="page-ai-assistant" class="page">
             <div class="card">
-                <div class="card-title">✨ Gemini Guardian Update AI</div>
+                <div class="card-title">✨ Smart Guardian Update Assistant</div>
                 <div class="form-group">
                     <label>Select Student</label>
                     <select id="ai-student-select">
@@ -805,10 +805,10 @@
                         <label style="margin:0;">Taught Topics & Homework (Tap Mic to Speak)</label>
                         <button type="button" class="voice-btn" id="mic-btn" title="Tap to Speak">🎙️</button>
                     </div>
-                    <textarea id="ai-input-text" rows="3" placeholder="e.g. poems in english sums in maths homework is essay"></textarea>
+                    <textarea id="ai-input-text" rows="3" placeholder="e.g. no work done due to student not feeling well"></textarea>
                 </div>
 
-                <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">✨ Generate Formal Guardian Message</button>
+                <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">✨ Format Formal Guardian Message</button>
             </div>
 
             <div class="card">
@@ -926,7 +926,7 @@
         </div>
         <div class="nav-item" onclick="switchTab('ai-assistant')">
             <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"></path></svg>
-            AI Update
+            Updates
         </div>
         <div class="nav-item" onclick="switchTab('attendance')">
             <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
@@ -943,8 +943,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Gemini API Key
-        const GEMINI_API_KEY = "AQ.Ab8RN6KRxIlR2k904pOC0dLokrzvp0GK6-LNR9f5yS8VzaaEeA";
+        // API Key Secret
+        const SECRET_KEY_INTERNAL = "AQ.Ab8RN6KRxIlR2k904pOC0dLokrzvp0GK6-LNR9f5yS8VzaaEeA";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDE_Tzjwmoh-xuFTFYpT5ElGjfN6T0VEsI",
@@ -970,7 +970,7 @@
         const STORAGE_STUDENTS_KEY = 'sanchi_students_cache';
         const STORAGE_ATTENDANCE_KEY = 'sanchi_attendance_cache';
 
-        // Load cached state immediately so UI NEVER stays stuck on "Loading..."
+        // Load cached state immediately
         let students = JSON.parse(localStorage.getItem(STORAGE_STUDENTS_KEY) || '{}');
         let attendance = JSON.parse(localStorage.getItem(STORAGE_ATTENDANCE_KEY) || '{}');
         let tempAttendanceState = {};
@@ -1067,7 +1067,6 @@
         const todayStr = new Date().toISOString().split('T')[0];
         document.getElementById('attendance-date').value = todayStr;
 
-        // Synchronize from Firebase when connected
         if (db) {
             onValue(ref(db, 'students'), (snapshot) => {
                 if (snapshot.exists()) {
@@ -1076,7 +1075,7 @@
                 }
                 renderAll();
             }, (error) => {
-                console.warn("Firebase Students read notice:", error);
+                console.warn("Students read notice:", error);
                 renderAll();
             });
 
@@ -1089,12 +1088,11 @@
                 updateDashboard();
                 generateReport();
             }, (error) => {
-                console.warn("Firebase Attendance read notice:", error);
+                console.warn("Attendance read notice:", error);
                 renderAll();
             });
         }
 
-        // Render immediate local view right now so user NEVER sees blank loading screens
         document.addEventListener('DOMContentLoaded', () => {
             renderAll();
         });
@@ -1129,7 +1127,7 @@
             renderAll();
 
             if (db) {
-                set(ref(db, 'students/' + id), newStudent).catch(err => console.error("Firebase sync error:", err));
+                set(ref(db, 'students/' + id), newStudent).catch(err => console.error(err));
             }
 
             showToast("Student & Guardian saved!");
@@ -1174,7 +1172,7 @@
             renderAll();
 
             if (db) {
-                update(ref(db, `students/${id}`), updatedData).catch(err => console.error("Firebase sync error:", err));
+                update(ref(db, `students/${id}`), updatedData).catch(err => console.error(err));
             }
 
             showToast("Guardian record updated!");
@@ -1191,7 +1189,7 @@
                     renderAll();
 
                     if (db) {
-                        remove(ref(db, 'students/' + id)).catch(err => console.error("Firebase delete error:", err));
+                        remove(ref(db, 'students/' + id)).catch(err => console.error(err));
                     }
                     showToast("Record deleted");
                 }
@@ -1315,7 +1313,7 @@
             persistLocalState();
 
             if (db) {
-                set(ref(db, 'attendance/' + date), tempAttendanceState).catch(err => console.error("Firebase sync error:", err));
+                set(ref(db, 'attendance/' + date), tempAttendanceState).catch(err => console.error(err));
             }
 
             showToast("Attendance saved!");
@@ -1323,7 +1321,7 @@
 
         document.getElementById('attendance-date').addEventListener('change', renderAttendanceList);
 
-        // ENHANCED GEMINI AI GENERATOR
+        // SMART GUARDIAN UPDATE GENERATOR
         window.generateAIUpdate = async function() {
             const studentId = document.getElementById('ai-student-select').value;
             const textInput = document.getElementById('ai-input-text').value.trim();
@@ -1335,7 +1333,7 @@
             const parentName = student.parentName || 'Parent';
             const sName = student.name || 'Student';
             const btn = document.getElementById('generate-ai-btn');
-            btn.innerText = "✨ Generating Message...";
+            btn.innerText = "✨ Formatting Message...";
             btn.disabled = true;
 
             const promptText = `You are a warm, polite, and professional assistant for "Sanchi Tuition Classes".
@@ -1356,7 +1354,7 @@ WRITING RULES:
 6. NO markdown code blocks, bold text, or backticks. Output plain, clean, ready-to-copy text ONLY.`;
 
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${SECRET_KEY_INTERNAL}`;
                 const res = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -1371,12 +1369,12 @@ WRITING RULES:
                     const aiMsg = data.candidates[0].content.parts[0].text.trim();
                     document.getElementById('ai-output-text').value = aiMsg;
                     document.getElementById('ai-result-card').style.display = 'block';
-                    showToast("AI Message Ready!");
+                    showToast("Message Formatted!");
                 } else {
                     generateLocalFallback(student, parentName, textInput);
                 }
             } catch (e) {
-                console.error("Gemini Fetch Error:", e);
+                console.error("Fetch Error:", e);
                 generateLocalFallback(student, parentName, textInput);
             } finally {
                 btn.innerText = "✨ Generate Formal Guardian Message";
@@ -1384,7 +1382,7 @@ WRITING RULES:
             }
         };
 
-        // SMART CONTEXTUAL FALLBACK
+        // CONTEXT-AWARE LOCAL FALLBACK
         function generateLocalFallback(student, parentName, notes) {
             const sName = student.name || 'Student';
             const lower = notes.toLowerCase();
@@ -1765,7 +1763,7 @@ WRITING RULES:
             const titles = {
                 'dashboard': 'Sanchi Tuition',
                 'students': 'Student Directory',
-                'ai-assistant': 'Gemini Guardian Update AI',
+                'ai-assistant': 'Smart Guardian Updates',
                 'attendance': 'Mark Attendance',
                 'reports': 'Reports & Fees',
                 'tests': 'Test Scores Manager',
