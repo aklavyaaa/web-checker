@@ -1,1483 +1,1516 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="lavender">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sanchi Tuition Classes</title>
-    <style>
-        :root {
-            /* Soft Lavender Claymorphism Theme Palette */
-            --primary: #8B5CF6;
-            --primary-dark: #6D28D9;
-            --primary-light: #DDD6FE;
-            --bg: #F3E8FF;
-            --card-bg: #E9D5FF;
-            --text: #3B0764;
-            --text-muted: #7E22CE;
-            --success: #10B981;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            --border: rgba(255, 255, 255, 0.7);
-            --shadow-out: 8px 8px 18px #d8b4fe, -8px -8px 18px #ffffff;
-            --shadow-in: inset 4px 4px 8px #d8b4fe, inset -4px -4px 8px #ffffff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>A Manager — Personal Expense Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root, body.dark {
+    --bg-main: #06090C;
+    --bg-side: #0B0F13;
+    --card: #10161C;
+    --card-hover: #162027;
+    --ink: #FFFFFF;
+    --muted: #7E93A2;
+    --line: #1E2B35;
+    --gold: #66FF00; /* Neon Green */
+    --teal: #00FFCC;
+    --rust: #FF3366;
+    --violet: #CC66FF;
+    --shadow: 0 0 25px rgba(102,255,0,0.12);
+  }
+  
+  body.light {
+    --bg-main: #F0F4F8;
+    --bg-side: #FFFFFF;
+    --card: #FFFFFF;
+    --card-hover: #F8FAFC;
+    --ink: #0F172A;
+    --muted: #64748B;
+    --line: #CBD5E1;
+    --gold: #4BE000;
+    --teal: #0D9488;
+    --rust: #DC2626;
+    --violet: #7C3AED;
+    --shadow: 0 8px 30px rgba(75,224,0,0.08);
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow-x: hidden; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at 50% 0%, #111a12 0%, var(--bg-main) 70%);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.4s ease;
+  }
 
-        [data-theme="dark-lavender"] {
-            --primary: #A78BFA;
-            --primary-dark: #8B5CF6;
-            --primary-light: #4C1D95;
-            --bg: #2E1065;
-            --card-bg: #3B0764;
-            --text: #F3E8FF;
-            --text-muted: #C084FC;
-            --success: #34D399;
-            --danger: #F87171;
-            --warning: #FBBF24;
-            --border: rgba(255, 255, 255, 0.1);
-            --shadow-out: 8px 8px 18px #1e0a45, -8px -8px 18px #3e1685;
-            --shadow-in: inset 4px 4px 8px #1e0a45, inset -4px -4px 8px #3e1685;
-        }
+  .shell, .auth-gate, .loading-gate { position: relative; z-index: 5; }
+  .num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+  
+  button, input, select { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  button { cursor: pointer; border: none; background: none; color: inherit; font-family: inherit; }
+  
+  /* Micro Click Bounce Animations */
+  button:active { transform: scale(0.92) !important; filter: brightness(1.2); }
+  
+  input, select { font-family: inherit; color: inherit; }
+  input:focus, select:focus { border-color: var(--gold) !important; transform: translateY(-2px); box-shadow: 0 0 12px rgba(102,255,0,0.3); }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); filter: blur(4px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUpModal { 
+    from { transform: translateY(60px) scale(0.95); opacity: 0; } 
+    to { transform: translateY(0) scale(1); opacity: 1; } 
+  }
+  @keyframes micPulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.5); transform: scale(1); }
+    70% { box-shadow: 0 0 0 18px rgba(255, 51, 102, 0); transform: scale(1.08); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0); transform: scale(1); }
+  }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            max-width: 480px;
-            margin: 0 auto;
-            position: relative;
-            overflow: hidden;
-        }
+  .card, .tx-row, .credit-card, .chart-card { animation: fadeUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) both; }
+  .grid-cards .card:nth-child(1) { animation-delay: 0.05s; }
+  .grid-cards .card:nth-child(2) { animation-delay: 0.1s; }
+  .grid-cards .card:nth-child(3) { animation-delay: 0.15s; }
 
-        /* Splash Screen */
-        #splash-screen {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #8B5CF6, #4C1D95);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.6s ease, transform 0.6s ease, visibility 0.6s;
-        }
+  .shell { display: flex; min-height: 100vh; }
 
-        #splash-screen.hidden {
-            opacity: 0;
-            transform: scale(1.1);
-            visibility: hidden;
-        }
+  .sidebar {
+    width: 260px; flex-shrink: 0; background: var(--bg-side);
+    display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
+    padding: 30px 20px; border-right: 1px solid var(--line);
+  }
+  .brand { padding-bottom: 25px; }
+  .brand-text .name { font-size: 22px; font-weight: 800; letter-spacing: -1px; color: var(--gold); text-shadow: 0 0 15px rgba(102,255,0,0.3); }
+  .brand-text .tag { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-top: 2px; }
 
-        .splash-logo {
-            font-size: 3.5rem;
-            margin-bottom: 12px;
-            animation: float3d 2s ease-in-out infinite alternate;
-        }
+  .nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .nav button {
+    display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px;
+    font-size: 14.5px; font-weight: 500; color: var(--muted); text-align: left;
+  }
+  .nav button:hover { background: rgba(102,255,0,0.06); color: var(--gold); padding-left: 18px; }
+  .nav button.active { background: rgba(102, 255, 0, 0.1); color: var(--gold); font-weight: 700; border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; }
 
-        @keyframes float3d {
-            0% { transform: translateY(0) rotateX(0deg) scale(1); }
-            100% { transform: translateY(-12px) rotateX(15deg) scale(1.05); }
-        }
+  .user-badge {
+    background: rgba(125,125,125,0.03); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .user-badge .indicator { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+  .user-badge .username-display { font-weight: 600; }
 
-        /* Header */
-        header {
-            background: var(--bg);
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow-out);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-        }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
-        header h1 {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: var(--primary);
-        }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 40px; border-bottom: 1px solid var(--line); background: var(--bg-side);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .topbar h1 { font-size: 24px; font-weight: 700; }
+  .topbar .date { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .topbar-actions { display: flex; gap: 12px; align-items: center; }
 
-        .theme-toggle-btn {
-            background: var(--bg);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            box-shadow: var(--shadow-out);
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+  .btn-primary { background: var(--ink); color: var(--bg-main); }
+  .btn-gold { background: var(--gold); color: #000000; font-weight: 700; box-shadow: 0 4px 15px rgba(102,255,0,0.25); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn-ghost:hover { background: rgba(102,255,0,0.06); border-color: var(--gold); }
 
-        .theme-toggle-btn:active {
-            box-shadow: var(--shadow-in);
-            transform: scale(0.95);
-        }
+  .content { padding: 40px; flex: 1; }
+  .view { display: none; }
+  .view.active { display: block; animation: fadeIn 0.4s ease both; }
 
-        /* Container & Navigation Transitions */
-        main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 18px;
-            padding-bottom: 90px;
-        }
+  .grid-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+  .dynamic-modes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+  
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; box-shadow: none; }
+  .card:hover { transform: translateY(-4px); border-color: var(--gold); background: var(--card-hover); box-shadow: var(--shadow); }
+  .card .label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .card .value { font-size: 24px; font-weight: 600; margin-top: 10px; }
+  .card.balance .value { font-size: 28px; color: var(--gold); text-shadow: 0 0 10px rgba(102,255,0,0.2); }
 
-        .page {
-            display: none;
-            opacity: 0;
-            transform: translateY(15px) scale(0.98);
-        }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 
-        .page.active {
-            display: block;
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
+  .tx-row { display: grid; grid-template-columns: 38px 1fr auto auto; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--line); }
+  .tx-row:hover { background: rgba(102,255,0,0.03); border-left: 2px solid var(--gold); }
+  .tx-row:last-child { border-bottom: none; }
+  .tx-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+  .tx-icon.income { background: rgba(0, 255, 204, 0.1); color: var(--teal); }
+  .tx-icon.expense { background: rgba(255, 51, 102, 0.1); color: var(--rust); }
+  .tx-icon.transfer { background: rgba(204, 102, 255, 0.1); color: var(--violet); }
+  .tx-amt { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; }
+  .tx-amt.income { color: var(--teal); }
+  .tx-amt.expense { color: var(--rust); }
+  .tx-amt.transfer { color: var(--violet); }
+  .tx-del { opacity: 0.3; padding: 6px; color: var(--rust); font-size: 18px; line-height: 1; }
+  .tx-del:hover { opacity: 1; transform: scale(1.2); }
 
-        @keyframes popIn {
-            0% { opacity: 0; transform: translateY(20px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
+  .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filters select, .filters input[type="text"], .filters input[type="date"] {
+    padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+    font-size: 13.5px; color: var(--ink); outline: none; flex: 1; min-width: 140px;
+  }
 
-        /* Soft 3D Claymorphic Cards */
-        .card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 18px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-out);
-            border: 1px solid var(--border);
-        }
+  .ledger-table-wrap { width: 100%; overflow-x: auto; margin-top: 15px; }
+  .ledger-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+  .ledger-table th { background: rgba(125,125,125,0.04); padding: 12px 16px; border-bottom: 2px solid var(--line); font-weight: 600; color: var(--muted); }
+  .ledger-table td { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .ledger-table tr:hover { background: rgba(102,255,0,0.02); }
 
-        .card-title {
-            font-weight: 800;
-            font-size: 1rem;
-            margin-bottom: 12px;
-            color: var(--primary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+  .charts-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-bottom: 30px; }
+  .chart-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+  .chart-wrap { position: relative; height: 240px; }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            margin-bottom: 20px;
-        }
+  .credit-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .credit-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; }
+  .credit-card:hover { border-color: var(--gold); background: var(--card-hover); }
+  .credit-top { display: flex; justify-content: space-between; align-items: center; }
+  .credit-meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .credit-actions { margin-top: 12px; display: flex; gap: 8px; }
+  .mini-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; }
+  .mini-btn.settle { background: var(--gold); color: #000000; font-weight: 700; }
+  .mini-btn.del { border: 1px solid var(--line); color: var(--rust); }
 
-        .stat-card {
-            background: var(--card-bg);
-            border-radius: 18px;
-            padding: 16px;
-            text-align: center;
-            box-shadow: var(--shadow-out);
-        }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fadeIn 0.2s ease; }
+  .overlay.active { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--line); border-radius: 16px; width: 100%; max-width: 460px; overflow: hidden; max-height: 90vh; overflow-y: auto; animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .modal-head { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .modal-body { padding: 24px; }
 
-        .stat-number {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: var(--primary);
-        }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  .field input, .field select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-main); color: var(--ink); outline: none; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  
+  .toggle-group { display: flex; gap: 8px; }
+  .toggle-group button { flex: 1; padding: 11px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--muted); background: var(--bg-main); }
+  .toggle-group button.sel-income { border-color: var(--teal); color: var(--teal); background: rgba(0,255,204,0.05); }
+  .toggle-group button.sel-expense { border-color: var(--rust); color: var(--rust); background: rgba(255,51,102,0.05); }
+  .toggle-group button.sel-transfer { border-color: var(--violet); color: var(--violet); background: rgba(204,102,255,0.05); }
 
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-            font-weight: 600;
-        }
+  .amt-input-wrap { position: relative; }
+  .amt-input-wrap input { padding-left: 24px; }
+  .amt-input-wrap .cur { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 
-        /* Form Controls */
-        .form-group {
-            margin-bottom: 14px;
-        }
+  .modal-submit { width: 100%; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; background: var(--gold); color: #000000; margin-top: 8px; }
 
-        label {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            font-weight: 700;
-        }
+  /* AI Assistant Layout Chat Styling Matrix */
+  .ai-interface-container { display: none; text-align: center; padding: 5px 0; }
+  .ai-status-label { font-size: 13px; color: var(--gold); font-weight: 600; min-height: 18px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  
+  .ai-chat-history-node {
+    background: var(--bg-main); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px; min-height: 140px; max-height: 200px; overflow-y: auto;
+    text-align: left; font-size: 13.5px; line-height: 1.4; margin-bottom: 12px;
+  }
+  .ai-msg-bubble { margin-bottom: 10px; padding: 8px 12px; border-radius: 8px; max-width: 85%; }
+  .ai-msg-bubble.user { background: rgba(102,255,0,0.12); color: var(--gold); margin-left: auto; border-bottom-right-radius: 2px; border: 1px solid rgba(102,255,0,0.2); }
+  .ai-msg-bubble.assistant { background: rgba(255,255,255,0.03); color: var(--ink); border-bottom-left-radius: 2px; }
 
-        input, select, textarea {
-            width: 100%;
-            padding: 12px 14px;
-            border: none;
-            border-radius: 14px;
-            font-size: 0.9rem;
-            outline: none;
-            background: var(--bg);
-            color: var(--text);
-            box-shadow: var(--shadow-in);
-        }
+  .ai-chat-input-row { display: flex; gap: 8px; }
+  .ai-chat-input-row input { flex: 1; padding: 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-main); color: var(--ink); outline: none; font-size: 13.5px; }
+  .ai-chat-input-row input:focus { border-color: var(--gold); }
+  #aiVoiceMicBtn.recording { animation: micPulse 1.2s infinite ease-in-out; background: var(--rust); color: #fff; }
 
-        /* 3D Soft Buttons */
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 16px;
-            background: var(--primary);
-            color: white;
-            font-weight: 700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 8px 15px rgba(139, 92, 246, 0.3);
-            transform: translateY(0);
-        }
+  .auth-gate { position: fixed; inset: 0; background: var(--bg-main); z-index: 250; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.4s ease; }
+  .auth-box { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow); }
+  .auth-switch { font-size: 14px; color: var(--muted); margin-top: 20px; }
+  .auth-switch span { color: var(--gold); cursor: pointer; font-weight: 600; }
+  .auth-error { font-size: 13px; color: var(--rust); background: rgba(255,51,102,0.1); padding: 10px; border-radius: 8px; margin-bottom: 12px; }
 
-        .btn:active {
-            transform: translateY(3px) scale(0.98);
-            box-shadow: 0 3px 6px rgba(139, 92, 246, 0.2);
-        }
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--gold); color: #000000; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; display: none; z-index: 300; box-shadow: var(--shadow); transition: all 0.2s ease; }
+  
+  .loading-gate {
+    position: fixed; inset: 0; background: #06090C; z-index: 500;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .splash-container { text-align: center; }
+  .splash-title-text { font-size: 38px; font-weight: 900; color: var(--gold); letter-spacing: -1.5px; text-shadow: 0 0 20px rgba(102,255,0,0.4); }
+  .splash-subtitle { font-size: 13px; color: #7E93A2; margin-top: 8px; font-weight: 500; letter-spacing: 0.05em; }
+  
+  .splash-loader-bar {
+    width: 140px; height: 3px; background: #1E2B35; border-radius: 2px; margin: 24px auto 0 auto; overflow: hidden; position: relative;
+  }
+  .splash-loader-progress {
+    width: 60%; height: 100%; background: #66FF00; position: absolute; left: -100%; border-radius: 2px;
+    animation: splashLoad 1.8s infinite ease-in-out;
+  }
+  @keyframes splashLoad {
+    0% { left: -100%; width: 30%; }
+    50% { width: 60%; }
+    100% { left: 100%; width: 30%; }
+  }
 
-        .btn-whatsapp {
-            background: #25D366;
-            box-shadow: 0 8px 15px rgba(37, 211, 102, 0.3);
-            color: white;
-        }
+  .mobile-nav-bar { display: none; }
 
-        .btn-small {
-            padding: 8px 14px;
-            font-size: 0.8rem;
-            border-radius: 12px;
-            width: auto;
-        }
+  @media (max-width: 980px) {
+    .shell { flex-direction: column; padding-bottom: 70px; }
+    .sidebar { display: none; }
+    .topbar { padding: 16px 20px; position: sticky; top: 0; background: var(--bg-side); }
+    .topbar h1 { font-size: 20px; }
+    .topbar .date { display: none; }
+    .content { padding: 16px; }
 
-        .btn-danger {
-            background: var(--danger);
-            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
-            color: white;
-        }
+    .mobile-nav-bar {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
+      background: var(--bg-side); border-top: 1px solid var(--line);
+      z-index: 100; justify-content: space-around; align-items: center;
+      padding: 0 10px; box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+    }
+    .mobile-nav-bar button {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--muted); font-weight: 500; gap: 4px; flex: 1; height: 100%;
+    }
+    .mobile-nav-bar button.active { color: var(--gold); font-weight: 700; }
+    .mobile-nav-bar .nav-icon { font-size: 18px; }
+    .mobile-nav-bar button:active .nav-icon { transform: scale(1.2); }
 
-        .btn-warning {
-            background: var(--warning);
-            box-shadow: 0 6px 12px rgba(245, 158, 11, 0.3);
-            color: white;
-        }
-
-        /* Avatar 3D Circle */
-        .avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 0.95rem;
-            box-shadow: var(--shadow-out);
-            flex-shrink: 0;
-        }
-
-        /* Lists */
-        .list-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            gap: 12px;
-        }
-
-        .list-item:last-child {
-            border-bottom: none;
-        }
-
-        .student-info h4 {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        .student-info p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        /* 3D Checkbox */
-        .tick-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-
-        .tick-box {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: white;
-            background: var(--bg);
-            box-shadow: var(--shadow-out);
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .tick-box.checked {
-            background: var(--success);
-            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
-            transform: scale(1.08);
-        }
-
-        .tick-box.absent-check {
-            background: var(--danger);
-            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
-            transform: scale(1.08);
-        }
-
-        /* Modals */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 24px;
-            width: 88%;
-            max-width: 400px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            text-align: center;
-            transform: scale(0.8);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .modal-overlay.active .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-title {
-            font-weight: 800;
-            margin-bottom: 10px;
-            color: var(--text);
-        }
-
-        .modal-body {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 18px;
-            text-align: left;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 14px;
-        }
-
-        /* Toast Popup */
-        #toast {
-            position: fixed;
-            top: 25px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: var(--text);
-            color: var(--card-bg);
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            z-index: 10000;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        #toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* Voice Mic Pulse */
-        .voice-btn {
-            background: #EF4444;
-            color: white;
-            border-radius: 50%;
-            width: 42px;
-            height: 42px;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1.2rem;
-            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .voice-btn.recording {
-            animation: pulse3d 1s infinite alternate;
-        }
-
-        @keyframes pulse3d {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            100% { transform: scale(1.15); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
-        }
-
-        /* Navigation Bar */
-        nav {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 480px;
-            background: var(--bg);
-            box-shadow: 0 -8px 20px rgba(0,0,0,0.06);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            z-index: 10;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-muted);
-            font-size: 0.65rem;
-            font-weight: 700;
-            cursor: pointer;
-            width: 20%;
-        }
-
-        .nav-item svg {
-            width: 24px;
-            height: 24px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2.2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            margin-bottom: 2px;
-            transition: transform 0.2s;
-        }
-
-        .nav-item.active {
-            color: var(--primary);
-        }
-
-        .nav-item.active svg {
-            transform: translateY(-3px) scale(1.1);
-        }
-
-        .badge-chip {
-            background: var(--primary);
-            color: white;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-    </style>
+    .grid-cards { grid-template-columns: 1fr; gap: 12px; }
+    .charts-grid, .credit-cols { grid-template-columns: 1fr; gap: 20px; }
+    .field-row { grid-template-columns: 1fr; gap: 0; }
+    .tx-row { padding: 12px 14px; gap: 10px; }
+  }
+</style>
 </head>
-<body>
+<body class="dark">
 
-    <!-- Splash Screen -->
-    <div id="splash-screen">
-        <div class="splash-logo">💜</div>
-        <h2>Sanchi Tuition Classes</h2>
-        <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 6px;">Lavender Edition Ready...</p>
+<div class="loading-gate" id="loadingGate">
+  <div class="splash-container">
+    <!-- REMOVED THE EMBEDDED BOX IMAGE ICON LOGO FROM SPLASH -->
+    <h1 class="splash-title-text">A MANAGER</h1>
+    <p class="splash-subtitle">System Online Engine</p>
+    <div class="splash-loader-bar">
+      <div class="splash-loader-progress"></div>
     </div>
+  </div>
+</div>
 
-    <!-- Toast Notification -->
-    <div id="toast">Message</div>
-
-    <!-- General Confirmation Modal Popup -->
-    <div class="modal-overlay" id="custom-modal">
-        <div class="modal-content">
-            <h3 class="modal-title" id="modal-title">Alert</h3>
-            <div class="modal-body" id="modal-body">Modal details...</div>
-            <div class="modal-actions" id="modal-actions">
-                <button class="btn" style="background: var(--card-bg); color: var(--text);" id="modal-cancel">Close</button>
-                <button class="btn" id="modal-confirm">Confirm</button>
-            </div>
-        </div>
+<div class="auth-gate" id="authGate" style="display:none;">
+  <div class="auth-box">
+    <h2 id="authTitle" style="margin-bottom:8px;">Sign In</h2>
+    <p id="authSubtitle" style="color:var(--muted); margin-bottom:24px;">Enter credentials matrix to decrypt session workspace.</p>
+    
+    <form id="authForm">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="authUsername" placeholder="Enter identity string" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="authPassword" placeholder="Enter secure lock key" autocomplete="current-password" required>
+      </div>
+      <div class="auth-error" id="authError" style="display:none;"></div>
+      <button type="submit" class="btn modal-submit" id="authSubmitBtn">Sign In</button>
+    </form>
+    
+    <div class="auth-switch" id="authSwitchContainer">
+      New node? <span id="authSwitchModeBtn">Create Account</span>
     </div>
+  </div>
+</div>
 
-    <!-- Edit Student Modal Popup -->
-    <div class="modal-overlay" id="edit-modal">
-        <div class="modal-content">
-            <h3 class="modal-title">Edit Student</h3>
-            <form id="edit-student-form" style="text-align: left; margin-top: 12px;">
-                <input type="hidden" id="edit-id">
-                <div class="form-group">
-                    <label>Student Name</label>
-                    <input type="text" id="edit-name" required>
-                </div>
-                <div class="form-group">
-                    <label>Parent Guardian Name</label>
-                    <input type="text" id="edit-parent-name" placeholder="Parent Name">
-                </div>
-                <div class="form-group">
-                    <label>WhatsApp Number</label>
-                    <input type="tel" id="edit-phone" required>
-                </div>
-                <div class="form-group">
-                    <label>Class / Batch</label>
-                    <input type="text" id="edit-class" required>
-                </div>
-                <div class="form-group">
-                    <label>Class Time Slot</label>
-                    <input type="text" id="edit-timing" placeholder="e.g. 4:00 PM - 5:00 PM">
-                </div>
-                <div class="form-group">
-                    <label>Monthly Fee (₹)</label>
-                    <input type="number" id="edit-fee" required>
-                </div>
-                <div class="form-group">
-                    <label>Monthly Due Day (1-31)</label>
-                    <input type="number" id="edit-due-day" min="1" max="31" required>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn" style="background: var(--card-bg); color: var(--text);" onclick="closeEditModal()">Cancel</button>
-                    <button type="submit" class="btn">Save Changes</button>
-                </div>
-            </form>
-        </div>
+<div class="shell" id="appShell" style="display:none;">
+  <aside class="sidebar">
+    <div class="brand">
+      <!-- REMOVED THE BOX BRAND LOGO ACCENT IN SIDEBAR HEADER -->
+      <div class="brand-text">
+        <div class="name">A Manager</div>
+        <div class="tag">Active Workspace</div>
+      </div>
     </div>
+    <div class="user-badge">
+      <div class="indicator"></div>
+      <div class="username-display classUserNodeDesktop">guest</div>
+    </div>
+    
+    <nav class="nav mainNavBind">
+      <button data-view="dashboard" class="active">Dashboard</button>
+      <button data-view="transactions">All Entries</button>
+      <button data-view="statements">Balance Sheets</button>
+      <button data-view="credits">Loans</button>
+      <button data-view="modes">Payment Modes</button>
+    </nav>
+    
+    <div style="margin-top:20px;">
+      <button class="btn btn-ghost logOutActionBtn" style="width:100%; justify-content:center;">Log Out</button>
+    </div>
+  </aside>
 
-    <!-- Header -->
-    <header>
-        <h1 id="header-title">💜 Sanchi Tuition</h1>
-        <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+  <nav class="mobile-nav-bar mainNavBind">
+    <button data-view="dashboard" class="active"><span class="nav-icon">📊</span><span>Home</span></button>
+    <button data-view="transactions"><span class="nav-icon">📜</span><span>Entries</span></button>
+    <button data-view="statements"><span class="nav-icon">🧾</span><span>Sheets</span></button>
+    <button data-view="credits"><span class="nav-icon">🤝</span><span>Loans</span></button>
+    <button data-view="modes"><span class="nav-icon">💳</span><span>Modes</span></button>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="viewTitle">Dashboard</h1>
+        <div class="date" id="todayDate"></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" id="themeToggleBtn">☀️ Light Mode</button>
+        <button class="btn btn-gold" id="openTxModal">Add Entry</button>
+      </div>
     </header>
 
-    <main>
-        <!-- PAGE 1: DASHBOARD -->
-        <div id="page-dashboard" class="page active">
-            <!-- Feature 29: Sticky Announcement -->
-            <div class="card" style="border-left: 5px solid var(--primary);">
-                <div class="card-title">📌 Tuition Notice <span class="badge-chip">Live</span></div>
-                <p style="font-size: 0.8rem; color: var(--text-muted);" id="dashboard-notice">Welcome to Sanchi Tuition Classes! All data auto-syncing in real time.</p>
-            </div>
-
-            <div id="dashboard-reminder-popups"></div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-total-students">0</div>
-                    <div class="stat-label">Total Enrolled</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-today-attendance">0/0</div>
-                    <div class="stat-label">Present Today</div>
-                </div>
-            </div>
-
-            <!-- Feature 15: Revenue Overview Card -->
-            <div class="card">
-                <div class="card-title">💰 Monthly Revenue Summary</div>
-                <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 8px;">
-                    <div>
-                        <div style="font-size: 1.1rem; font-weight: 800; color: var(--success);" id="rev-collected">₹0</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Collected</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 1.1rem; font-weight: 800; color: var(--danger);" id="rev-pending">₹0</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Pending</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Quick Actions</div>
-                <button class="btn" style="margin-bottom: 10px;" onclick="switchTab('attendance')">Mark Today's Attendance</button>
-                <button class="btn" style="background-color: #8B5CF6; margin-bottom: 10px;" onclick="switchTab('tests')">📝 Test Marks Manager</button>
-                <button class="btn btn-whatsapp" onclick="switchTab('broadcast')">📢 Send Mass Announcement</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Pending Fee Alerts</div>
-                <div id="dashboard-fee-alerts">Loading...</div>
-            </div>
+    <div class="content">
+      <section class="view active" id="view-dashboard">
+        <div class="grid-cards">
+          <div class="card balance">
+            <div class="label">Total Balance</div>
+            <div class="value num" id="statBalance">₹0</div>
+          </div>
+          <div class="card">
+            <div class="label">Today's Spent</div>
+            <div class="value num" id="statTodaySpent" style="color:var(--rust);">₹0</div>
+          </div>
+          <div class="card">
+            <div class="label">Total Income</div>
+            <div class="value num" id="statTotalIncome" style="color:var(--teal);">₹0</div>
+          </div>
         </div>
 
-        <!-- PAGE 2: STUDENTS DIRECTORY & MANAGEMENT -->
-        <div id="page-students" class="page">
-            <div class="card">
-                <div class="card-title">Add New Student</div>
-                <form id="student-form">
-                    <div class="form-group">
-                        <label>Student Name</label>
-                        <input type="text" id="student-name" placeholder="e.g. Rahul Sharma" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Parent / Guardian Name</label>
-                        <input type="text" id="student-parent-name" placeholder="e.g. Mr. Sharma">
-                    </div>
-                    <div class="form-group">
-                        <label>Parent WhatsApp Number</label>
-                        <input type="tel" id="student-phone" placeholder="e.g. 919876543210" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Class / Batch</label>
-                        <input type="text" id="student-class" placeholder="e.g. Class 10 - Maths" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Class Time Slot</label>
-                        <input type="text" id="student-timing" placeholder="e.g. 4:00 PM - 5:00 PM">
-                    </div>
-                    <div class="form-group">
-                        <label>Monthly Fee (₹)</label>
-                        <input type="number" id="student-fee" placeholder="e.g. 1500" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Monthly Due Day (1-31)</label>
-                        <input type="number" id="student-due-day" placeholder="5" min="1" max="31" value="5" required>
-                    </div>
-                    <button type="submit" class="btn">Save Student</button>
-                </form>
-            </div>
+        <div class="section-title">Balances across Accounts</div>
+        <div class="dynamic-modes-grid" id="dashboardModesGrid"></div>
 
-            <!-- Feature 5 & 6: Student Directory with Search and Class Filters -->
-            <div class="card">
-                <div class="card-title">
-                    Directory
-                    <button class="btn btn-small" onclick="exportJSONBackup()">💾 Backup Data</button>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="search-student-input" placeholder="🔍 Search student name..." onkeyup="filterStudentList()">
-                </div>
-                <div id="students-list-container">Loading...</div>
-            </div>
+        <div class="charts-grid" style="margin-top:30px;">
+          <div class="chart-card">
+            <h3>Timeline</h3>
+            <div class="chart-wrap"><canvas id="chartFlow"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <h3>Categories</h3>
+            <div class="chart-wrap"><canvas id="chartCatMini"></canvas></div>
+          </div>
         </div>
 
-        <!-- PAGE 3: GROQ AI ASSISTANT & TEMPLATES -->
-        <div id="page-ai-assistant" class="page">
-            <div class="card">
-                <div class="card-title">⚡ Groq Short WhatsApp Update</div>
-                <div class="form-group">
-                    <label>Select Student</label>
-                    <select id="ai-student-select">
-                        <option value="">-- Choose Student --</option>
-                    </select>
-                </div>
+        <div class="section-title">Recent Entries</div>
+        <div class="panel" id="recentTxPanel"></div>
+      </section>
 
-                <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label style="margin:0;">Taught Topics & Homework</label>
-                        <button type="button" class="voice-btn" id="mic-btn" title="Tap to Speak">🎙️</button>
-                    </div>
-                    <textarea id="ai-input-text" rows="3" placeholder="e.g. Rahul ko Trigonometry Chapter 8 exercise 8.2 sikhaya. Homework: exercise 8.2 complete karo."></textarea>
-                </div>
+      <section class="view" id="view-transactions">
+        <div class="filters">
+          <select id="filterType">
+            <option value="all">All Entries</option>
+            <option value="income">Income Only</option>
+            <option value="expense">Expenses Only</option>
+            <option value="transfer">Transfers Only</option>
+          </select>
+          <select id="filterMethod">
+            <option value="all">All Payment Modes</option>
+          </select>
+          <input type="text" id="filterSearch" placeholder="Search notes description...">
+        </div>
+        <div class="panel" id="allTxPanel"></div>
+      </section>
 
-                <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">⚡ Generate Short Message</button>
+      <section class="view" id="view-statements">
+        <div class="filters">
+          <select id="sheetMethodSelect"></select>
+          <input type="text" id="sheetSearchPerson" placeholder="Filter by target person name...">
+          <input type="date" id="sheetStartDate">
+          <input type="date" id="sheetEndDate">
+          <button class="btn btn-ghost" id="printStatementBtn" style="flex-shrink:0;">🖨️ Export</button>
+        </div>
+        
+        <div class="card" style="margin-bottom: 20px; padding: 15px 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div class="label" id="sheetAccountLabel">Account Statement</div>
+              <div style="font-size:13px; color:var(--muted); margin-top:2px;" id="sheetDateFilterLabel">All-Time History</div>
             </div>
-
-            <!-- Feature 14: Pre-Made Quick Template Buttons -->
-            <div class="card">
-                <div class="card-title">⚡ One-Tap Templates</div>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                    <button class="btn btn-small" onclick="applyTemplate('test-tomorrow')">📅 Test Tomorrow</button>
-                    <button class="btn btn-small" onclick="applyTemplate('fee-reminder')">💰 Fee Due Today</button>
-                    <button class="btn btn-small" onclick="applyTemplate('holiday-notice')">🎉 Holiday Notice</button>
-                </div>
+            <div style="text-align:right;">
+              <div class="label">Closing Sheet Balance</div>
+              <div class="value num" id="sheetClosingBalance" style="font-size:22px; margin-top:4px; color:var(--gold);">₹0</div>
             </div>
-
-            <div class="card" id="ai-result-card" style="display: none;">
-                <div class="card-title">
-                    Message Output
-                    <button class="btn btn-small" onclick="copyAIText()">📋 Copy Text</button>
-                </div>
-                <textarea id="ai-output-text" rows="5"></textarea>
-                <button class="btn btn-whatsapp" style="margin-top: 10px;" onclick="sendAIWhatsApp()">📲 Launch WhatsApp App</button>
-            </div>
+          </div>
         </div>
 
-        <!-- PAGE 4: TICK ATTENDANCE & TIMESTAMPS -->
-        <div id="page-attendance" class="page">
-            <div class="card">
-                <div class="card-title">Mark Daily Attendance</div>
-                <div class="form-group">
-                    <label>Select Date</label>
-                    <input type="date" id="attendance-date">
-                </div>
-                <!-- Feature 23 & 24: Mark All Present / Reset Actions -->
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-small" style="background: var(--success);" onclick="markAllPresent()">✓ Mark All Present</button>
-                    <button class="btn btn-small btn-danger" onclick="resetAttendanceSelection()">✕ Reset All</button>
-                </div>
+        <div class="panel">
+          <div class="ledger-table-wrap">
+            <table class="ledger-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Category/Type</th>
+                  <th>Description / Details</th>
+                  <th>Flow Out</th>
+                  <th>Flow In</th>
+                  <th>Running Balance</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerBalanceSheetBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-credits">
+        <div class="grid-cards" style="grid-template-columns: 1fr 1fr;">
+          <div class="card">
+            <div class="label">People Owe You</div>
+            <div class="value num" id="statLent" style="color:var(--teal);">₹0</div>
+          </div>
+          <div class="card">
+            <div class="label">You Owe People</div>
+            <div class="value num" id="statBorrowed" style="color:var(--rust);">₹0</div>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" id="openCreditModal" style="margin-bottom:20px; width:100%; justify-content:center;">Log New Loan Record</button>
+
+        <div class="credit-cols">
+          <div>
+            <h3 style="margin-bottom:10px;">Money Lent to Others</h3>
+            <div id="lentList"></div>
+          </div>
+          <div>
+            <h3 style="margin-bottom:10px;">Money Borrowed From Others</h3>
+            <div id="borrowedList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-modes">
+        <div class="card" style="max-width:400px; margin-bottom:24px;">
+          <h3 style="margin-bottom:12px;">Add Custom Payment Mode</h3>
+          <form id="addModeForm">
+            <div class="field">
+              <label>Mode Name</label>
+              <input type="text" id="newModeName" placeholder="e.g. HDFC Bank, Paytm Wallet" required>
             </div>
+            <button type="submit" class="btn btn-gold" style="width:100%; justify-content:center;">Save Mode</button>
+          </form>
+        </div>
+        <div class="section-title">Active Payment Accounts</div>
+        <div class="panel" id="customModesListPanel"></div>
+      </section>
+    </div>
+  </div>
+</div>
 
-            <div class="card">
-                <div class="card-title">Student Attendance List</div>
-                <div id="attendance-list-container">Loading...</div>
-                <button class="btn" style="margin-top: 16px;" onclick="saveAttendance()">Save Attendance</button>
+<!-- COMPREHENSIVE ENTRY MODAL CONSOLE -->
+<div class="overlay" id="txOverlay">
+  <div class="modal">
+    <div class="modal-head" style="padding-bottom:10px;">
+      <div class="toggle-group" id="inputInterfaceTabToggle" style="width:100%; max-width:240px; margin-right:20px;">
+        <button type="button" data-tab="ai" class="sel-income">AI Assistant</button>
+        <button type="button" data-tab="manual">Manual Entry</button>
+      </div>
+      <button id="closeTxModal" style="font-size:18px;">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <form id="txForm" style="display:none;">
+        <div class="field">
+          <label>Type</label>
+          <div class="toggle-group" id="txTypeToggle">
+            <button type="button" data-val="income" class="sel-income">Income</button>
+            <button type="button" data-val="expense" class="sel-expense">Expense</button>
+            <button type="button" data-val="transfer">Transfer</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Amount</label>
+            <div class="amt-input-wrap">
+              <span class="cur">₹</span>
+              <input type="number" step="0.01" id="txAmount" required placeholder="0.00">
             </div>
+          </div>
+          <div class="field" id="txMethodField">
+            <label>Paid Via</label>
+            <select id="txMethod"></select>
+          </div>
         </div>
 
-        <!-- PAGE 5: TEST MARKS MANAGER -->
-        <div id="page-tests" class="page">
-            <div class="card">
-                <div class="card-title">📝 Add Test Score</div>
-                <div class="form-group">
-                    <label>Select Student</label>
-                    <select id="test-student-select"></select>
-                </div>
-                <div class="form-group">
-                    <label>Test Subject / Name</label>
-                    <input type="text" id="test-name" placeholder="e.g. Science Chapter 4 Test">
-                </div>
-                <div class="form-group">
-                    <label>Marks Obtained</label>
-                    <input type="number" id="test-obtained" placeholder="e.g. 18">
-                </div>
-                <div class="form-group">
-                    <label>Total Marks</label>
-                    <input type="number" id="test-total" placeholder="e.g. 20">
-                </div>
-                <button class="btn" onclick="saveTestScore()">Save Score & Share</button>
+        <div id="transferFields" style="display:none;">
+          <div class="field-row">
+            <div class="field">
+              <label>From Account</label>
+              <select id="txFromMethod"></select>
             </div>
-        </div>
-
-        <!-- PAGE 6: REPORTS & FEES -->
-        <div id="page-reports" class="page">
-            <div class="card">
-                <div class="card-title">Fee Reminders & Invoices</div>
-                <div id="fee-list-container">Loading...</div>
+            <div class="field">
+              <label>To Account</label>
+              <select id="txToMethod"></select>
             </div>
-
-            <div class="card">
-                <div class="card-title">Student Attendance Report</div>
-                <div class="form-group">
-                    <label>Select Student</label>
-                    <select id="report-student-select" onchange="generateReport()">
-                        <option value="">-- Select Student --</option>
-                    </select>
-                </div>
-                <div id="report-results-container">Select a student to view report.</div>
-            </div>
+          </div>
         </div>
 
-        <!-- PAGE 7: BROADCAST -->
-        <div id="page-broadcast" class="page">
-            <div class="card">
-                <div class="card-title">Mass Announcements</div>
-                <div class="form-group">
-                    <label>Broadcast Text</label>
-                    <textarea id="broadcast-msg" rows="4" placeholder="Dear Parents, Tuition will remain closed tomorrow..."></textarea>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Send to Parents</div>
-                <div id="broadcast-list-container">Loading...</div>
-            </div>
+        <div class="field-row">
+          <div class="field" id="txCategoryField">
+            <label>Category</label>
+            <select id="txCategory"></select>
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="txDate" required>
+          </div>
         </div>
-    </main>
-
-    <!-- Bottom Navigation Bar -->
-    <nav>
-        <div class="nav-item active" onclick="switchTab('dashboard')">
-            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
-            Home
+        <div class="field">
+          <label>Note / Description</label>
+          <input type="text" id="txNote" placeholder="What was this for?">
         </div>
-        <div class="nav-item" onclick="switchTab('students')">
-            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
-            Students
+        <button type="submit" class="btn modal-submit">Save Entry</button>
+      </form>
+
+      <div class="ai-interface-container" id="aiInterfaceNode" style="display:block;">
+        <div class="ai-chat-history-node" id="aiChatHistoryScroll">
+          <div class="ai-msg-bubble assistant">Console decrypted. Ask metrics questions, type natural entries (e.g. <b>"spent 60 on burger in cash"</b>), or push loans metrics straight into records.</div>
         </div>
-        <div class="nav-item" onclick="switchTab('ai-assistant')">
-            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"></path></svg>
-            AI Update
+        
+        <div class="ai-status-label" id="aiStatusNode">Ready for queries</div>
+        
+        <div class="ai-chat-input-row">
+          <input type="text" id="aiChatTextBar" placeholder="Type data command matrix or transaction syntax...">
+          <button type="button" class="btn btn-gold" id="aiTextSubmitBtn" style="padding: 10px 14px;">Ask</button>
+          <button type="button" class="btn btn-primary" id="aiVoiceMicBtn" style="padding: 10px;">🎤</button>
         </div>
-        <div class="nav-item" onclick="switchTab('attendance')">
-            <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-            Attendance
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOAN MODAL -->
+<div class="overlay" id="creditOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Add Loan Entry</h2>
+      <button id="closeCreditModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="creditForm">
+        <div class="field">
+          <label>Type</label>
+          <div class="toggle-group" id="creditTypeToggle">
+            <button type="button" data-val="lent" class="sel-lent">I Lent Money</button>
+            <button type="button" data-val="borrowed" class="sel-borrowed">I Borrowed Money</button>
+          </div>
         </div>
-        <div class="nav-item" onclick="switchTab('reports')">
-            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-            Reports
+        <div class="field">
+          <label>Person's Name</label>
+          <input type="text" id="creditPerson" required placeholder="Enter person name">
         </div>
-    </nav>
-
-    <!-- Firebase SDK & App Logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        // Groq API Key
-        const GROQ_API_KEY = "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";
-
-        // Firebase Setup
-        const firebaseConfig = {
-            apiKey: "AIzaSyDE_Tzjwmoh-xuFTFYpT5ElGjfN6T0VEsI",
-            authDomain: "sanchitution.firebaseapp.com",
-            projectId: "sanchitution",
-            storageBucket: "sanchitution.firebasestorage.app",
-            messagingSenderId: "349272071034",
-            appId: "1:349272071034:web:e06bb9e9218a93741314c3",
-            measurementId: "G-HM1LLDNN2R",
-            databaseURL: "https://sanchitution-default-rtdb.firebaseio.com"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        let students = {};
-        let attendance = {};
-        let tempAttendanceState = {};
-
-        // Helper: Direct Android Native WhatsApp Intent
-        window.openWhatsAppNative = function(phone, text) {
-            if (!phone) return showToast("Phone number missing!");
-            let cleanPhone = phone.replace(/\D/g, '');
-            if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
-
-            const encodedMsg = encodeURIComponent(text);
-            const intentUrl = `intent://send?phone=${cleanPhone}&text=${encodedMsg}#Intent;scheme=whatsapp;package=com.whatsapp;end`;
-            const schemeUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
-
-            try { window.location.href = intentUrl; } catch(e) { window.location.href = schemeUrl; }
-        };
-
-        // Helper: Student 3D Circle Initial Avatar
-        function getInitials(name) {
-            if (!name) return 'S';
-            const parts = name.trim().split(' ');
-            return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
-        }
-
-        // Custom Toast Notification
-        window.showToast = function(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        };
-
-        // Confirmation Modal
-        window.showModal = function({ title, body, onConfirm }) {
-            const modal = document.getElementById('custom-modal');
-            document.getElementById('modal-title').innerText = title || 'Alert';
-            document.getElementById('modal-body').innerHTML = body || 'Are you sure?';
-
-            const confirmBtn = document.getElementById('modal-confirm');
-            const cancelBtn = document.getElementById('modal-cancel');
-            const close = () => modal.classList.remove('active');
-
-            confirmBtn.onclick = () => { close(); if (onConfirm) onConfirm(); };
-            cancelBtn.onclick = close;
-            modal.classList.add('active');
-        };
-
-        // Theme Switcher (Lavender Light / Dark Lavender)
-        const themeBtn = document.getElementById('theme-toggle');
-        themeBtn.addEventListener('click', () => {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark-lavender' ? 'lavender' : 'dark-lavender';
-            document.documentElement.setAttribute('data-theme', next);
-            themeBtn.innerText = next === 'dark-lavender' ? '☀️' : '🌙';
-        });
-
-        // Splash Hide
-        setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 1200);
-
-        // Date Picker Default
-        const todayStr = new Date().toISOString().split('T')[0];
-        document.getElementById('attendance-date').value = todayStr;
-
-        // Firebase Sync
-        onValue(ref(db, 'students'), (snapshot) => {
-            students = snapshot.val() || {};
-            renderAll();
-        });
-
-        onValue(ref(db, 'attendance'), (snapshot) => {
-            attendance = snapshot.val() || {};
-            renderAttendanceList();
-            updateDashboard();
-            generateReport();
-        });
-
-        function renderAll() {
-            renderStudentsList();
-            renderAttendanceList();
-            renderBroadcastList();
-            renderFeeList();
-            populateDropdowns();
-            updateDashboard();
-            checkFeeReminders();
-        }
-
-        // Add Student
-        document.getElementById('student-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = 'std_' + Date.now();
-            const name = document.getElementById('student-name').value.trim();
-            const parentName = document.getElementById('student-parent-name').value.trim() || 'Parent';
-            let phone = document.getElementById('student-phone').value.trim();
-            const classVal = document.getElementById('student-class').value.trim();
-            const timing = document.getElementById('student-timing').value.trim() || 'Batch 1';
-            const fee = document.getElementById('student-fee').value.trim();
-            const dueDay = document.getElementById('student-due-day').value.trim() || 5;
-
-            set(ref(db, 'students/' + id), {
-                id, name, parentName, phone, classVal, timing, fee, dueDay: parseInt(dueDay), feePaid: false
-            }).then(() => {
-                showToast("Student saved to Lavender Database!");
-                document.getElementById('student-form').reset();
-            }).catch(err => showToast("Error: " + err.message));
-        });
-
-        // Edit Student
-        window.openEditModal = function(id) {
-            const s = students[id];
-            if (!s) return;
-
-            document.getElementById('edit-id').value = s.id;
-            document.getElementById('edit-name').value = s.name;
-            document.getElementById('edit-parent-name').value = s.parentName || '';
-            document.getElementById('edit-phone').value = s.phone;
-            document.getElementById('edit-class').value = s.classVal;
-            document.getElementById('edit-timing').value = s.timing || '';
-            document.getElementById('edit-fee').value = s.fee;
-            document.getElementById('edit-due-day').value = s.dueDay || 5;
-
-            document.getElementById('edit-modal').classList.add('active');
-        };
-
-        window.closeEditModal = function() {
-            document.getElementById('edit-modal').classList.remove('active');
-        };
-
-        document.getElementById('edit-student-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit-id').value;
-            const updatedData = {
-                name: document.getElementById('edit-name').value.trim(),
-                parentName: document.getElementById('edit-parent-name').value.trim(),
-                phone: document.getElementById('edit-phone').value.trim(),
-                classVal: document.getElementById('edit-class').value.trim(),
-                timing: document.getElementById('edit-timing').value.trim(),
-                fee: document.getElementById('edit-fee').value.trim(),
-                dueDay: parseInt(document.getElementById('edit-due-day').value.trim()) || 5
-            };
-
-            update(ref(db, `students/${id}`), updatedData)
-                .then(() => {
-                    showToast("Student updated!");
-                    closeEditModal();
-                })
-                .catch(err => showToast("Error: " + err.message));
-        });
-
-        // Delete Student
-        window.deleteStudent = function(id) {
-            showModal({
-                title: "Delete Student",
-                body: "Are you sure you want to delete this student?",
-                onConfirm: () => {
-                    remove(ref(db, 'students/' + id))
-                        .then(() => showToast("Student deleted"))
-                        .catch(err => showToast("Error deleting"));
-                }
-            });
-        };
-
-        // Directory Render & Search Filter
-        function renderStudentsList() {
-            const container = document.getElementById('students-list-container');
-            const keys = Object.keys(students);
-
-            if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No students added yet.</p>';
-                return;
-            }
-
-            container.innerHTML = keys.map(k => {
-                const s = students[k];
-                return `
-                    <div class="list-item student-card-item" data-name="${s.name.toLowerCase()}">
-                        <div class="avatar">${getInitials(s.name)}</div>
-                        <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>${s.classVal} • ₹${s.fee}/mo (Due: Day ${s.dueDay || 5})</p>
-                            <p>📱 ${s.phone} • ${s.timing || ''}</p>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn btn-warning btn-small" onclick="openEditModal('${s.id}')">Edit ✏️</button>
-                            <button class="btn btn-danger btn-small" onclick="deleteStudent('${s.id}')">Delete</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.filterStudentList = function() {
-            const term = document.getElementById('search-student-input').value.toLowerCase();
-            document.querySelectorAll('.student-card-item').forEach(el => {
-                const name = el.getAttribute('data-name');
-                el.style.display = name.includes(term) ? 'flex' : 'none';
-            });
-        };
-
-        // Attendance Actions
-        function renderAttendanceList() {
-            const date = document.getElementById('attendance-date').value;
-            const container = document.getElementById('attendance-list-container');
-            const keys = Object.keys(students);
-
-            if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Add students first.</p>';
-                return;
-            }
-
-            const current = attendance[date] || {};
-            tempAttendanceState = { ...current };
-
-            container.innerHTML = keys.map(k => {
-                const s = students[k];
-                const status = tempAttendanceState[s.id] || 'Present';
-                tempAttendanceState[s.id] = status;
-                const isPresent = status === 'Present';
-
-                return `
-                    <div class="list-item">
-                        <div class="avatar">${getInitials(s.name)}</div>
-                        <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>${s.classVal}</p>
-                        </div>
-                        <div class="tick-container" onclick="toggleTick('${s.id}')">
-                            <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted)">
-                                ${isPresent ? 'Present' : 'Absent'}
-                            </span>
-                            <div id="tick-${s.id}" class="tick-box ${isPresent ? 'checked' : 'absent-check'}">
-                                ${isPresent ? '✓' : '✕'}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.toggleTick = function(id) {
-            const next = tempAttendanceState[id] === 'Present' ? 'Absent' : 'Present';
-            tempAttendanceState[id] = next;
-
-            const box = document.getElementById(`tick-${id}`);
-            if (next === 'Present') {
-                box.className = "tick-box checked";
-                box.innerText = "✓";
-                box.previousElementSibling.innerText = "Present";
-            } else {
-                box.className = "tick-box absent-check";
-                box.innerText = "✕";
-                box.previousElementSibling.innerText = "Absent";
-            }
-        };
-
-        window.markAllPresent = function() {
-            Object.keys(students).forEach(id => { tempAttendanceState[id] = 'Present'; });
-            renderAttendanceList();
-            showToast("All marked Present!");
-        };
-
-        window.resetAttendanceSelection = function() {
-            Object.keys(students).forEach(id => { tempAttendanceState[id] = 'Absent'; });
-            renderAttendanceList();
-            showToast("Reset all to Absent!");
-        };
-
-        window.saveAttendance = function() {
-            const date = document.getElementById('attendance-date').value;
-            if (!date) return showToast("Select a date.");
-
-            set(ref(db, 'attendance/' + date), tempAttendanceState)
-                .then(() => showToast(`Attendance saved with timestamp!`))
-                .catch(err => showToast("Error saving"));
-        };
-
-        document.getElementById('attendance-date').addEventListener('change', renderAttendanceList);
-
-        // GROQ AI SHORT MESSAGE GENERATOR
-        window.generateAIUpdate = async function() {
-            const studentId = document.getElementById('ai-student-select').value;
-            const textInput = document.getElementById('ai-input-text').value.trim();
-
-            if (!studentId) return showToast("Please select a student!");
-            if (!textInput) return showToast("Please enter or speak taught details!");
-
-            const student = students[studentId];
-            const btn = document.getElementById('generate-ai-btn');
-            btn.innerText = "⚡ Generating Short Message...";
-            btn.disabled = true;
-
-            const prompt = `You are a tuition assistant for "Sanchi Tuition Classes". Generate a VERY SHORT, clear, and professional Hinglish update message for WhatsApp.
-            Student: ${student.name}
-            Class: ${student.classVal}
-            Notes: ${textInput}
-
-            RULES:
-            - Keep it maximum 3 bullet points long.
-            - Write in casual professional Hinglish with relevant emojis.
-            - DO NOT add markdown code blocks. Output plain ready-to-copy message text only.`;
-
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${GROQ_API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        model: "llama-3.3-70b-versatile",
-                        messages: [{ role: "user", content: prompt }]
-                    })
-                });
-
-                const data = await res.json();
-                if (data.choices && data.choices[0]) {
-                    const aiMsg = data.choices[0].message.content.trim();
-                    document.getElementById('ai-output-text').value = aiMsg;
-                    document.getElementById('ai-result-card').style.display = 'block';
-                    showToast("Message Ready!");
-                }
-            } catch (e) {
-                showToast("Groq API Error: " + e.message);
-            } finally {
-                btn.innerText = "⚡ Generate Short Message";
-                btn.disabled = false;
-            }
-        };
-
-        window.applyTemplate = function(type) {
-            const templates = {
-                'test-tomorrow': 'Kal Sanchi Tuition Classes mein Weekly Test hoga. Kripya acche se revision karke aayein. All the best! 👍',
-                'fee-reminder': 'Namaste! Monthly tuition fee due date aa gayi hai. Kripya fee clear kar dein. Dhanyawad! 🙏',
-                'holiday-notice': 'Dear Parents, Sanchi Tuition Classes kal band rahegi. Regular classes parson se hongi. Thank you! 🎉'
-            };
-            document.getElementById('ai-input-text').value = templates[type] || '';
-        };
-
-        window.copyAIText = function() {
-            const text = document.getElementById('ai-output-text').value;
-            navigator.clipboard.writeText(text);
-            showToast("Copied to clipboard!");
-        };
-
-        window.sendAIWhatsApp = function() {
-            const studentId = document.getElementById('ai-student-select').value;
-            const text = document.getElementById('ai-output-text').value;
-            if (!studentId || !students[studentId]) return showToast("Invalid student.");
-
-            openWhatsAppNative(students[studentId].phone, text);
-        };
-
-        // Voice Input
-        const micBtn = document.getElementById('mic-btn');
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'hi-IN';
-            recognition.continuous = false;
-
-            micBtn.addEventListener('click', () => {
-                if (micBtn.classList.contains('recording')) recognition.stop();
-                else recognition.start();
-            });
-
-            recognition.onstart = () => { micBtn.classList.add('recording'); showToast("Listening..."); };
-            recognition.onend = () => micBtn.classList.remove('recording');
-            recognition.onresult = (e) => {
-                const transcript = e.results[0][0].transcript;
-                const curr = document.getElementById('ai-input-text').value;
-                document.getElementById('ai-input-text').value = curr ? `${curr} ${transcript}` : transcript;
-            };
-        } else micBtn.style.display = 'none';
-
-        // Test Scores
-        window.saveTestScore = function() {
-            const id = document.getElementById('test-student-select').value;
-            const name = document.getElementById('test-name').value;
-            const obt = document.getElementById('test-obtained').value;
-            const tot = document.getElementById('test-total').value;
-
-            if (!id || !obt || !tot) return showToast("Fill all test fields!");
-            const s = students[id];
-            const msg = `Sanchi Tuition Test Report 📝\nStudent: ${s.name}\nTest: ${name}\nScore: ${obt}/${tot}\nKeep up the hard work! 👍`;
-            openWhatsAppNative(s.phone, msg);
-        };
-
-        // Fee Due Reminders Check
-        function checkFeeReminders() {
-            const today = new Date();
-            const currentDay = today.getDate();
-            const container = document.getElementById('dashboard-reminder-popups');
-            let upcomingRemindersHtml = '';
-
-            Object.values(students).forEach(s => {
-                if (!s.feePaid) {
-                    const dueDay = s.dueDay || 5;
-                    const daysRemaining = dueDay - currentDay;
-
-                    if (daysRemaining >= 0 && daysRemaining <= 3) {
-                        upcomingRemindersHtml += `
-                            <div class="card" style="border-left: 5px solid var(--warning);">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <div>
-                                        <h4 style="font-size:0.9rem;">⏰ Fee Due Alert!</h4>
-                                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
-                                            <strong>${s.name}</strong>'s fee (₹${s.fee}) is due in <strong>${daysRemaining === 0 ? 'Today!' : daysRemaining + ' day(s)'}</strong>.
-                                        </p>
-                                    </div>
-                                    <button class="btn btn-whatsapp btn-small" onclick="sendFeeReminder('${s.id}')">Send</button>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-            });
-
-            container.innerHTML = upcomingRemindersHtml;
-        }
-
-        window.sendFeeReminder = function(studentId) {
-            const s = students[studentId];
-            if (!s) return;
-            const msg = `Namaste! Sanchi Tuition Classes se gentle reminder: ${s.name} ki monthly tuition fee (₹${s.fee}) due date paas hai. Kripya samay par clear karein. Dhanyawad! 🙏`;
-            openWhatsAppNative(s.phone, msg);
-        };
-
-        // Data Backup Export JSON
-        window.exportJSONBackup = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ students, attendance }));
-            const anchor = document.createElement('a');
-            anchor.setAttribute("href", dataStr);
-            anchor.setAttribute("download", "Sanchi_Tuition_Backup.json");
-            document.body.appendChild(anchor);
-            anchor.click();
-            anchor.remove();
-            showToast("Backup file downloaded!");
-        };
-
-        // Dropdowns
-        function populateDropdowns() {
-            const aiSelect = document.getElementById('ai-student-select');
-            const reportSelect = document.getElementById('report-student-select');
-            const testSelect = document.getElementById('test-student-select');
-            const keys = Object.keys(students);
-
-            const optionsHtml = '<option value="">-- Choose Student --</option>' + 
-                keys.map(k => `<option value="${students[k].id}">${students[k].name} (${students[k].classVal})</option>`).join('');
-
-            aiSelect.innerHTML = optionsHtml;
-            reportSelect.innerHTML = optionsHtml;
-            testSelect.innerHTML = optionsHtml;
-        }
-
-        // Fee List View
-        function renderFeeList() {
-            const container = document.getElementById('fee-list-container');
-            const keys = Object.keys(students);
-
-            if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No students added.</p>';
-                return;
-            }
-
-            container.innerHTML = keys.map(k => {
-                const s = students[k];
-                return `
-                    <div class="list-item">
-                        <div class="avatar">${getInitials(s.name)}</div>
-                        <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>Fee: ₹${s.fee} • Due Day: ${s.dueDay || 5}</p>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn btn-small" style="background:${s.feePaid ? 'var(--success)' : 'var(--warning)'}" onclick="toggleFee('${s.id}', ${!s.feePaid})">
-                                ${s.feePaid ? 'Paid ✓' : 'Mark Paid'}
-                            </button>
-                            ${!s.feePaid ? `<button class="btn btn-whatsapp btn-small" onclick="sendFeeReminder('${s.id}')">Reminder</button>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.toggleFee = function(id, status) {
-            update(ref(db, `students/${id}`), { feePaid: status })
-                .then(() => showToast("Status updated!"))
-                .catch(err => showToast("Error updating"));
-        };
-
-        // Broadcast List
-        function renderBroadcastList() {
-            const container = document.getElementById('broadcast-list-container');
-            const keys = Object.keys(students);
-
-            if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No students available.</p>';
-                return;
-            }
-
-            container.innerHTML = keys.map(k => {
-                const s = students[k];
-                return `
-                    <div class="list-item">
-                        <div class="avatar">${getInitials(s.name)}</div>
-                        <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>📱 ${s.phone}</p>
-                        </div>
-                        <button class="btn btn-whatsapp btn-small" onclick="sendBroadcast('${s.phone}')">Send 📲</button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.sendBroadcast = function(phone) {
-            const msg = document.getElementById('broadcast-msg').value.trim();
-            if (!msg) return showToast("Type a message first!");
-            openWhatsAppNative(phone, msg);
-        };
-
-        // Reports
-        window.generateReport = function() {
-            const studentId = document.getElementById('report-student-select').value;
-            const container = document.getElementById('report-results-container');
-
-            if (!studentId) {
-                container.innerHTML = '<p style="font-size:0.85rem; color: var(--text-muted);">Select a student to view history.</p>';
-                return;
-            }
-
-            let total = 0, present = 0, html = '';
-
-            Object.keys(attendance).sort().reverse().forEach(date => {
-                const rec = attendance[date];
-                if (rec && rec[studentId]) {
-                    total++;
-                    const st = rec[studentId];
-                    if (st === 'Present') present++;
-
-                    html += `
-                        <div class="list-item" style="padding: 8px 0;">
-                            <span style="font-size: 0.85rem;">📅 ${date}</span>
-                            <span style="font-weight: bold; font-size: 0.85rem; color: ${st === 'Present' ? 'var(--success)' : 'var(--danger)'}">${st}</span>
-                        </div>
-                    `;
-                }
-            });
-
-            const pct = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
-
-            container.innerHTML = `
-                <div style="background: var(--bg); padding: 14px; border-radius: 16px; margin-bottom: 12px; text-align: center; box-shadow: var(--shadow-in);">
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">${pct}%</div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">${present} Present out of ${total} Total Classes</div>
-                </div>
-                <div style="max-height: 200px; overflow-y: auto;">
-                    ${html || '<p style="font-size:0.8rem; color:var(--text-muted)">No history found.</p>'}
-                </div>
-            `;
-        };
-
-        // Dashboard Revenue Overview Calculator
-        function updateDashboard() {
-            const total = Object.keys(students).length;
-            document.getElementById('stat-total-students').innerText = total;
-
-            const today = new Date().toISOString().split('T')[0];
-            const todayRecords = attendance[today] || {};
-            const present = Object.values(todayRecords).filter(v => v === 'Present').length;
-
-            document.getElementById('stat-today-attendance').innerText = `${present}/${total}`;
-
-            let collected = 0;
-            let pendingAmt = 0;
-            const pendingList = [];
-
-            Object.values(students).forEach(s => {
-                const feeVal = parseInt(s.fee) || 0;
-                if (s.feePaid) {
-                    collected += feeVal;
-                } else {
-                    pendingAmt += feeVal;
-                    pendingList.push(s);
-                }
-            });
-
-            document.getElementById('rev-collected').innerText = `₹${collected}`;
-            document.getElementById('rev-pending').innerText = `₹${pendingAmt}`;
-
-            const alerts = document.getElementById('dashboard-fee-alerts');
-            if (pendingList.length === 0) {
-                alerts.innerHTML = '<p style="color: var(--success); font-weight: 700; font-size: 0.85rem;">All fees are paid! 🎉</p>';
-            } else {
-                alerts.innerHTML = `<p style="color: var(--danger); font-weight: 700; font-size: 0.85rem;">${pendingList.length} student(s) have unpaid fees (₹${pendingAmt}).</p>`;
-            }
-        }
-
-        // Navigation Switcher
-        window.switchTab = function(tabId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-            const target = document.getElementById(`page-${tabId}`);
-            if (target) target.classList.add('active');
-
-            const indexMap = { 'dashboard': 0, 'students': 1, 'ai-assistant': 2, 'attendance': 3, 'reports': 4 };
-            if (indexMap[tabId] !== undefined) {
-                document.querySelectorAll('.nav-item')[indexMap[tabId]].classList.add('active');
-            }
-
-            const titles = {
-                'dashboard': '💜 Sanchi Tuition',
-                'students': 'Student Directory',
-                'ai-assistant': 'Groq Short Message AI',
-                'attendance': 'Mark Attendance',
-                'reports': 'Reports & Fees',
-                'tests': 'Test Scores Manager',
-                'broadcast': 'Mass Broadcast'
-            };
-            document.getElementById('header-title').innerText = titles[tabId] || 'Sanchi Tuition';
-        };
-    </script>
+        <div class="field">
+          <label>Amount</label>
+          <div class="amt-input-wrap">
+            <span class="cur">₹</span>
+            <input type="number" step="0.01" id="creditAmount" required placeholder="0.00">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Date Given</label>
+            <input type="date" id="creditTaken">
+          </div>
+          <div class="field">
+            <label>Due Return Date</label>
+            <input type="date" id="creditDue">
+          </div>
+        </div>
+        <div class="field">
+          <label>Note</label>
+          <input type="text" id="creditNote" placeholder="Optional details">
+        </div>
+        <button type="submit" class="btn modal-submit">Save Loan Record</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, update, set, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDTAqJaAabAlAfIuXa7BVs9kXBSUuLz_-Q",
+  authDomain: "money-manager-17460.firebaseapp.com",
+  databaseURL: "https://money-manager-17460-default-rtdb.firebaseio.com",
+  projectId: "money-manager-17460",
+  storageBucket: "money-manager-17460.firebasestorage.app",
+  messagingSenderId: "189021884412",
+  appId: "1:189021884412:web:3bbc2dc95ab7cab7d96c79",
+  measurementId: "G-ZDD5Y642QN"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const OPENROUTER_SECRET_KEY = "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"; 
+
+let currentSessionUser = null;
+let databaseStreamPath = "";
+let transactions = [];
+let credits = [];
+let paymentModes = ["Cash", "UPI"];
+let authMode = "login";
+
+let CATEGORIES_EXPENSE = ["Food","Transport","Rent","Shopping","Bills","Health","Entertainment","Education","Other"];
+let CATEGORIES_INCOME = ["Salary","Freelance","Gift","Interest","Refund","Other"];
+
+function computeRouteMangle(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  }
+  return "u_" + Math.abs(h);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    const gate = document.getElementById("loadingGate");
+    gate.style.opacity = "0";
+    setTimeout(() => {
+      gate.style.display = "none";
+      showAuthGate();
+    }, 600);
+  }, 1600);
+});
+
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+themeToggleBtn.addEventListener("click", () => {
+  if (document.body.classList.contains("dark")) {
+    document.body.classList.replace("dark", "light");
+    themeToggleBtn.textContent = "🌙 Dark Mode";
+  } else {
+    document.body.classList.replace("light", "dark");
+    themeToggleBtn.textContent = "☀️ Light Mode";
+  }
+  renderAll();
+});
+
+function showAuthGate() {
+  currentSessionUser = null;
+  databaseStreamPath = "";
+  document.getElementById("appShell").style.display = "none";
+  document.getElementById("authGate").style.display = "flex";
+  setAuthMode("login");
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const t = document.getElementById("authTitle");
+  const s = document.getElementById("authSubtitle");
+  const b = document.getElementById("authSubmitBtn");
+  const sw = document.getElementById("authSwitchContainer");
+  document.getElementById("authError").style.display = "none";
+  document.getElementById("authForm").reset();
+
+  if (mode === "login") {
+    t.textContent = "Sign In";
+    s.textContent = "Enter identity parameters to unlock session matrix.";
+    b.textContent = "Sign In";
+    sw.innerHTML = `New node? <span id="authSwitchModeBtn">Create Account</span>`;
+  } else {
+    t.textContent = "Create Account";
+    s.textContent = "Allocate fresh storage pathway configuration block.";
+    b.textContent = "Create Account";
+    sw.innerHTML = `Already mapped? <span id="authSwitchModeBtn">Sign In</span>`;
+  }
+  
+  document.getElementById("authSwitchModeBtn").addEventListener("click", () => {
+    setAuthMode(authMode === "login" ? "signup" : "login");
+  });
+}
+
+document.getElementById("authForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const u = document.getElementById("authUsername").value.trim().toLowerCase();
+  const p = document.getElementById("authPassword").value;
+  const err = document.getElementById("authError");
+  err.style.display = "none";
+
+  if(!/^[a-z0-9_]{3,15}$/.test(u)) {
+    err.textContent = "Username format constraint validation failure.";
+    err.style.display = "block";
+    return;
+  }
+
+  const userMangleKey = computeRouteMangle(u);
+
+  try {
+    const accountSnapshot = await get(ref(db, `users/${userMangleKey}/profile`));
+    const exist = accountSnapshot.exists();
+
+    if (authMode === "login") {
+      if (!exist || accountSnapshot.val().password !== p) {
+        err.textContent = "Wrong username or password key.";
+        err.style.display = "block";
+        return;
+      }
+      initializeUserSession(u, userMangleKey);
+    } else {
+      if (exist) {
+        err.textContent = "Matrix destination route already taken.";
+        err.style.display = "block";
+        return;
+      }
+      await set(ref(db, `users/${userMangleKey}/profile`), { username: u, password: p, timestamp: Date.now() });
+      await set(ref(db, `users/${userMangleKey}/modes`), ["Cash", "UPI"]);
+      showToast("Account Allocated!");
+      initializeUserSession(u, userMangleKey);
+    }
+  } catch (eX) {
+    err.textContent = "Database Matrix Error: " + eX.message;
+    err.style.display = "block";
+  }
+});
+
+function initializeUserSession(username, userKey) {
+  currentSessionUser = username;
+  databaseStreamPath = `users/${userKey}`;
+  
+  document.querySelectorAll(".classUserNodeDesktop").forEach(el => el.textContent = username);
+  document.getElementById("authGate").style.display = "none";
+  document.getElementById("appShell").style.display = "flex";
+  
+  startSyncListeners();
+}
+
+document.querySelectorAll(".logOutActionBtn").forEach(btn => {
+  btn.addEventListener("click", showAuthGate);
+});
+
+function startSyncListeners() {
+  onValue(ref(db, `${databaseStreamPath}/modes`), (snap) => {
+    const val = snap.val();
+    paymentModes = val ? Object.values(val) : ["Cash", "UPI"];
+    updatePaymentModeDropdowns();
+    renderModesView();
+    if(transactions.length > 0) renderAll();
+  });
+
+  onValue(ref(db, `${databaseStreamPath}/transactions`), (snap) => {
+    const val = snap.val();
+    transactions = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+    transactions.sort((a,b) => b.date.localeCompare(a.date) || b.createdAtMs - a.createdAtMs);
+    renderAll();
+  });
+
+  onValue(ref(db, `${databaseStreamPath}/credits`), (snap) => {
+    const val = snap.val();
+    credits = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+    credits.sort((a,b) => b.createdAtMs - a.createdAtMs);
+    renderCredits();
+  });
+}
+
+function updatePaymentModeDropdowns() {
+  const tSel = document.getElementById("txMethod");
+  const fSel = document.getElementById("txFromMethod");
+  const toSel = document.getElementById("txToMethod");
+  const filterSel = document.getElementById("filterMethod");
+  const sheetSel = document.getElementById("sheetMethodSelect");
+
+  const optionsHTML = paymentModes.map(m => `<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
+  tSel.innerHTML = optionsHTML;
+  fSel.innerHTML = optionsHTML;
+  toSel.innerHTML = optionsHTML;
+
+  filterSel.innerHTML = '<option value="all">All Payment Modes</option>' + paymentModes.map(m => `<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
+  sheetSel.innerHTML = paymentModes.map(m => `<option value="${escapeHTML(m)}">Ledger: ${escapeHTML(m)}</option>`).join('');
+}
+
+const fmt = (n) => "₹" + Number(n||0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const todayISO = () => new Date().toISOString().slice(0,10);
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = "block";
+  t.style.transform = "translateX(-50%) translateY(0)";
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => {
+    t.style.display = "none";
+  }, 2200);
+}
+function formatDate(d) {
+  if(!d) return '';
+  return new Date(d+'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function escapeHTML(s) { 
+  return (s||'').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); 
+}
+
+const views = ['dashboard','transactions','statements','credits','modes'];
+function goTo(view) {
+  views.forEach(v => document.getElementById('view-'+v).classList.toggle('active', v===view));
+  
+  document.querySelectorAll('.mainNavBind button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+  
+  const titles = { dashboard: 'Dashboard', transactions: 'All Entries', statements: 'Account Ledgers', credits: 'Loans & Debts', modes: 'Payment Accounts' };
+  document.getElementById('viewTitle').textContent = titles[view];
+  if(view === 'statements') generateAccountBalanceSheet();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.mainNavBind button').forEach(b => {
+  if(b.dataset.view) {
+    b.addEventListener('click', () => goTo(b.dataset.view));
+  }
+});
+
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+const txOverlay = document.getElementById('txOverlay');
+let txType = 'expense';
+
+document.getElementById('inputInterfaceTabToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
+  b.classList.add('sel-income');
+  
+  const mode = b.dataset.tab;
+  if(mode === 'manual') {
+    document.getElementById('txForm').style.display = 'block';
+    document.getElementById('aiInterfaceNode').style.display = 'none';
+  } else {
+    document.getElementById('txForm').style.display = 'none';
+    document.getElementById('aiInterfaceNode').style.display = 'block';
+    resetAIInterfaceUI();
+  }
+});
+
+function populateCategorySelect() {
+  const sel = document.getElementById('txCategory');
+  const list = txType === 'income' ? CATEGORIES_INCOME : CATEGORIES_EXPENSE;
+  sel.innerHTML = list.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+}
+
+function setTxTypeUI() {
+  document.querySelectorAll('#txTypeToggle button').forEach(x => x.classList.remove('sel-income','sel-expense','sel-transfer'));
+  const btn = document.querySelector(`#txTypeToggle button[data-val="${txType}"]`);
+  if(btn) btn.classList.add(txType === 'income' ? 'sel-income' : txType === 'expense' ? 'sel-expense' : 'sel-transfer');
+
+  const isTransfer = txType === 'transfer';
+  document.getElementById('transferFields').style.display = isTransfer ? 'block' : 'none';
+  document.getElementById('txMethodField').style.display = isTransfer ? 'none' : 'block';
+  document.getElementById('txCategoryField').style.display = isTransfer ? 'none' : 'block';
+  if(!isTransfer) populateCategorySelect();
+}
+
+document.getElementById('txTypeToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if(!b) return;
+  txType = b.dataset.val;
+  setTxTypeUI();
+});
+
+document.getElementById('openTxModal').addEventListener('click', () => {
+  document.getElementById('txForm').reset();
+  document.getElementById('txDate').value = todayISO();
+  txType = 'expense';
+  setTxTypeUI();
+  
+  document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
+  document.querySelector('#inputInterfaceTabToggle button[data-tab="ai"]').classList.add('sel-income');
+  document.getElementById('txForm').style.display = 'none';
+  document.getElementById('aiInterfaceNode').style.display = 'block';
+  resetAIInterfaceUI();
+  
+  txOverlay.classList.add('active');
+});
+document.getElementById('closeTxModal').addEventListener('click', () => {
+  stopVoiceAudioRecording();
+  txOverlay.classList.remove('active');
+});
+
+document.getElementById('txForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  if(!amount || amount <= 0) return showToast("Enter a valid amount.");
+  
+  let payload = {
+    type: txType,
+    amount,
+    date: document.getElementById('txDate').value,
+    note: document.getElementById('txNote').value.trim(),
+    createdAtMs: Date.now()
+  };
+
+  if(txType === 'transfer') {
+    payload.fromMethod = document.getElementById('txFromMethod').value;
+    payload.toMethod = document.getElementById('txToMethod').value;
+    if(payload.fromMethod === payload.toMethod) return showToast("Choose different accounts.");
+  } else {
+    payload.method = document.getElementById('txMethod').value;
+    payload.category = document.getElementById('txCategory').value;
+  }
+
+  await push(ref(db, `${databaseStreamPath}/transactions`), payload);
+  txOverlay.classList.remove('active');
+  showToast("Saved successfully.");
+});
+
+window.deleteTx = async (id) => {
+  if(!confirm("Delete this entry permanently?")) return;
+  await remove(ref(db, `${databaseStreamPath}/transactions/${id}`));
+  showToast("Deleted.");
+};
+
+// Custom Modes View Configuration
+document.getElementById("addModeForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("newModeName").value.trim();
+  if(!name) return;
+  if(paymentModes.includes(name)) return showToast("Mode name already exists.");
+
+  paymentModes.push(name);
+  await set(ref(db, `${databaseStreamPath}/modes`), paymentModes);
+  document.getElementById("addModeForm").reset();
+  showToast("Payment account added.");
+});
+
+window.deleteCustomMode = async (modeName) => {
+  if(paymentModes.length <= 1) return showToast("You must keep at least one payment mode.");
+  if(!confirm(`Delete account "${modeName}"?`)) return;
+
+  paymentModes = paymentModes.filter(m => m !== modeName);
+  await set(ref(db, `${databaseStreamPath}/modes`), paymentModes);
+  showToast("Mode removed.");
+};
+
+function renderModesView() {
+  const panel = document.getElementById("customModesListPanel");
+  panel.innerHTML = paymentModes.map(m => `
+    <div class="tx-row" style="grid-template-columns: 1fr auto;">
+      <div style="font-weight:600;">${escapeHTML(m)}</div>
+      <button class="mini-btn del" onclick="deleteCustomMode('${escapeHTML(m)}')">Delete Mode</button>
+    </div>
+  `).join('');
+}
+
+// Credits Operations Configuration Matrix
+const creditOverlay = document.getElementById('creditOverlay');
+let creditType = 'lent';
+
+document.getElementById('creditTypeToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if(!b) return;
+  creditType = b.dataset.val;
+  document.querySelectorAll('#creditTypeToggle button').forEach(x => x.classList.remove('sel-lent','sel-borrowed'));
+  b.classList.add(creditType === 'lent' ? 'sel-lent' : 'sel-borrowed');
+});
+
+document.getElementById('closeCreditModal').addEventListener('click', () => creditOverlay.classList.remove('active'));
+
+document.getElementById('creditForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const amount = parseFloat(document.getElementById('creditAmount').value);
+  const payload = {
+    type: creditType,
+    person: document.getElementById('creditPerson').value.trim(),
+    amount,
+    takenDate: document.getElementById('creditTaken').value || null,
+    dueDate: document.getElementById('creditDue').value || null,
+    note: document.getElementById('creditNote').value.trim(),
+    status: 'pending',
+    createdAtMs: Date.now()
+  };
+  await push(ref(db, `${databaseStreamPath}/credits`), payload);
+  creditOverlay.classList.remove('active');
+  showToast("Loan logged successfully.");
+});
+
+window.settleCredit = async (id) => {
+  await update(ref(db, `${databaseStreamPath}/credits/${id}`), { status: 'paid' });
+  showToast("Marked as paid.");
+};
+window.deleteCredit = async (id) => {
+  if(!confirm("Delete this loan record?")) return;
+  await remove(ref(db, `${databaseStreamPath}/credits/${id}`));
+  showToast("Removed.");
+};
+
+// ===== OMNIPRESENT CHAT ASSISTANT & SPEECH RECOGNITION =====
+let isVoiceRecordingActive = false;
+const BrowserSpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+let browserSpeechRecognizerInstance = null;
+
+function resetAIInterfaceUI() {
+  document.getElementById('aiStatusNode').textContent = 'Ready to assist';
+  document.getElementById('aiStatusNode').style.color = 'var(--gold)';
+  document.getElementById('aiChatTextBar').value = '';
+  document.getElementById('aiChatHistoryScroll').innerHTML = `
+    <div class="ai-msg-bubble assistant">Console decrypted. Ask metrics questions, type natural entries (e.g. <b>"spent 60 on burger in cash"</b>), or push loans metrics straight into records.</div>
+  `;
+  
+  const btn = document.getElementById('aiVoiceMicBtn');
+  btn.classList.remove('recording');
+  btn.textContent = '🎤';
+  isVoiceRecordingActive = false;
+}
+
+if (BrowserSpeechRecognitionClass) {
+  browserSpeechRecognizerInstance = new BrowserSpeechRecognitionClass();
+  browserSpeechRecognizerInstance.continuous = false;
+  browserSpeechRecognizerInstance.interimResults = false;
+  browserSpeechRecognizerInstance.lang = 'en-IN';
+
+  browserSpeechRecognizerInstance.onstart = () => {
+    isVoiceRecordingActive = true;
+    const btn = document.getElementById('aiVoiceMicBtn');
+    btn.classList.add('recording');
+    btn.textContent = '🛑';
+    document.getElementById('aiStatusNode').textContent = 'Listening to speech...';
+  };
+
+  browserSpeechRecognizerInstance.onresult = async (event) => {
+    const rawSpeechTranscriptResultString = event.results[0][0].transcript;
+    stopVoiceAudioRecording();
+    document.getElementById('aiChatTextBar').value = rawSpeechTranscriptResultString;
+    await triggerMainAIStreamPipeline();
+  };
+
+  browserSpeechRecognizerInstance.onerror = () => { stopVoiceAudioRecording(); };
+  browserSpeechRecognizerInstance.onend = () => { stopVoiceAudioRecording(); };
+}
+
+document.getElementById('aiVoiceMicBtn').addEventListener('click', () => {
+  if (!BrowserSpeechRecognitionClass) return showToast("Device running missing Speech APIs.");
+  if (!isVoiceRecordingActive) {
+    try { browserSpeechRecognizerInstance.start(); } catch(e){}
+  } else {
+    stopVoiceAudioRecording();
+  }
+});
+
+function stopVoiceAudioRecording() {
+  if (browserSpeechRecognizerInstance && isVoiceRecordingActive) browserSpeechRecognizerInstance.stop();
+  isVoiceRecordingActive = false;
+  const btn = document.getElementById('aiVoiceMicBtn');
+  if(btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+}
+
+document.getElementById('aiTextSubmitBtn').addEventListener('click', triggerMainAIStreamPipeline);
+document.getElementById('aiChatTextBar').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') triggerMainAIStreamPipeline();
+});
+
+async function triggerMainAIStreamPipeline() {
+  const textBar = document.getElementById('aiChatTextBar');
+  const userQuery = textBar.value.trim();
+  if(!userQuery) return;
+
+  textBar.value = '';
+  appendMessageToBubble('user', userQuery);
+  
+  const statusNode = document.getElementById('aiStatusNode');
+  statusNode.textContent = 'Analyzing parameters...';
+
+  try {
+    const historicalStatsSnapshot = computeStats();
+    
+    const contextLedgerPayload = {
+      currentDate: todayISO(),
+      availableCustomPaymentAccounts: paymentModes,
+      calculatedRunningBalances: historicalStatsSnapshot.modeBalances,
+      grandTotalLedgerBalance: historicalStatsSnapshot.total,
+      rawTransactionDatabaseRecords: transactions.map(t => ({
+        type: t.type, amount: t.amount, date: t.date, method: t.method || 'transfer',
+        from: t.fromMethod || null, to: t.toMethod || null, category: t.category || null, note: t.note || ''
+      })),
+      activeCreditsAndLoansRecords: credits.map(c => ({
+        type: c.type, person: c.person, amount: c.amount, status: c.status, note: c.note || ''
+      }))
+    };
+
+    const coreOmnipresentPromptSystemContext = `You are a dynamic personal ledger assistant system called "A Manager". You are connected to live user data arrays.
+    
+    Here is the exact real-time live database status snapshot payload data:
+    ${JSON.stringify(contextLedgerPayload)}
+    
+    Your job is to read this payload data and assist the user in three ways:
+    
+    WAY 1: IF the user is telling you about a new entry they made (e.g. "spent 60 on pizza via cash", "received 500 salary in upi"), extract the fields into a flat JSON format schema.
+    Strict parse format schema to return for entry matching:
+    {"action":"save_entry","type":"income/expense/transfer","amount":0.00,"method":"MatchedModeName","category":"MatchedCategoryName","note":"Context text description"}
+    
+    WAY 2: IF the user is telling you about a loan record (e.g. "lent 500 to Amit", "borrowed 1200 from Rahul cash"), extract the fields into a flat JSON format schema.
+    Strict parse format schema to return for loan record matching:
+    {"action":"save_loan","type":"lent/borrowed","person":"PersonName","amount":0.00,"note":"Context description"}
+    
+    WAY 3: IF the user is asking a conversational mathematical question regarding balances, history dates, records, or calculations, answer them in standard human terms inside a friendly single conversational paragraph. Do not use markdown charts.
+    Strict parse format schema to return for general chat responses:
+    {"action":"chat_response","reply":"Your textual friendly financial breakdown analysis goes here."}
+    
+    Always return ONLY a raw minified valid JSON output block matching one of the fields above. Do not include markdown code wrappers or backticks.`;
+
+    const openRouterResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_SECRET_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost",
+        "X-Title": "A Manager Smart Matrix Console"
+      },
+      body: JSON.stringify({
+        model: "openrouter/free",
+        messages: [
+          { role: "system", content: coreOmnipresentPromptSystemContext },
+          { role: "user", content: `User query phrase text: "${userQuery}"` }
+        ],
+        temperature: 0.1
+      })
+    });
+
+    if(!openRouterResponse.ok) throw new Error("OpenRouter cloud API network request fault.");
+    const jsonOutput = await openRouterResponse.json();
+    let cleanRawContentString = jsonOutput.choices[0].message.content.trim();
+
+    if(cleanRawContentString.includes("```")) {
+      cleanRawContentString = cleanRawContentString.replace(/```json/g, "").replace(/```/g, "").trim();
+    }
+
+    const aiParsedActionResponse = JSON.parse(cleanRawContentString);
+
+    if(aiParsedActionResponse.action === 'save_entry') {
+      aiParsedActionResponse.date = todayISO();
+      aiParsedActionResponse.createdAtMs = Date.now();
+      
+      await push(ref(db, `${databaseStreamPath}/transactions`), aiParsedActionResponse);
+      appendMessageToBubble('assistant', `Understood! Logged entry of ₹${aiParsedActionResponse.amount} under ${aiParsedActionResponse.category || 'Transfer'} successfully.`);
+      statusNode.textContent = 'Committed to Firebase!';
+      
+      setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
+    } else if (aiParsedActionResponse.action === 'save_loan') {
+      const loanPayload = {
+        type: aiParsedActionResponse.type,
+        person: aiParsedActionResponse.person || 'Unknown',
+        amount: Number(aiParsedActionResponse.amount) || 0,
+        takenDate: todayISO(),
+        dueDate: null,
+        note: aiParsedActionResponse.note || 'Logged via AI Assistant',
+        status: 'pending',
+        createdAtMs: Date.now()
+      };
+      
+      await push(ref(db, `${databaseStreamPath}/credits`), loanPayload);
+      appendMessageToBubble('assistant', `Loan recorded! Logged that you **${loanPayload.type === 'lent' ? 'lent money to' : 'borrowed money from'} ${loanPayload.person}** totaling ₹${loanPayload.amount}.`);
+      statusNode.textContent = 'Committed to Loans!';
+      setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
+    } else {
+      appendMessageToBubble('assistant', aiParsedActionResponse.reply);
+      statusNode.textContent = 'Ready for queries';
+    }
+
+  } catch(errX) {
+    statusNode.textContent = 'Loop exception logged.';
+    appendMessageToBubble('assistant', "Apologies, I encountered a minor processing fault analyzing your ledger context parameters.");
+    console.error(errX);
+  }
+}
+
+function appendMessageToBubble(sender, text) {
+  const historyScroll = document.getElementById('aiChatHistoryScroll');
+  const bubble = document.createElement('div');
+  bubble.className = `ai-msg-bubble ${sender}`;
+  bubble.innerHTML = text;
+  historyScroll.appendChild(bubble);
+  historyScroll.scrollTop = historyScroll.scrollHeight;
+}
+
+// ===== DYNAMIC BALANCE SHEET LEDGER LOGIC =====
+function generateAccountBalanceSheet() {
+  const activeMethod = document.getElementById('sheetMethodSelect').value;
+  const personFilter = document.getElementById('sheetSearchPerson').value.toLowerCase().trim();
+  const startDate = document.getElementById('sheetStartDate').value;
+  const endDate = document.getElementById('sheetEndDate').value;
+
+  document.getElementById('sheetAccountLabel').textContent = `Statement for: ${activeMethod}`;
+  
+  let labelText = "All-Time Running Ledger";
+  if(startDate || endDate) {
+    labelText = `History: ${startDate || 'Onset'} to ${endDate || 'Present'}`;
+  }
+  document.getElementById('sheetDateFilterLabel').textContent = labelText;
+
+  const tBody = document.getElementById('ledgerBalanceSheetBody');
+  tBody.innerHTML = '';
+
+  let runningBalanceVal = 0;
+  let matchesRowsCollected = [];
+
+  const sequentialTimelineList = [...transactions].reverse();
+
+  sequentialTimelineList.forEach(t => {
+    let affectsThisAccount = false;
+    let flowDirection = 0;
+
+    if(t.type === 'transfer') {
+      if(t.fromMethod === activeMethod) { affectsThisAccount = true; flowDirection = -1; }
+      if(t.toMethod === activeMethod) { affectsThisAccount = true; flowDirection = 1; }
+    } else {
+      if(t.method === activeMethod) {
+        affectsThisAccount = true;
+        flowDirection = t.type === 'income' ? 1 : -1;
+      }
+    }
+
+    if (!affectsThisAccount) return;
+
+    const amt = Number(t.amount) || 0;
+    runningBalanceVal += (flowDirection * amt);
+
+    if(startDate && t.date < startDate) return;
+    if(endDate && t.date > endDate) return;
+    
+    if(personFilter) {
+      const noteStr = (t.note || '').toLowerCase();
+      const catStr = (t.category || '').toLowerCase();
+      if(!noteStr.includes(personFilter) && !catStr.includes(personFilter)) return;
+    }
+
+    matchesRowsCollected.push({
+      date: t.date,
+      type: t.type === 'transfer' ? 'Transfer' : t.category,
+      desc: t.type === 'transfer' ? `Transfer: ${t.fromMethod} ➔ ${t.toMethod} ${t.note ? '('+t.note+')' : ''}` : (t.note || 'Ledger entry'),
+      out: flowDirection === -1 ? fmt(amt) : '-',
+      in: flowDirection === 1 ? fmt(amt) : '-',
+      bal: fmt(runningBalanceVal)
+    });
+  });
+
+  document.getElementById('sheetClosingBalance').textContent = fmt(runningBalanceVal);
+
+  if(!matchesRowsCollected.length) {
+    tBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:30px;">No statement entries found for selection parameters.</td></tr>`;
+    return;
+  }
+
+  matchesRowsCollected.reverse().forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${formatDate(row.date)}</td>
+      <td><span class="label" style="color:var(--gold); border: 1px solid rgba(102,255,0,0.2); padding: 2px 6px; border-radius:4px; font-size:11px;">${escapeHTML(row.type)}</span></td>
+      <td>${escapeHTML(row.desc)}</td>
+      <td class="num" style="color:var(--rust); font-weight:600;">${row.out}</td>
+      <td class="num" style="color:var(--teal); font-weight:600;">${row.in}</td>
+      <td class="num" style="font-weight:600; color:var(--gold);">${row.bal}</td>
+    `;
+    tBody.appendChild(tr);
+  });
+}
+
+['sheetMethodSelect', 'sheetStartDate', 'sheetEndDate'].forEach(id => {
+  document.getElementById(id).addEventListener('change', generateAccountBalanceSheet);
+});
+document.getElementById('sheetSearchPerson').addEventListener('input', generateAccountBalanceSheet);
+
+document.getElementById('printStatementBtn').addEventListener('click', () => {
+  window.print();
+});
+
+// ===== CORE RUNTIME MATH ENGINE =====
+function computeStats() {
+  let incomeTotal = 0, expenseTotal = 0;
+  let todaySpentTotal = 0;
+  
+  const todayStringISO = todayISO();
+
+  let modeBalances = {};
+  paymentModes.forEach(m => modeBalances[m] = 0);
+
+  const chronologicalTransactionStream = [...transactions].reverse();
+
+  chronologicalTransactionStream.forEach(t => {
+    const amt = Number(t.amount) || 0;
+    
+    if (t.type === 'transfer') {
+      if (modeBalances[t.fromMethod] !== undefined) modeBalances[t.fromMethod] -= amt;
+      if (modeBalances[t.toMethod] !== undefined) modeBalances[t.toMethod] += amt;
+      return;
+    }
+    
+    const sign = t.type === 'income' ? 1 : -1;
+    if (modeBalances[t.method] !== undefined) {
+      modeBalances[t.method] += sign * amt;
+    }
+    
+    if (t.type === 'income') {
+      incomeTotal += amt;
+    } else {
+      expenseTotal += amt;
+      if (t.date === todayStringISO) {
+        todaySpentTotal += amt;
+      }
+    }
+  });
+
+  let grandTotal = Object.values(modeBalances).reduce((a,b) => a + b, 0);
+  return { total: grandTotal, incomeTotal, todaySpentTotal, modeBalances };
+}
+
+function mergeAllState() {
+  const s = computeStats();
+  document.getElementById('statBalance').textContent = fmt(s.total);
+  document.getElementById('statTodaySpent').textContent = fmt(s.todaySpentTotal);
+  document.getElementById('statTotalIncome').textContent = fmt(s.incomeTotal);
+
+  const dGrid = document.getElementById("dashboardModesGrid");
+  dGrid.innerHTML = Object.keys(s.modeBalances).map(modeKey => `
+    <div class="card" style="padding:15px 20px;">
+      <div class="label" style="color:var(--gold); font-size:12px;">${escapeHTML(modeKey)}</div>
+      <div class="value num" style="font-size:20px; margin-top:8px;">${fmt(s.modeBalances[modeKey])}</div>
+    </div>
+  `).join('');
+
+  const recent = transactions.slice(0, 5);
+  document.getElementById('recentTxPanel').innerHTML = txListHTML(recent);
+  
+  renderTransactionsList();
+  if(document.getElementById('view-statements').classList.contains('active')) generateAccountBalanceSheet();
+  renderCharts(s);
+}
+
+function txListHTML(list) {
+  if(!list.length) return `<div class="empty-state">No entries logged yet.</div>`;
+  return list.map((t, idx) => {
+    const customDelay = `style="animation-delay: ${idx * 0.04}s"`;
+    if(t.type === 'transfer') {
+      return `<div class="tx-row" ${customDelay}>
+        <div class="tx-icon transfer">⇄</div>
+        <div class="tx-main">
+          <div class="cat" style="font-weight:600;">Transfer: ${escapeHTML(t.fromMethod)} ➔ ${escapeHTML(t.toMethod)}</div>
+          <div class="meta">${formatDate(t.date)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
+        </div>
+        <div class="tx-amt transfer">${fmt(t.amount)}</div>
+        <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
+      </div>`;
+    }
+    return `<div class="tx-row" ${customDelay}>
+      <div class="tx-icon ${t.type}">${t.type === 'income' ? '↙' : '↗'}</div>
+      <div class="tx-main">
+        <div class="cat" style="font-weight:600;">${escapeHTML(t.category)}</div>
+        <div class="meta">${formatDate(t.date)} • via ${escapeHTML(t.method)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
+      </div>
+      <div class="tx-amt ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</div>
+      <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderTransactionsList() {
+  const typeF = document.getElementById('filterType').value;
+  const methodF = document.getElementById('filterMethod').value;
+  const searchF = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+  let filtered = transactions.filter(t => {
+    if(typeF !== 'all' && t.type !== typeF) return false;
+    if(methodF !== 'all') {
+      if(t.type === 'transfer') { if(t.fromMethod !== methodF && t.toMethod !== methodF) return false; }
+      else if(t.method !== methodF) return false;
+    }
+    if(searchF && !(t.note||'').toLowerCase().includes(searchF) && !(t.category||'').toLowerCase().includes(searchF) && !(t.date||'').toLowerCase().includes(searchF)) return false;
+    return true;
+  });
+
+  document.getElementById('allTxPanel').innerHTML = txListHTML(filtered);
+}
+['filterType','filterMethod','filterSearch'].forEach(id => document.getElementById(id).addEventListener('input', renderTransactionsList));
+
+function renderCredits() {
+  const lent = credits.filter(c => c.type === 'lent');
+  const borrowed = credits.filter(c => c.type === 'borrowed');
+
+  const totalLent = lent.filter(c => c.status === 'pending').reduce((a,b) => a + Number(b.amount||0), 0);
+  const totalBorrowed = borrowed.filter(c => c.status === 'pending').reduce((a,b) => a + Number(b.amount||0), 0);
+
+  document.getElementById('statLent').textContent = fmt(totalLent);
+  document.getElementById('statBorrowed').textContent = fmt(totalBorrowed);
+
+  document.getElementById('lentList').innerHTML = creditListHTML(lent);
+  document.getElementById('borrowedList').innerHTML = creditListHTML(borrowed);
+}
+
+function creditListHTML(list) {
+  if(!list.length) return `<div class="empty-state">No loan lists found.</div>`;
+  return list.map((c, idx) => `
+    <div class="credit-card" style="animation-delay: ${idx * 0.05}s">
+      <div class="credit-top">
+        <div style="font-weight:600;">${escapeHTML(c.person)}</div>
+        <div class="credit-amt ${c.type}">${fmt(c.amount)}</div>
+      </div>
+      <div class="credit-meta">
+        <span style="font-weight:bold; color:var(--gold);">${c.status.toUpperCase()}</span>
+        ${c.dueDate ? '• Due: '+formatDate(c.dueDate) : ''}
+        ${c.note ? '• '+escapeHTML(c.note) : ''}
+      </div>
+      <div class="credit-actions">
+        ${c.status === 'pending' ? `<button class="mini-btn settle" onclick="settleCredit('${c.id}')">Mark Settled</button>` : ''}
+        <button class="mini-btn del" onclick="deleteCredit('${c.id}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+let cFlow, cCat;
+function renderCharts(stats) {
+  const ctxFlow = document.getElementById('chartFlow');
+  const ctxCat = document.getElementById('chartCatMini');
+  
+  const months = Array.from({length: 6}, (_, i) => {
+    const d = new Date(); d.setMonth(d.getMonth() - i);
+    return { label: d.toLocaleString('en-IN', {month: 'short'}), m: d.getMonth(), y: d.getFullYear() };
+  }).reverse();
+
+  const flowIn = months.map(m => transactions.filter(t => t.type === 'income' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
+  const flowOut = months.map(m => transactions.filter(t => t.type === 'expense' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
+
+  const textModeColor = document.body.classList.contains("light") ? "#000000" : "#FFFFFF";
+  const gridLineColor = document.body.classList.contains("light") ? "#CBD5E1" : "#1E2B35";
+
+  if(cFlow) cFlow.destroy();
+  cFlow = new Chart(ctxFlow, {
+    type: 'line',
+    data: {
+      labels: months.map(m => m.label),
+      datasets: [
+        { label: 'Income', data: flowIn, borderColor: '#00FFCC', tension: 0.2, pointRadius: 2 },
+        { label: 'Expense', data: flowOut, borderColor: '#FF3366', tension: 0.2, pointRadius: 2 }
+      ]
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { legend: { display: false } }, 
+      scales: { 
+        y: { grid: { color: gridLineColor }, ticks: { color: textModeColor } }, 
+        x: { grid: { display: false }, ticks: { color: textModeColor } } 
+      } 
+    }
+  });
+
+  const catMap = {};
+  transactions.filter(t => t.type === 'expense').forEach(t => catMap[t.category] = (catMap[t.category]||0) + Number(t.amount));
+
+  if(cCat) cCat.destroy();
+  cCat = new Chart(ctxCat, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(catMap).length ? Object.keys(catMap) : ['None'],
+      datasets: [{ data: Object.values(catMap).length ? Object.values(catMap) : [1], backgroundColor: ['#66FF00', '#00FFCC', '#FF3366', '#CC66FF', '#7E93A2'], borderWidth: 0 }]
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { legend: { display: false } } 
+    }
+  });
+}
+window.renderAll = mergeAllState;
+</script>
 </body>
 </html>
