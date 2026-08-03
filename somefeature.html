@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>For My Jaanaw 🍷✨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@400;600;700&family=Outfit:wght@400;600;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --wine: #4A0E17;
+    --wine-dark: #2B070C;
+    --red: #D62828;
+    --red-soft: #FF4D6D;
+    --lavender: #E0C3FC;
+    --lavender-soft: #F3E8FF;
+    --lavender-dark: #8A50A1;
+    --white: #FFF9FA;
+    --gold: #FFD166;
+    --ink: #220B10;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  html, body { margin: 0; padding: 0; overflow-x: hidden; background: var(--wine-dark); color: var(--white); font-family: 'Outfit', sans-serif; scroll-behavior: smooth; }
+  
+  h1, h2, h3 { margin: 0; font-family: 'Playfair Display', serif; }
+  .hand { font-family: 'Caveat', cursive; }
+  
+  section {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 70px 20px;
+    text-align: center;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(224, 195, 252, 0.15);
+  }
+
+  .badge {
+    padding: 6px 16px;
+    border-radius: 30px;
+    background: rgba(214, 40, 40, 0.25);
+    border: 1px solid var(--red-soft);
+    color: var(--lavender);
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .lead { max-width: 500px; margin: 12px auto 0; font-size: 1.05rem; line-height: 1.6; opacity: 0.9; }
+  .btn { font-family: 'Fredoka', sans-serif; border: none; cursor: pointer; user-select: none; transition: transform 0.2s, background 0.3s; }
+  .btn:active { transform: scale(0.95); }
+
+  /* Progress Bar */
+  #bar-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 6px; background: rgba(0,0,0,0.3); z-index: 999; }
+  #bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--red), var(--lavender)); }
+
+  /* Music Button */
+  #music-btn {
+    position: fixed; bottom: 20px; right: 20px; width: 52px; height: 52px; border-radius: 50%;
+    background: var(--red); color: var(--white); font-size: 1.4rem; z-index: 998;
+    box-shadow: 0 8px 24px rgba(214, 40, 40, 0.5); display: flex; align-items: center; justify-content: center;
+  }
+  #music-btn.playing { animation: spin 4s linear infinite; }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+
+  /* Splash Screen */
+  #splash {
+    position: fixed; inset: 0; background: radial-gradient(circle at center, var(--wine), var(--wine-dark));
+    z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+    transition: opacity 0.8s, visibility 0.8s;
+  }
+  #splash h1 { font-size: 3rem; color: var(--lavender); margin-bottom: 10px; }
+  #splash.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  /* Gallery Card */
+  .photo-frame {
+    width: 260px; height: 340px; border-radius: 20px; padding: 12px; background: var(--white);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5); transform: rotate(-3deg); transition: transform 0.3s;
+    margin: 20px auto;
+  }
+  .photo-frame img { width: 100%; height: 260px; object-fit: cover; border-radius: 12px; }
+  .photo-frame p { color: var(--ink); margin-top: 8px; font-weight: 700; font-size: 1.1rem; }
+
+  /* Section Styles */
+  #sec1 { background: linear-gradient(180deg, var(--wine-dark), var(--wine)); }
+  #sec2 { background: var(--wine); }
+  #sec3 { background: linear-gradient(180deg, var(--wine), #380B13); }
+  #sec4 { background: #380B13; }
+  #sec5 { background: linear-gradient(180deg, #380B13, var(--wine-dark)); }
+
+  /* Interactive Elements */
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; max-width: 400px; margin-top: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 400px; margin-top: 20px; }
+
+  .interactive-box {
+    background: rgba(255, 249, 250, 0.08); border: 1px solid rgba(224, 195, 252, 0.2);
+    border-radius: 16px; padding: 16px; cursor: pointer; transition: all 0.3s;
+  }
+  .interactive-box:active { background: rgba(214, 40, 40, 0.3); }
+
+  /* Scratch Card */
+  #scratch-wrap { position: relative; width: 280px; height: 160px; margin-top: 20px; border-radius: 16px; overflow: hidden; }
+  #scratch-msg { position: absolute; inset: 0; background: var(--white); color: var(--ink); display: flex; align-items: center; justify-content: center; padding: 15px; font-weight: 700; }
+  #scratch-canvas { position: absolute; inset: 0; cursor: pointer; }
+
+  /* Flip Cards */
+  .flip-card { height: 130px; perspective: 1000px; }
+  .flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+  .flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-front, .flip-back { position: absolute; inset: 0; border-radius: 14px; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 10px; }
+  .flip-front { background: var(--red); color: var(--white); font-size: 1.5rem; }
+  .flip-back { background: var(--lavender-soft); color: var(--ink); transform: rotateY(180deg); font-weight: 600; font-size: 0.95rem; }
+
+  /* Meter Slider */
+  input[type=range] { width: 80%; max-width: 300px; margin-top: 20px; accent-color: var(--red-soft); }
+
+  /* Piano Keys */
+  .key { width: 48px; height: 75px; background: var(--white); border-radius: 0 0 10px 10px; color: var(--ink); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; font-weight: 700; cursor: pointer; }
+  .key:active { background: var(--lavender); transform: translateY(3px); }
+
+  /* Envelope */
+  #envelope { width: 240px; height: 150px; background: var(--white); border-radius: 10px; position: relative; cursor: pointer; margin-top: 20px; }
+  #env-flap { position: absolute; top: 0; left: 0; width: 100%; height: 0; border-left: 120px solid transparent; border-right: 120px solid transparent; border-top: 80px solid var(--red); transform-origin: top; transition: transform 0.5s; }
+  #envelope.open #env-flap { transform: rotateX(180deg); }
+  #letter { display: none; background: var(--white); color: var(--ink); padding: 20px; border-radius: 12px; max-width: 340px; margin-top: 20px; text-align: left; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 2.2rem !important; }
+    h2 { font-size: 1.8rem !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bar-wrap"><div id="bar-fill"></div></div>
+<button id="music-btn">🎵</button>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="badge">Special Gift</div>
+  <h1>For My Jaanaw 🍷</h1>
+  <p class="lead hand" style="font-size: 1.4rem;">Distance bohot hai, par mera pyaar usse bhi bada hai...</p>
+  <button class="btn" id="enter-btn" style="margin-top:25px; background:var(--red); color:#fff; padding:15px 35px; border-radius:30px; font-size:1.1rem;">Khool Ke Dekho 🌸</button>
+</div>
+
+<!-- 1. HERO -->
+<section id="sec1">
+  <div class="badge">Chapter 1</div>
+  <h1 style="color:var(--lavender);">Suno, <span style="color:var(--red-soft);">Biwi</span> ❤️</h1>
+  <p class="lead">Yeh chota sa digital garden bas mere **babu**, **shona**, aur **mera bachha** ke liye hai.</p>
+  <div class="photo-frame">
+    <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1785776990/Snapchat-1369794939_p5sdsp.jpg" alt="Jaanaw 1">
+    <p class="hand">Meri Pyari Jaanaw ✨</p>
+  </div>
+  <p class="hand" style="font-size: 1.3rem; color: var(--lavender);">Scroll niche karo, bohot kuch surprise hai...</p>
+</section>
+
+<!-- 2. HEART BLOOM -->
+<section id="sec2">
+  <div class="badge">Chapter 2</div>
+  <h2>Touch to Bloom Hearts 🌹</h2>
+  <p class="lead">Jab bhi tumhara miss karta hu, heart beat aise hi fast ho jaati hai. Tap the garden below!</p>
+  <div class="grid-3" id="heart-bed"></div>
+  <p id="bloom-count" class="hand" style="font-size:1.3rem; margin-top:15px; color:var(--red-soft);">0 Hearts Bloomed for Baby</p>
+</section>
+
+<!-- 3. PHOTO MEMORY 1 -->
+<section id="sec3">
+  <div class="badge">Chapter 3</div>
+  <h2>Mera Pyara Betaa 📸</h2>
+  <p class="lead">Yeh look pe kitni baar dil aaya hai pata hai tumhein?</p>
+  <div class="photo-frame" style="transform: rotate(3deg);">
+    <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1785776990/Snapchat-2079995391_x30vmm.jpg" alt="Jaanaw 2">
+    <p class="hand">Cutest Wifi Ever 💍</p>
+  </div>
+</section>
+
+<!-- 4. NICKNAME MATRIX -->
+<section id="sec4">
+  <div class="badge">Chapter 4</div>
+  <h2>Pick Your Mood Today, Baby! 👑</h2>
+  <p class="lead">Aaj mera bachha kis mood mein hai? Click anywhere!</p>
+  <div class="grid-2" id="mood-grid">
+    <div class="interactive-box" onclick="sayMood('Gussa Biwi 😤')">Angry Biwi 😤</div>
+    <div class="interactive-box" onclick="sayMood('Romantic Shona 🌹')">Romantic Shona 🌹</div>
+    <div class="interactive-box" onclick="sayMood('Nautanki Babu 😜')">Nautanki Babu 😜</div>
+    <div class="interactive-box" onclick="sayMood('Cute Bachhe 🥺')">Pyaara Bachha 🥺</div>
+  </div>
+  <p id="mood-reply" class="hand" style="font-size:1.4rem; color:var(--lavender); margin-top:15px;"></p>
+</section>
+
+<!-- 5. FLIP CARDS REASONS -->
+<section id="sec5">
+  <div class="badge">Chapter 5</div>
+  <h2>Why I Love My Wifi 💻❤️</h2>
+  <p class="lead">Flip these cards one by one!</p>
+  <div class="grid-2" id="flip-grid"></div>
+</section>
+
+<!-- 6. PHOTO MEMORY 2 -->
+<section id="sec6" style="background:var(--wine-dark);">
+  <div class="badge">Chapter 6</div>
+  <h2>Nazar Na Lage ✨</h2>
+  <p class="lead">Subah shaam bas tumhara hi khayal rehta hai mera betaa.</p>
+  <div class="photo-frame" style="transform: rotate(-2deg);">
+    <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1785776989/Snapchat-606725332_f029dw.jpg" alt="Jaanaw 3">
+    <p class="hand">Mera Sab Kuch ❤️</p>
+  </div>
+</section>
+
+<!-- 7. LOVE METER -->
+<section id="sec7" style="background:var(--wine);">
+  <div class="badge">Chapter 7</div>
+  <h2>Love Scale For Baby 📈</h2>
+  <p class="lead">Kitna pyaar karti ho apne husband se? Drag the slider!</p>
+  <input type="range" id="love-range" min="0" max="100" value="50">
+  <h1 id="love-val" style="color:var(--gold); margin-top:10px;">50%</h1>
+  <p id="love-text" class="hand" style="font-size:1.3rem; color:var(--lavender);"></p>
+</section>
+
+<!-- 8. CAT PIANO -->
+<section id="sec8" style="background:#28050B;">
+  <div class="badge">Chapter 8</div>
+  <h2>Musical Meow For Shona 🐾</h2>
+  <p class="lead">Tumhare liye chota sa piano track!</p>
+  <div style="display:flex; gap:8px; margin-top:20px;" id="piano"></div>
+</section>
+
+<!-- 9. DODGE BUTTON -->
+<section id="sec9" style="background:var(--wine-dark);">
+  <div class="badge">Chapter 9</div>
+  <h2>Catch Me If You Can, Biwi! 🏃‍♂️</h2>
+  <p class="lead">Kya tum mere paas aana chahti ho?</p>
+  <div id="dodge-area" style="position:relative; width:100%; max-width:320px; height:180px; border:2px dashed var(--red-soft); border-radius:15px; margin-top:20px;">
+    <button id="dodge-btn" class="btn" style="position:absolute; top:70px; left:90px; background:var(--red); color:#fff; padding:12px 24px; border-radius:25px;">Haan Bilkul! ❤️</button>
+  </div>
+  <p id="dodge-msg" class="hand" style="font-size:1.2rem; color:var(--gold); margin-top:10px;"></p>
+</section>
+
+<!-- 10. SCRATCH CARD -->
+<section id="sec10" style="background:var(--wine);">
+  <div class="badge">Chapter 10</div>
+  <h2>Scratch Your Secret Coupon 🎟️</h2>
+  <p class="lead">Apni finger se scratch karo isko!</p>
+  <div id="scratch-wrap">
+    <div id="scratch-msg">1 Free Unlimited Hugs + Kiss Coupon 💋</div>
+    <canvas id="scratch-canvas"></canvas>
+  </div>
+</section>
+
+<!-- 11. NIGHT SKY WISH -->
+<section id="sec11" style="background:#150306;">
+  <div class="badge">Chapter 11</div>
+  <h2>Make A Wish Under Stars ✨</h2>
+  <p class="lead">Tap anywhere in the sky to launch a shooting star!</p>
+  <div id="sky" style="position:absolute; inset:0; cursor:pointer;"></div>
+</section>
+
+<!-- 12. DISTANCE CALCULATOR -->
+<section id="sec12" style="background:var(--wine-dark);">
+  <div class="badge">Chapter 12</div>
+  <h2>Long Distance Check ✈️</h2>
+  <p class="lead">Km kitne bhi ho, dil toh ek hi dhadak raha hai.</p>
+  <div class="interactive-box" style="max-width:320px; margin-top:15px;" onclick="checkDistance()">
+    <h3 style="color:var(--lavender);">Calculate Distance to My Heart</h3>
+    <p id="dist-res" style="margin-top:10px; font-weight:600; color:var(--gold);">Tap to Measure!</p>
+  </div>
+</section>
+
+<!-- 13. VIRTUAL KISS GENERATOR -->
+<section id="sec13" style="background:var(--wine);">
+  <div class="badge">Chapter 13</div>
+  <h2>Virtual Kisses Delivery 💋</h2>
+  <p class="lead">Click the button below to get endless kisses, babu!</p>
+  <button class="btn" onclick="sendKiss()" style="background:var(--red-soft); color:#fff; padding:12px 28px; border-radius:25px; margin-top:10px;">Send Kisses 😘</button>
+  <div id="kiss-zone" class="hand" style="font-size:2rem; min-height:40px; margin-top:10px;"></div>
+</section>
+
+<!-- 14. PROMISE WALL -->
+<section id="sec14" style="background:#28050B;">
+  <div class="badge">Chapter 14</div>
+  <h2>My Promises to My Wifi 📜</h2>
+  <div class="grid-2">
+    <div class="interactive-box">Always listen to your long rants ❤️</div>
+    <div class="interactive-box">Never sleep without saying Goodnight 🌙</div>
+    <div class="interactive-box">Cook your favorite dishes soon 🍝</div>
+    <div class="interactive-box">Hold your hand forever 🤝</div>
+  </div>
+</section>
+
+<!-- 15. COMPLIANT GENERATOR -->
+<section id="sec15" style="background:var(--wine-dark);">
+  <div class="badge">Chapter 15</div>
+  <h2>Compliment Button For Betaa 🌸</h2>
+  <button class="btn" onclick="getCompliment()" style="background:var(--lavender-dark); color:#fff; padding:12px 25px; border-radius:20px;">Get a Compliment ✨</button>
+  <p id="comp-text" class="hand" style="font-size:1.4rem; color:var(--gold); margin-top:15px; min-height:30px;"></p>
+</section>
+
+<!-- 16. MARRIAGE QUIZ -->
+<section id="sec16" style="background:var(--wine);">
+  <div class="badge">Chapter 16</div>
+  <h2>Quick Biwi Quiz 💍</h2>
+  <p class="lead">Who is going to dominate after marriage?</p>
+  <div style="display:flex; gap:10px; margin-top:15px;">
+    <button class="btn" onclick="alert('Obviously Tum Hi Karogi Biwi! ❤️')" style="background:var(--red); color:#fff; padding:10px 20px; border-radius:15px;">Tum (Biwi)</button>
+    <button class="btn" onclick="alert('Galat answer! Biwi hi dominating hogi 😜')" style="background:var(--lavender); color:var(--ink); padding:10px 20px; border-radius:15px;">Main</button>
+  </div>
+</section>
+
+<!-- 17. MEMORY QUIZ -->
+<section id="sec17" style="background:#1F0408;">
+  <div class="badge">Chapter 17</div>
+  <h2>Who Loves More? 🤔</h2>
+  <p class="lead">Be honest Jaanaw...</p>
+  <button class="btn" onclick="document.getElementById('love-ans').textContent='Correct answer! Dono equal karte hain ❤️'" style="background:var(--gold); color:var(--ink); padding:12px 25px; border-radius:20px; font-weight:700;">Tap for Answer</button>
+  <p id="love-ans" class="hand" style="font-size:1.3rem; color:var(--lavender); margin-top:10px;"></p>
+</section>
+
+<!-- 18. TAP TO HUG -->
+<section id="sec18" style="background:var(--wine-dark);">
+  <div class="badge">Chapter 18</div>
+  <h2>Virtual Hug Station 🫂</h2>
+  <p class="lead">Hold the button for a tight hug!</p>
+  <button class="btn" id="hug-btn" style="background:var(--red-soft); color:#fff; padding:20px; border-radius:50%; font-size:2rem;">🫂</button>
+  <p id="hug-msg" class="hand" style="font-size:1.2rem; margin-top:10px; color:var(--lavender);"></p>
+</section>
+
+<!-- 19. TIMELINE -->
+<section id="sec19" style="background:var(--wine);">
+  <div class="badge">Chapter 19</div>
+  <h2>Our Future Journey 🚀</h2>
+  <div style="text-align:left; max-width:320px; margin-top:15px;" class="hand">
+    <p style="font-size:1.2rem;">📍 Today: Long distance but connected 24/7</p>
+    <p style="font-size:1.2rem;">📍 Soon: First flight to see you face to face</p>
+    <p style="font-size:1.2rem;">📍 Future: Married and living together forever 🏠</p>
+  </div>
+</section>
+
+<!-- 20. LOVE LETTER FINALE -->
+<section id="sec20" style="background:linear-gradient(180deg, var(--wine-dark), #000);">
+  <div class="badge">Final Chapter</div>
+  <h2>A Letter For My Jaanaw 💌</h2>
+  <p class="lead">Tap the envelope to open my heart!</p>
+  
+  <div id="envelope" onclick="openLetter()">
+    <div id="env-flap"></div>
+    <p style="color:var(--ink); font-weight:700; padding-top:60px;">CLICK TO OPEN 🌸</p>
+  </div>
+
+  <div id="letter">
+    <h3 style="color:var(--wine);">My Dearest Jaanaw,</h3>
+    <p style="margin-top:10px; line-height:1.5;">Dooriyan chahe jitni bhi ho, tum mere dil ke sabse kareeb ho. Tum bas meri **shona**, **babu**, ya **wifi** nahi ho, meri poori duniya ho. Har ek section jo tumne dekha, sab bas tumhare chehre par ek choti si smile laane ke liye banaya hai.</p>
+    <p style="font-weight:700; margin-top:10px;">I Love You Infinite, Mera Bachha! ❤️</p>
+    <p class="hand" style="text-align:right; font-size:1.2rem; color:var(--red);">— Always Yours</p>
+  </div>
+</section>
+
+<footer style="padding:20px; text-align:center; font-size:0.8rem; opacity:0.6; background:#000;">Made with pure love for Jaanaw 🍷✨</footer>
+
+<script>
+/* Audio Effects using Web Audio API */
+let actx;
+function ac(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+function tone(f, d=0.2){
+  try {
+    let c = ac(), o = c.createOscillator(), g = c.createGain();
+    o.frequency.value = f; o.connect(g); g.connect(c.destination);
+    o.start(); g.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + d);
+    o.stop(c.currentTime + d + 0.05);
+  }catch(e){}
+}
+
+/* Splash Handler */
+document.getElementById('enter-btn').addEventListener('click', ()=>{
+  ac(); tone(523, 0.4);
+  document.getElementById('splash').classList.add('hide');
+});
+
+/* Progress Bar */
+window.addEventListener('scroll', ()=>{
+  let h = document.documentElement;
+  let pct = (h.scrollTop)/(h.scrollHeight - h.clientHeight) * 100;
+  document.getElementById('bar-fill').style.width = pct + '%';
+});
+
+/* Chapter 2: Garden Hearts */
+let bloomCount = 0;
+const heartBed = document.getElementById('heart-bed');
+for(let i=0; i<6; i++){
+  let b = document.createElement('div');
+  b.className = 'interactive-box';
+  b.innerHTML = '🌱';
+  b.onclick = ()=>{
+    if(b.innerHTML !== '❤️'){
+      b.innerHTML = '❤️';
+      bloomCount++;
+      document.getElementById('bloom-count').textContent = bloomCount + " Hearts Bloomed for Baby!";
+      tone(400 + bloomCount*50);
+    }
+  };
+  heartBed.appendChild(b);
+}
+
+/* Chapter 4: Mood Generator */
+function sayMood(m){
+  tone(600);
+  document.getElementById('mood-reply').textContent = "Aww mera " + m + ", I love you anyway! 😘";
+}
+
+/* Chapter 5: Flip Cards */
+const reasons = [
+  "Tumhari cutest smile 😊", "Jab tum gussa hoti ho 🥺",
+  "Tumhari pyari baatein 🗣️", "Mera khayal rakhna 🌹"
+];
+const flipGrid = document.getElementById('flip-grid');
+reasons.forEach(r=>{
+  let c = document.createElement('div');
+  c.className = 'flip-card';
+  c.innerHTML = `<div class="flip-inner">
+    <div class="flip-front">💖</div>
+    <div class="flip-back">${r}</div>
+  </div>`;
+  c.onclick = ()=>{ c.classList.toggle('flipped'); tone(500); };
+  flipGrid.appendChild(c);
+});
+
+/* Chapter 7: Love Meter */
+const range = document.getElementById('love-range');
+range.oninput = ()=>{
+  let v = range.value;
+  document.getElementById('love-val').textContent = v == 100 ? "1000000% 🚀" : v + "%";
+  document.getElementById('love-text').textContent = v > 80 ? "Itna saare pyaar!! 🙈" : "Thoda aur badhao, Jaanaw!";
+};
+
+/* Chapter 8: Piano */
+const notes = [261, 293, 329, 349, 392, 440];
+const piano = document.getElementById('piano');
+notes.forEach(n=>{
+  let k = document.createElement('div');
+  k.className = 'key';
+  k.textContent = '♪';
+  k.onclick = ()=>{ tone(n, 0.3); };
+  piano.appendChild(k);
+});
+
+/* Chapter 9: Dodge Button */
+const dodgeBtn = document.getElementById('dodge-btn');
+dodgeBtn.addEventListener('touchstart', moveBtn);
+dodgeBtn.addEventListener('mouseover', moveBtn);
+function moveBtn(e){
+  e.preventDefault();
+  let x = Math.random() * 180;
+  let y = Math.random() * 100;
+  dodgeBtn.style.left = x + 'px';
+  dodgeBtn.style.top = y + 'px';
+  document.getElementById('dodge-msg').textContent = "Pakad ke dikhao, Biwi! 😜";
+}
+
+/* Chapter 10: Scratch Card */
+const canvas = document.getElementById('scratch-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 280; canvas.height = 160;
+ctx.fillStyle = '#8A50A1';
+ctx.fillRect(0,0,280,160);
+ctx.fillStyle = '#FFF';
+ctx.font = '18px Outfit';
+ctx.fillText('Scratch Here, Babu!', 60, 85);
+
+let scratching = false;
+function scratch(e){
+  let rect = canvas.getBoundingClientRect();
+  let x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  let y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+  ctx.arc(x, y, 20, 0, Math.PI*2);
+  ctx.fill();
+}
+canvas.addEventListener('mousedown', ()=>scratching=true);
+canvas.addEventListener('mouseup', ()=>scratching=false);
+canvas.addEventListener('mousemove', (e)=>{ if(scratching) scratch(e); });
+canvas.addEventListener('touchmove', (e)=>{ scratch(e); });
+
+/* Chapter 11: Sky Stars */
+document.getElementById('sec11').onclick = (e)=>{
+  let s = document.createElement('div');
+  s.textContent = '⭐';
+  s.style.position = 'absolute';
+  s.style.left = e.clientX + 'px';
+  s.style.top = e.clientY + 'px';
+  s.style.transition = 'all 1s ease-out';
+  document.getElementById('sec11').appendChild(s);
+  setTimeout(()=>{ s.style.transform = 'translateY(-100px) scale(1.5)'; s.style.opacity = '0'; }, 50);
+  setTimeout(()=>s.remove(), 1000);
+  tone(800);
+};
+
+/* Chapter 12: Distance */
+function checkDistance(){
+  document.getElementById('dist-res').textContent = "0 Km! (Directly inside my heart) ❤️";
+  tone(600);
+}
+
+/* Chapter 13: Kisses */
+function sendKiss(){
+  document.getElementById('kiss-zone').innerHTML += '💋 ';
+  tone(700);
+}
+
+/* Chapter 15: Compliments */
+const compliments = [
+  "Tum duniya ki sabse pyari Wifi ho! 💻❤️",
+  "Tumhari aawaz sunte hi saari tiredness door ho jaati hai! 🎧",
+  "You're my forever home, Jaanaw 🏠",
+  "Mera cutest betaa ho tum! 🥺"
+];
+function getCompliment(){
+  let rand = compliments[Math.floor(Math.random()*compliments.length)];
+  document.getElementById('comp-text').textContent = rand;
+  tone(650);
+}
+
+/* Chapter 18: Hug Station */
+const hugBtn = document.getElementById('hug-btn');
+let hugTimer;
+hugBtn.addEventListener('pointerdown', ()=>{
+  hugTimer = setTimeout(()=>{
+    document.getElementById('hug-msg').textContent = "Warm Hug Delivered to Baby! 🫂❤️";
+    tone(300, 0.8);
+  }, 1000);
+});
+hugBtn.addEventListener('pointerup', ()=>clearTimeout(hugTimer));
+
+/* Chapter 20: Finale Letter */
+function openLetter(){
+  document.getElementById('envelope').classList.add('open');
+  setTimeout(()=>{
+    document.getElementById('letter').style.display = 'block';
+    tone(523, 0.5);
+  }, 400);
+}
+
+/* Background Music Toggle */
+let musicOn = false;
+document.getElementById('music-btn').onclick = ()=>{
+  musicOn = !musicOn;
+  document.getElementById('music-btn').classList.toggle('playing', musicOn);
+  if(musicOn){
+    ac();
+    setInterval(()=>{ if(musicOn) tone(440, 0.1); }, 1000);
+  }
+};
+</script>
+</body>
+</html>
