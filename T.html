@@ -160,10 +160,10 @@
 
   .topbar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 22px 36px; margin: 14px 14px 0; border-radius: 22px;
+    padding: 22px 130px 22px 36px; margin: 14px 14px 0; border-radius: 22px;
     position: sticky; top: 14px; z-index: 20;
   }
-  .topbar h1 { font-size: 25px; font-weight: 700; color: var(--wine-deep); }
+  .topbar h1 { font-size: 25px; font-weight: 700; color: var(--wine-deep); overflow-wrap: anywhere; }
   .topbar .date { font-size: 13px; color: var(--muted); margin-top: 3px; }
   .topbar-actions { display: flex; gap: 12px; align-items: center; }
 
@@ -335,6 +335,11 @@
   }
   .theme-toggle-fab .icon { font-size: 15px; }
 
+  @media (max-width: 980px) {
+    .theme-toggle-fab { top: 12px; right: 12px; padding: 8px; }
+    .theme-toggle-fab #themeToggleLabel { display: none; }
+  }
+
   .toast {
     position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
     background: linear-gradient(150deg, var(--wine), var(--wine-deep)); color: #fff; padding: 13px 24px; border-radius: 14px;
@@ -361,7 +366,7 @@
   @media (max-width: 980px) {
     .shell { flex-direction: column; padding-bottom: 78px; }
     .sidebar { display: none; }
-    .topbar { padding: 16px 20px; margin: 10px; }
+    .topbar { padding: 16px 70px 16px 20px; margin: 10px; }
     .topbar h1 { font-size: 20px; }
     .topbar .date { display: none; }
     .content { padding: 16px; }
@@ -939,18 +944,19 @@ loginLock.onComplete(async (indices) => {
   try {
     const usersSnap = await get(ref(db, 'users'));
     const usersVal = usersSnap.val() || {};
-    let matchedKey = null, matchedUsername = null;
 
+    // Collect ALL accounts whose pattern matches — not just the first one found.
+    // This is what catches two users ending up with the same pattern (a race
+    // at signup, or any account created before the uniqueness check existed).
+    const matches = [];
     for (const key of Object.keys(usersVal)) {
       const profile = usersVal[key] && usersVal[key].profile;
       if (profile && profile.pattern === code) {
-        matchedKey = key;
-        matchedUsername = profile.username;
-        break;
+        matches.push({ key, username: profile.username });
       }
     }
 
-    if (!matchedKey) {
+    if (matches.length === 0) {
       err.textContent = "Pattern not recognized.";
       err.style.display = 'block';
       loginLock.shake();
@@ -958,7 +964,18 @@ loginLock.onComplete(async (indices) => {
       return;
     }
 
-    initializeUserSession(matchedUsername, matchedKey);
+    if (matches.length > 1) {
+      // Never silently log a person into an ambiguous account. Block and
+      // surface it clearly instead of picking whichever match came first.
+      err.textContent = "This pattern matches more than one account, so we can't safely log you in. Please try a different pattern or contact support.";
+      err.style.display = 'block';
+      loginLock.shake();
+      setTimeout(() => loginLock.reset(), 400);
+      console.error("Pattern collision detected across accounts:", matches.map(m => m.username));
+      return;
+    }
+
+    initializeUserSession(matches[0].username, matches[0].key);
   } catch (eX) {
     err.textContent = "Database Matrix Error: " + eX.message;
     err.style.display = 'block';
@@ -1029,6 +1046,8 @@ confirmLock.onComplete(async (indices) => {
   }
 
   try {
+    // Re-check uniqueness right before writing (in addition to the earlier
+    // check) to shrink the window in which two signups could collide.
     const usersSnap = await get(ref(db, 'users'));
     const usersVal = usersSnap.val() || {};
     const taken = Object.values(usersVal).some(u => u.profile && u.profile.pattern === code);
@@ -1057,6 +1076,7 @@ function initializeUserSession(username, userKey) {
   document.querySelectorAll(".classUserNodeDesktop").forEach(el => el.textContent = username);
   document.getElementById("authGate").style.display = "none";
   document.getElementById("appShell").style.display = "flex";
+  document.getElementById("viewTitle").textContent = `Hi, ${username}`;
 
   startSyncListeners();
 }
@@ -1125,8 +1145,9 @@ const views = ['dashboard','transactions','statements','credits','modes'];
 function goTo(view) {
   views.forEach(v => document.getElementById('view-'+v).classList.toggle('active', v===view));
   document.querySelectorAll('.mainNavBind button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-  const titles = { dashboard: 'Dashboard', transactions: 'All Entries', statements: 'Account Ledgers', credits: 'Loans & Debts', modes: 'Payment Accounts' };
-  document.getElementById('viewTitle').textContent = titles[view];
+  const titles = { dashboard: null, transactions: 'All Entries', statements: 'Account Ledgers', credits: 'Loans & Debts', modes: 'Payment Accounts' };
+  const titleText = titles[view] || (currentSessionUser ? `Hi, ${currentSessionUser}` : 'Dashboard');
+  document.getElementById('viewTitle').textContent = titleText;
   if(view === 'statements') generateAccountBalanceSheet();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1572,6 +1593,11 @@ function mergeAllState() {
   renderTransactionsList();
   if(document.getElementById('view-statements').classList.contains('active')) generateAccountBalanceSheet();
   renderCharts(s);
+
+  // Keep dashboard title showing the user's name if we're on that view
+  if(document.getElementById('view-dashboard').classList.contains('active') && currentSessionUser) {
+    document.getElementById('viewTitle').textContent = `Hi, ${currentSessionUser}`;
+  }
 }
 
 function txListHTML(list) {
