@@ -3,89 +3,112 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>A Manager — Wine Ledger</title>
+<title>A Manager — Money Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
   :root, body.theme-light {
-    --wine-deep: #431420;
-    --wine: #7D2E45;
-    --wine-mid: #9A4360;
-    --wine-soft: #C77E93;
-    --blush: #F3E1E5;
-    --cream: #FBF5F2;
+    --purple-deep: #3B1470;
+    --purple: #7C3AED;
+    --purple-mid: #9B5DE5;
+    --purple-soft: #C9A6FF;
+    --lavender: #F4EFFC;
     --white: #FFFFFF;
-    --ink: #3A1620;
-    --muted: #93707A;
-    --line: rgba(125,46,69,0.14);
-    --income: #2E7D63;
-    --expense: #B3374F;
-    --transfer: #8C4A73;
+    --ink: #2B1854;
+    --muted: #8A7CA8;
+    --line: rgba(124,58,237,0.14);
+    --income: #16A34A;
+    --income-soft: #4ADE80;
+    --expense: #F97316;
+    --expense-soft: #FDBA74;
+    --transfer: #7C3AED;
+    --transfer-soft: #C9A6FF;
     --clay-hi: rgba(255,255,255,0.9);
-    --clay-lo: rgba(125,46,69,0.16);
-    --glass-bg: rgba(255,255,255,0.55);
-    --glass-border: rgba(255,255,255,0.65);
+    --clay-lo: rgba(124,58,237,0.14);
+    --glass-bg: rgba(255,255,255,0.6);
+    --glass-border: rgba(255,255,255,0.7);
     --card-grad-a: #ffffff;
-    --card-grad-b: #fbf2f4;
-    --inset-grad-a: #f6e9ec;
-    --inset-grad-b: #fdf8f6;
+    --card-grad-b: #faf7ff;
+    --inset-grad-a: #f0e9fc;
+    --inset-grad-b: #fdfbff;
     --dot-fill: #ffffff;
-    --page-bg: var(--cream);
+    --page-bg: var(--lavender);
+    --bubble-1: rgba(124,58,237,0.16);
+    --bubble-2: rgba(249,115,22,0.13);
+    --bubble-3: rgba(155,93,229,0.18);
   }
 
   body.theme-dark {
-    --wine-deep: #1E0A11;
-    --wine: #C77E93;
-    --wine-mid: #E3A6B7;
-    --wine-soft: #F0C4D0;
-    --blush: #2A0F17;
-    --cream: #1B0810;
-    --white: #2A0F17;
-    --ink: #F6E7EA;
-    --muted: #B98A94;
-    --line: rgba(231,166,183,0.16);
-    --income: #4FBF9B;
-    --expense: #E36B85;
-    --transfer: #D699BB;
+    --purple-deep: #E4D4FF;
+    --purple: #A78BFA;
+    --purple-mid: #C4B5FD;
+    --purple-soft: #DDD3FC;
+    --lavender: #150B2E;
+    --white: #211144;
+    --ink: #F4EFFC;
+    --muted: #B3A4D9;
+    --line: rgba(196,181,253,0.16);
+    --income: #4ADE80;
+    --income-soft: #86EFAC;
+    --expense: #FB923C;
+    --expense-soft: #FDBA74;
+    --transfer: #C4B5FD;
+    --transfer-soft: #E4D4FF;
     --clay-hi: rgba(255,255,255,0.06);
     --clay-lo: rgba(0,0,0,0.55);
-    --glass-bg: rgba(42,15,23,0.55);
-    --glass-border: rgba(231,166,183,0.16);
-    --card-grad-a: #2A0F17;
-    --card-grad-b: #230C13;
-    --inset-grad-a: #200A10;
-    --inset-grad-b: #2B0F18;
-    --dot-fill: #3A1620;
-    --page-bg: #1B0810;
+    --glass-bg: rgba(33,17,68,0.6);
+    --glass-border: rgba(196,181,253,0.16);
+    --card-grad-a: #221349;
+    --card-grad-b: #1B0F3A;
+    --inset-grad-a: #1A0E38;
+    --inset-grad-b: #251550;
+    --dot-fill: #211144;
+    --page-bg: #130A29;
+    --bubble-1: rgba(167,139,250,0.14);
+    --bubble-2: rgba(251,146,60,0.10);
+    --bubble-3: rgba(196,181,253,0.10);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow-x: hidden; }
   body {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    background:
-      radial-gradient(circle at 12% 8%, rgba(199,126,147,0.35) 0%, transparent 45%),
-      radial-gradient(circle at 90% 15%, rgba(125,46,69,0.14) 0%, transparent 40%),
-      radial-gradient(circle at 50% 100%, rgba(243,225,229,0.9) 0%, transparent 60%),
-      var(--page-bg);
+    background: var(--page-bg);
     color: var(--ink);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     transition: background 0.4s ease, color 0.4s ease;
+    position: relative;
+  }
+
+  /* ===== DECORATIVE BUBBLE FIELD (signature element) ===== */
+  .bubble-field { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .bubble-field span {
+    position: absolute; border-radius: 50%; filter: blur(2px);
+    animation: floatBubble 14s ease-in-out infinite;
+  }
+  .bubble-field span:nth-child(1) { width: 340px; height: 340px; left: -80px; top: -100px; background: radial-gradient(circle at 35% 30%, var(--bubble-1), transparent 70%); animation-delay: 0s; }
+  .bubble-field span:nth-child(2) { width: 260px; height: 260px; right: -60px; top: 8%; background: radial-gradient(circle at 40% 40%, var(--bubble-3), transparent 70%); animation-delay: 2s; }
+  .bubble-field span:nth-child(3) { width: 200px; height: 200px; right: 12%; bottom: -60px; background: radial-gradient(circle at 50% 50%, var(--bubble-2), transparent 70%); animation-delay: 4s; }
+  .bubble-field span:nth-child(4) { width: 160px; height: 160px; left: 6%; bottom: 4%; background: radial-gradient(circle at 50% 50%, var(--bubble-1), transparent 70%); animation-delay: 6s; }
+  .bubble-field span:nth-child(5) { width: 120px; height: 120px; left: 40%; top: 40%; background: radial-gradient(circle at 50% 50%, var(--bubble-3), transparent 70%); animation-delay: 1s; }
+  @keyframes floatBubble {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(14px,-18px) scale(1.05); }
   }
 
   .shell, .auth-gate, .loading-gate { position: relative; z-index: 5; }
   .num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
-  h1, h2, h3, .display { font-family: 'Fraunces', serif; letter-spacing: -0.02em; }
+  h1, h2, h3, .display { font-family: 'Baloo 2', sans-serif; letter-spacing: -0.01em; }
 
   button, input, select { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
   button { cursor: pointer; border: none; background: none; color: inherit; font-family: inherit; }
   button:active { transform: scale(0.94) !important; }
 
   input, select { font-family: inherit; color: inherit; }
-  input:focus, select:focus { border-color: var(--wine) !important; transform: translateY(-1px); box-shadow: 0 0 0 4px rgba(125,46,69,0.12); }
+  input:focus, select:focus { border-color: var(--purple) !important; transform: translateY(-1px); box-shadow: 0 0 0 4px rgba(124,58,237,0.14); }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); filter: blur(3px); }
@@ -101,6 +124,10 @@
     20%, 80% { transform: translateX(4px); }
     30%, 50%, 70% { transform: translateX(-8px); }
     40%, 60% { transform: translateX(8px); }
+  }
+  @keyframes popIn {
+    from { transform: scale(0.6); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
   }
 
   .card, .tx-row, .credit-card, .chart-card { animation: fadeUp 0.55s cubic-bezier(0.25, 1, 0.5, 1) both; }
@@ -127,140 +154,183 @@
     border: 1px solid var(--glass-border);
   }
 
+  /* ===== AVATAR BADGES ===== */
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; color: #fff; font-size: 15px;
+    box-shadow: 0 4px 10px rgba(124,58,237,0.28), inset 0 -2px 4px rgba(0,0,0,0.08);
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  .avatar-lg { width: 52px; height: 52px; font-size: 19px; }
+  .avatar-sm { width: 32px; height: 32px; font-size: 12px; }
+  .avatar-xs { width: 26px; height: 26px; font-size: 10.5px; }
+  .avatar-p0 { background: linear-gradient(135deg, #7C3AED, #A78BFA); }
+  .avatar-p1 { background: linear-gradient(135deg, #16A34A, #4ADE80); }
+  .avatar-p2 { background: linear-gradient(135deg, #F97316, #FDBA74); }
+  .avatar-p3 { background: linear-gradient(135deg, #EC4899, #F472B6); }
+  .avatar-p4 { background: linear-gradient(135deg, #0EA5E9, #7DD3FC); }
+  .avatar-p5 { background: linear-gradient(135deg, #EAB308, #FDE047); }
+  .avatar-income { background: linear-gradient(135deg, var(--income), var(--income-soft)); }
+  .avatar-expense { background: linear-gradient(135deg, var(--expense), var(--expense-soft)); }
+  .avatar-transfer { background: linear-gradient(135deg, var(--transfer), var(--transfer-soft)); }
+  .avatar-ring { box-shadow: 0 0 0 3px var(--card-grad-a), 0 4px 10px rgba(124,58,237,0.28); }
+
   .shell { display: flex; min-height: 100vh; }
 
   .sidebar {
-    width: 264px; flex-shrink: 0;
+    width: 264px; flex-shrink: 0; position: relative; overflow: hidden;
     display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
     padding: 28px 18px; margin: 14px; border-radius: 26px;
   }
-  .brand { padding: 6px 8px 26px; }
-  .brand-text .name { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; color: var(--wine-deep); }
-  .brand-text .tag { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-top: 3px; }
+  .sidebar::before {
+    content: ''; position: absolute; width: 180px; height: 180px; border-radius: 50%;
+    top: -70px; right: -70px; background: radial-gradient(circle, var(--bubble-1), transparent 70%); pointer-events: none;
+  }
+  .brand { padding: 6px 8px 26px; display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+  .brand-mark {
+    width: 42px; height: 42px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(150deg, var(--purple) 0%, var(--purple-deep) 100%);
+    display: flex; align-items: center; justify-content: center; font-size: 19px;
+    box-shadow: 4px 4px 12px rgba(124,58,237,0.35), -2px -2px 8px rgba(255,255,255,0.5);
+  }
+  .brand-text .name { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; color: var(--purple-deep); font-family:'Baloo 2',sans-serif; }
+  .brand-text .tag { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-top: 2px; }
 
-  .nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .nav { display: flex; flex-direction: column; gap: 6px; flex: 1; position: relative; z-index: 1; }
   .nav button {
     display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px;
     font-size: 14.5px; font-weight: 600; color: var(--muted); text-align: left;
   }
-  .nav button:hover { background: rgba(125,46,69,0.06); color: var(--wine); padding-left: 18px; }
-  .nav button.active {
-    background: linear-gradient(135deg, var(--wine) 0%, var(--wine-mid) 100%);
-    color: #fff; box-shadow: 4px 4px 12px rgba(125,46,69,0.35), -2px -2px 8px rgba(255,255,255,0.6);
+  .nav button .nav-ico {
+    width: 30px; height: 30px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; background: var(--inset-grad-a); flex-shrink: 0;
   }
+  .nav button:hover { background: rgba(124,58,237,0.08); color: var(--purple); padding-left: 18px; }
+  .nav button.active {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-mid) 100%);
+    color: #fff; box-shadow: 4px 4px 12px rgba(124,58,237,0.35), -2px -2px 8px rgba(255,255,255,0.5);
+  }
+  .nav button.active .nav-ico { background: rgba(255,255,255,0.22); }
 
   .user-badge {
-    border-radius: 14px; padding: 12px 14px; font-size: 13px;
-    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+    border-radius: 14px; padding: 10px 12px; font-size: 13px;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px; position: relative; z-index: 1;
   }
-  .user-badge .indicator { width: 9px; height: 9px; border-radius: 50%; background: var(--income); box-shadow: 0 0 8px var(--income); }
-  .user-badge .username-display { font-weight: 700; color: var(--wine-deep); }
+  .user-badge .username-display { font-weight: 700; color: var(--purple-deep); }
+  .user-badge .sub { font-size: 10.5px; color: var(--muted); font-weight: 600; }
 
   .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
   .topbar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 22px 130px 22px 36px; margin: 14px 14px 0; border-radius: 22px;
+    padding: 20px 130px 20px 26px; margin: 14px 14px 0; border-radius: 22px;
     position: sticky; top: 14px; z-index: 20;
   }
-  .topbar h1 { font-size: 25px; font-weight: 700; color: var(--wine-deep); overflow-wrap: anywhere; }
-  .topbar .date { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .topbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .topbar h1 { font-size: 23px; font-weight: 700; color: var(--purple-deep); overflow-wrap: anywhere; }
+  .topbar .date { font-size: 12.5px; color: var(--muted); margin-top: 2px; font-weight: 600; }
   .topbar-actions { display: flex; gap: 12px; align-items: center; }
 
   .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 14px; font-size: 14px; font-weight: 700; }
   .btn-primary {
-    background: linear-gradient(150deg, var(--wine) 0%, var(--wine-deep) 100%);
-    color: #fff; box-shadow: 5px 5px 12px rgba(67,20,32,0.35), -3px -3px 8px rgba(255,255,255,0.5);
+    background: linear-gradient(150deg, var(--purple) 0%, var(--purple-deep) 100%);
+    color: #fff; box-shadow: 5px 5px 12px rgba(59,20,112,0.32), -3px -3px 8px rgba(255,255,255,0.5);
   }
   .btn-gold {
-    background: linear-gradient(150deg, var(--wine-mid) 0%, var(--wine) 100%);
-    color: #fff; box-shadow: 5px 5px 14px rgba(125,46,69,0.4), -3px -3px 8px rgba(255,255,255,0.6);
+    background: linear-gradient(150deg, var(--expense) 0%, #EA580C 100%);
+    color: #fff; box-shadow: 5px 5px 14px rgba(249,115,22,0.35), -3px -3px 8px rgba(255,255,255,0.5);
   }
-  .btn-ghost { background: rgba(255,255,255,0.5); color: var(--wine-deep); border: 1px solid var(--line); }
-  .btn-ghost:hover { background: rgba(125,46,69,0.06); border-color: var(--wine-soft); }
+  .btn-ghost { background: rgba(255,255,255,0.5); color: var(--purple-deep); border: 1px solid var(--line); }
+  .btn-ghost:hover { background: rgba(124,58,237,0.08); border-color: var(--purple-soft); }
 
-  .content { padding: 24px 36px 40px; flex: 1; }
+  .content { padding: 24px 36px 40px; flex: 1; position: relative; z-index: 1; }
   .view { display: none; }
   .view.active { display: block; animation: fadeIn 0.4s ease both; }
 
-  .section-title { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; color: var(--wine-deep); margin: 26px 0 12px; }
+  .section-title { font-family: 'Baloo 2', sans-serif; font-size: 17px; font-weight: 700; color: var(--purple-deep); margin: 26px 0 12px; display: flex; align-items: center; gap: 8px; }
 
   .grid-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 8px; }
-  .dynamic-modes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-top: 14px; }
+  .dynamic-modes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-top: 14px; }
 
-  .card { padding: 20px; }
+  .card { padding: 20px; position: relative; }
   .card:hover { transform: translateY(-3px); }
   .card .label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
-  .card .value { font-size: 24px; font-weight: 700; margin-top: 10px; color: var(--ink); }
-  .card.balance .value { font-size: 28px; color: var(--wine); }
+  .card .value { font-size: 25px; font-weight: 700; margin-top: 10px; color: var(--ink); font-family: 'Baloo 2', sans-serif; }
+  .card.balance .value { font-size: 29px; color: var(--purple); }
+  .card-top-row { display: flex; align-items: flex-start; justify-content: space-between; }
+
+  .mode-card { display: flex; align-items: center; gap: 12px; padding: 15px 18px !important; }
+  .mode-card .mode-info { min-width: 0; }
+  .mode-card .label { font-size: 11.5px; }
+  .mode-card .value { font-size: 18px; margin-top: 4px; }
 
   .panel { border-radius: 22px; overflow: hidden; }
 
   .tx-row { display: grid; grid-template-columns: 40px 1fr auto auto; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid var(--line); }
   .tx-row { animation: fadeUp 0.4s ease both; }
-  .tx-row:hover { background: rgba(125,46,69,0.04); }
+  .tx-row:hover { background: rgba(124,58,237,0.05); }
   .tx-row:last-child { border-bottom: none; }
-  .tx-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
-  .tx-icon.income { background: rgba(46,125,99,0.12); color: var(--income); }
-  .tx-icon.expense { background: rgba(179,55,79,0.1); color: var(--expense); }
-  .tx-icon.transfer { background: rgba(140,74,115,0.12); color: var(--transfer); }
   .tx-main .cat { color: var(--ink); }
   .tx-main .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .tx-amt { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; }
+  .tx-amt { font-family: 'Baloo 2', sans-serif; font-size: 15.5px; font-weight: 700; }
   .tx-amt.income { color: var(--income); }
   .tx-amt.expense { color: var(--expense); }
   .tx-amt.transfer { color: var(--transfer); }
   .tx-del { opacity: 0.35; padding: 6px; color: var(--expense); font-size: 18px; line-height: 1; }
   .tx-del:hover { opacity: 1; transform: scale(1.2); }
   .empty-state { padding: 36px; text-align: center; color: var(--muted); font-size: 14px; }
+  .empty-state .avatar { margin: 0 auto 12px; }
 
   .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
   .filters select, .filters input[type="text"], .filters input[type="date"] {
-    padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: #fff;
+    padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-grad-a);
     font-size: 13.5px; color: var(--ink); outline: none; flex: 1; min-width: 140px;
   }
 
   .ledger-table-wrap { width: 100%; overflow-x: auto; }
   .ledger-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-  .ledger-table th { background: rgba(125,46,69,0.05); padding: 13px 16px; border-bottom: 2px solid var(--line); font-weight: 700; color: var(--wine-deep); }
+  .ledger-table th { background: rgba(124,58,237,0.06); padding: 13px 16px; border-bottom: 2px solid var(--line); font-weight: 700; color: var(--purple-deep); }
   .ledger-table td { padding: 12px 16px; border-bottom: 1px solid var(--line); }
-  .ledger-table tr:hover { background: rgba(125,46,69,0.03); }
+  .ledger-table tr:hover { background: rgba(124,58,237,0.03); }
 
   .charts-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin-bottom: 8px; }
   .chart-card { padding: 22px; }
-  .chart-card h3 { color: var(--wine-deep); font-size: 16px; }
+  .chart-card h3 { color: var(--purple-deep); font-size: 16px; display:flex; align-items:center; gap:8px; }
   .chart-wrap { position: relative; height: 230px; margin-top: 10px; }
 
   .credit-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   .credit-card { padding: 16px 20px; margin-bottom: 12px; }
-  .credit-top { display: flex; justify-content: space-between; align-items: center; }
-  .credit-amt.lent { color: var(--income); font-family:'JetBrains Mono',monospace; font-weight:700; }
-  .credit-amt.borrowed { color: var(--expense); font-family:'JetBrains Mono',monospace; font-weight:700; }
-  .credit-meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .credit-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .credit-person { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .credit-person .pname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .credit-amt.lent { color: var(--income); font-family:'Baloo 2',sans-serif; font-weight:700; }
+  .credit-amt.borrowed { color: var(--expense); font-family:'Baloo 2',sans-serif; font-weight:700; }
+  .credit-meta { font-size: 12px; color: var(--muted); margin-top: 8px; }
   .credit-actions { margin-top: 12px; display: flex; gap: 8px; }
   .mini-btn { font-size: 12px; font-weight: 700; padding: 7px 13px; border-radius: 10px; }
-  .mini-btn.settle { background: linear-gradient(150deg, var(--income), #1f5c49); color: #fff; }
-  .mini-btn.del { border: 1px solid var(--line); color: var(--expense); background:#fff; }
+  .mini-btn.settle { background: linear-gradient(150deg, var(--income), #15803D); color: #fff; }
+  .mini-btn.del { border: 1px solid var(--line); color: var(--expense); background: var(--card-grad-a); }
 
-  .overlay { position: fixed; inset: 0; background: rgba(67,20,32,0.35); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fadeIn 0.2s ease; }
+  .overlay { position: fixed; inset: 0; background: rgba(59,20,112,0.35); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fadeIn 0.2s ease; }
   .overlay.active { display: flex; }
   .modal { border-radius: 24px; width: 100%; max-width: 460px; overflow: hidden; max-height: 90vh; overflow-y: auto; animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
   .modal-head { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
-  .modal-head h2 { font-size: 19px; color: var(--wine-deep); }
+  .modal-head h2 { font-size: 19px; color: var(--purple-deep); }
   .modal-body { padding: 24px; }
 
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
-  .field input, .field select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--ink); outline: none; }
+  .field input, .field select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-grad-a); color: var(--ink); outline: none; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
   .toggle-group { display: flex; gap: 8px; }
-  .toggle-group button { flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--muted); background: #fff; }
-  .toggle-group button.sel-income { border-color: var(--income); color: var(--income); background: rgba(46,125,99,0.06); }
-  .toggle-group button.sel-expense { border-color: var(--expense); color: var(--expense); background: rgba(179,55,79,0.06); }
-  .toggle-group button.sel-transfer { border-color: var(--transfer); color: var(--transfer); background: rgba(140,74,115,0.06); }
-  .toggle-group button.sel-lent { border-color: var(--income); color: var(--income); background: rgba(46,125,99,0.06); }
-  .toggle-group button.sel-borrowed { border-color: var(--expense); color: var(--expense); background: rgba(179,55,79,0.06); }
+  .toggle-group button { flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--muted); background: var(--card-grad-a); }
+  .toggle-group button.sel-income { border-color: var(--income); color: var(--income); background: rgba(22,163,74,0.08); }
+  .toggle-group button.sel-expense { border-color: var(--expense); color: var(--expense); background: rgba(249,115,22,0.08); }
+  .toggle-group button.sel-transfer { border-color: var(--transfer); color: var(--transfer); background: rgba(124,58,237,0.08); }
+  .toggle-group button.sel-lent { border-color: var(--income); color: var(--income); background: rgba(22,163,74,0.08); }
+  .toggle-group button.sel-borrowed { border-color: var(--expense); color: var(--expense); background: rgba(249,115,22,0.08); }
 
   .amt-input-wrap { position: relative; }
   .amt-input-wrap input { padding-left: 26px; }
@@ -268,70 +338,74 @@
 
   .modal-submit {
     width: 100%; padding: 14px; border-radius: 14px; font-size: 15px; font-weight: 700;
-    background: linear-gradient(150deg, var(--wine) 0%, var(--wine-deep) 100%); color: #fff; margin-top: 8px;
-    box-shadow: 5px 5px 14px rgba(67,20,32,0.3);
+    background: linear-gradient(150deg, var(--purple) 0%, var(--purple-deep) 100%); color: #fff; margin-top: 8px;
+    box-shadow: 5px 5px 14px rgba(59,20,112,0.3);
   }
 
   /* AI Assistant */
   .ai-interface-container { display: none; text-align: center; padding: 5px 0; }
-  .ai-status-label { font-size: 12.5px; color: var(--wine); font-weight: 700; min-height: 18px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ai-status-label { font-size: 12.5px; color: var(--purple); font-weight: 700; min-height: 18px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
   .ai-chat-history-node {
     border-radius: 14px; padding: 12px; min-height: 140px; max-height: 200px; overflow-y: auto;
     text-align: left; font-size: 13.5px; line-height: 1.45; margin-bottom: 12px;
   }
-  .ai-msg-bubble { margin-bottom: 10px; padding: 9px 13px; border-radius: 12px; max-width: 85%; }
-  .ai-msg-bubble.user { background: rgba(125,46,69,0.1); color: var(--wine-deep); margin-left: auto; border-bottom-right-radius: 3px; border: 1px solid rgba(125,46,69,0.18); }
-  .ai-msg-bubble.assistant { background: rgba(255,255,255,0.7); color: var(--ink); border-bottom-left-radius: 3px; }
+  .ai-msg-bubble { margin-bottom: 10px; padding: 9px 13px; border-radius: 12px; max-width: 85%; display: flex; gap: 8px; align-items: flex-start; }
+  .ai-msg-bubble.user { background: rgba(124,58,237,0.1); color: var(--purple-deep); margin-left: auto; border-bottom-right-radius: 3px; border: 1px solid rgba(124,58,237,0.18); flex-direction: row-reverse; }
+  .ai-msg-bubble.assistant { background: var(--card-grad-a); color: var(--ink); border-bottom-left-radius: 3px; }
+  .ai-msg-bubble .bubble-avatar { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display:flex; align-items:center; justify-content:center; font-size: 11px; }
 
   .ai-chat-input-row { display: flex; gap: 8px; }
-  .ai-chat-input-row input { flex: 1; padding: 11px 13px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--ink); outline: none; font-size: 13.5px; }
+  .ai-chat-input-row input { flex: 1; padding: 11px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-grad-a); color: var(--ink); outline: none; font-size: 13.5px; }
   #aiVoiceMicBtn.recording { animation: shakeX 0.6s infinite; background: var(--expense); color: #fff; }
 
   /* ===== AUTH / PATTERN LOCK ===== */
   .auth-gate {
     position: fixed; inset: 0; z-index: 250; display: flex; align-items: center; justify-content: center; padding: 20px;
     animation: fadeIn 0.4s ease;
-    background:
-      radial-gradient(circle at 15% 15%, rgba(199,126,147,0.4) 0%, transparent 45%),
-      radial-gradient(circle at 85% 85%, rgba(125,46,69,0.2) 0%, transparent 45%),
-      var(--cream);
+    background: var(--page-bg);
   }
-  .auth-box { width: 100%; max-width: 400px; border-radius: 28px; padding: 38px 32px; text-align: center; }
-  .auth-brand { font-family:'Fraunces',serif; font-size: 26px; font-weight: 700; color: var(--wine-deep); margin-bottom: 4px; }
+  .auth-box { width: 100%; max-width: 400px; border-radius: 28px; padding: 38px 32px; text-align: center; position: relative; }
+  .auth-hero-mark {
+    width: 64px; height: 64px; border-radius: 20px; margin: 0 auto 16px;
+    background: linear-gradient(150deg, var(--purple) 0%, var(--purple-deep) 100%);
+    display: flex; align-items: center; justify-content: center; font-size: 28px;
+    box-shadow: 6px 6px 16px rgba(59,20,112,0.35), -3px -3px 10px rgba(255,255,255,0.5);
+  }
+  .auth-brand { font-family:'Baloo 2',sans-serif; font-size: 25px; font-weight: 700; color: var(--purple-deep); margin-bottom: 4px; }
   .auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 26px; }
   .auth-switch { font-size: 13.5px; color: var(--muted); margin-top: 22px; }
-  .auth-switch span { color: var(--wine); cursor: pointer; font-weight: 700; }
-  .auth-error { font-size: 13px; color: var(--expense); background: rgba(179,55,79,0.08); padding: 10px; border-radius: 10px; margin-bottom: 14px; }
+  .auth-switch span { color: var(--purple); cursor: pointer; font-weight: 700; }
+  .auth-error { font-size: 13px; color: var(--expense); background: rgba(249,115,22,0.1); padding: 10px; border-radius: 10px; margin-bottom: 14px; }
   .auth-stage { display: none; }
   .auth-stage.active { display: block; animation: fadeIn 0.35s ease both; }
 
   .plock-wrap { position: relative; width: 236px; margin: 6px auto 18px; }
   .plock-wrap.shake { animation: shakeX 0.5s; }
   .plock-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-  .plock-line { stroke: var(--wine); stroke-width: 4; stroke-linecap: round; filter: drop-shadow(0 0 3px rgba(125,46,69,0.45)); }
+  .plock-line { stroke: var(--purple); stroke-width: 4; stroke-linecap: round; filter: drop-shadow(0 0 3px rgba(124,58,237,0.45)); }
   .plock-grid { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(3, 64px); gap: 24px; position: relative; z-index: 2; user-select: none; touch-action: none; }
   .plock-cell { display: flex; align-items: center; justify-content: center; }
   .plock-dot {
     width: 22px; height: 22px; border-radius: 50%;
     background: var(--dot-fill);
-    border: 2.5px solid var(--wine);
+    border: 2.5px solid var(--purple);
     box-shadow: 3px 3px 7px var(--clay-lo), -3px -3px 7px var(--clay-hi), inset 0 0 0 3px var(--card-grad-a);
     transition: all 0.15s ease;
   }
   .plock-dot.active {
     width: 28px; height: 28px;
-    border-color: var(--wine-deep);
-    background: linear-gradient(150deg, var(--wine-mid), var(--wine-deep));
-    box-shadow: 0 0 0 9px rgba(125,46,69,0.18), 0 0 16px rgba(125,46,69,0.55);
+    border-color: var(--purple-deep);
+    background: linear-gradient(150deg, var(--purple-mid), var(--purple-deep));
+    box-shadow: 0 0 0 9px rgba(124,58,237,0.16), 0 0 16px rgba(124,58,237,0.55);
   }
   .plock-hint { font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
   .plock-actions { display: flex; justify-content: center; gap: 10px; margin-top: 4px; }
-  .plock-actions button { font-size: 12.5px; font-weight: 700; color: var(--wine); padding: 6px 10px; }
+  .plock-actions button { font-size: 12.5px; font-weight: 700; color: var(--purple); padding: 6px 10px; }
 
   .theme-toggle-fab {
     position: fixed; top: 18px; right: 18px; z-index: 260;
     display: flex; align-items: center; gap: 8px; padding: 9px 16px 9px 12px; border-radius: 999px;
-    font-size: 13px; font-weight: 700; color: var(--wine-deep);
+    font-size: 13px; font-weight: 700; color: var(--purple-deep);
   }
   .theme-toggle-fab .icon { font-size: 15px; }
 
@@ -342,23 +416,27 @@
 
   .toast {
     position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: linear-gradient(150deg, var(--wine), var(--wine-deep)); color: #fff; padding: 13px 24px; border-radius: 14px;
-    font-size: 14px; font-weight: 700; display: none; z-index: 300; box-shadow: 6px 6px 16px rgba(67,20,32,0.3);
+    background: linear-gradient(150deg, var(--purple), var(--purple-deep)); color: #fff; padding: 13px 24px; border-radius: 14px;
+    font-size: 14px; font-weight: 700; display: none; z-index: 300; box-shadow: 6px 6px 16px rgba(59,20,112,0.3);
   }
 
   .loading-gate {
     position: fixed; inset: 0; z-index: 500;
     display: flex; align-items: center; justify-content: center; flex-direction: column;
-    background:
-      radial-gradient(circle at 30% 20%, rgba(199,126,147,0.5) 0%, transparent 45%),
-      radial-gradient(circle at 80% 80%, rgba(125,46,69,0.25) 0%, transparent 45%),
-      var(--cream);
+    background: var(--page-bg);
   }
-  .splash-container { text-align: center; }
-  .splash-title-text { font-family:'Fraunces',serif; font-size: 40px; font-weight: 700; color: var(--wine-deep); letter-spacing: -0.02em; }
+  .splash-container { text-align: center; position: relative; z-index: 2; }
+  .splash-mark {
+    width: 76px; height: 76px; border-radius: 24px; margin: 0 auto 18px;
+    background: linear-gradient(150deg, var(--purple) 0%, var(--purple-deep) 100%);
+    display: flex; align-items: center; justify-content: center; font-size: 32px;
+    box-shadow: 8px 8px 20px rgba(59,20,112,0.35), -4px -4px 12px rgba(255,255,255,0.5);
+    animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  .splash-title-text { font-family:'Baloo 2',sans-serif; font-size: 34px; font-weight: 700; color: var(--purple-deep); letter-spacing: -0.01em; }
   .splash-subtitle { font-size: 12.5px; color: var(--muted); margin-top: 8px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
-  .splash-loader-bar { width: 140px; height: 4px; background: rgba(125,46,69,0.12); border-radius: 3px; margin: 26px auto 0; overflow: hidden; position: relative; }
-  .splash-loader-progress { width: 60%; height: 100%; background: linear-gradient(90deg, var(--wine-soft), var(--wine)); position: absolute; left: -100%; border-radius: 3px; animation: splashLoad 1.8s infinite ease-in-out; }
+  .splash-loader-bar { width: 140px; height: 4px; background: rgba(124,58,237,0.14); border-radius: 3px; margin: 26px auto 0; overflow: hidden; position: relative; }
+  .splash-loader-progress { width: 60%; height: 100%; background: linear-gradient(90deg, var(--purple-soft), var(--purple)); position: absolute; left: -100%; border-radius: 3px; animation: splashLoad 1.8s infinite ease-in-out; }
   @keyframes splashLoad { 0% { left: -100%; width: 30%; } 50% { width: 60%; } 100% { left: 100%; width: 30%; } }
 
   .mobile-nav-bar { display: none; }
@@ -367,17 +445,17 @@
     .shell { flex-direction: column; padding-bottom: 78px; }
     .sidebar { display: none; }
     .topbar { padding: 16px 70px 16px 20px; margin: 10px; }
-    .topbar h1 { font-size: 20px; }
+    .topbar h1 { font-size: 19px; }
     .topbar .date { display: none; }
     .content { padding: 16px; }
 
     .mobile-nav-bar {
       display: flex; position: fixed; bottom: 10px; left: 10px; right: 10px; height: 66px;
       border-radius: 22px; z-index: 100; justify-content: space-around; align-items: center; padding: 0 6px;
-      box-shadow: 6px 6px 16px rgba(67,20,32,0.18), -4px -4px 12px rgba(255,255,255,0.7);
+      box-shadow: 6px 6px 16px rgba(59,20,112,0.18), -4px -4px 12px rgba(255,255,255,0.7);
     }
     .mobile-nav-bar button { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10.5px; color: var(--muted); font-weight: 600; gap: 3px; flex: 1; height: 100%; }
-    .mobile-nav-bar button.active { color: var(--wine); font-weight: 800; }
+    .mobile-nav-bar button.active { color: var(--purple); font-weight: 800; }
     .mobile-nav-bar .nav-icon { font-size: 18px; }
 
     .grid-cards { grid-template-columns: 1fr; gap: 12px; }
@@ -389,8 +467,11 @@
 </head>
 <body>
 
+<div class="bubble-field" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+
 <div class="loading-gate" id="loadingGate">
   <div class="splash-container">
+    <div class="splash-mark">💜</div>
     <h1 class="splash-title-text">A Manager</h1>
     <div class="splash-loader-bar"><div class="splash-loader-progress"></div></div>
   </div>
@@ -405,6 +486,7 @@
 
     <!-- LOGIN: PATTERN ONLY -->
     <div class="auth-stage active" id="stageLogin">
+      <div class="auth-hero-mark">💳</div>
       <div class="auth-brand">Welcome back</div>
       <div class="auth-sub">Draw your pattern to unlock your ledger.</div>
       <div class="auth-error" id="loginError" style="display:none;"></div>
@@ -427,6 +509,7 @@
 
     <!-- SIGNUP STEP 1: USERNAME -->
     <div class="auth-stage" id="stageUsername">
+      <div class="auth-hero-mark">✨</div>
       <div class="auth-brand">Create Account</div>
       <div class="auth-sub">Choose a username for your workspace.</div>
       <div class="auth-error" id="usernameError" style="display:none;"></div>
@@ -442,6 +525,7 @@
 
     <!-- SIGNUP STEP 2: DRAW PATTERN -->
     <div class="auth-stage" id="stagePattern">
+      <div class="auth-hero-mark">🔒</div>
       <div class="auth-brand">Draw Your Pattern</div>
       <div class="auth-sub">Connect at least 4 dots. This becomes your lock.</div>
       <div class="auth-error" id="patternError" style="display:none;"></div>
@@ -465,6 +549,7 @@
 
     <!-- SIGNUP STEP 3: CONFIRM PATTERN -->
     <div class="auth-stage" id="stageConfirm">
+      <div class="auth-hero-mark">✅</div>
       <div class="auth-brand">Confirm Pattern</div>
       <div class="auth-sub">Draw the same pattern again to confirm.</div>
       <div class="auth-error" id="confirmError" style="display:none;"></div>
@@ -491,22 +576,26 @@
 <div class="shell" id="appShell" style="display:none;">
   <aside class="sidebar clay">
     <div class="brand">
+      <div class="brand-mark">💜</div>
       <div class="brand-text">
         <div class="name">A Manager</div>
-        <div class="tag">Wine Ledger</div>
+        <div class="tag">Money Manager</div>
       </div>
     </div>
     <div class="user-badge clay-inset">
-      <div class="indicator"></div>
-      <div class="username-display classUserNodeDesktop">guest</div>
+      <div class="avatar avatar-p0 avatar-sm" id="sidebarAvatar">?</div>
+      <div>
+        <div class="username-display classUserNodeDesktop">guest</div>
+        <div class="sub">Your workspace</div>
+      </div>
     </div>
 
     <nav class="nav mainNavBind">
-      <button data-view="dashboard" class="active">Dashboard</button>
-      <button data-view="transactions">All Entries</button>
-      <button data-view="statements">Balance Sheets</button>
-      <button data-view="credits">Loans</button>
-      <button data-view="modes">Payment Modes</button>
+      <button data-view="dashboard" class="active"><span class="nav-ico">📊</span>Dashboard</button>
+      <button data-view="transactions"><span class="nav-ico">📜</span>All Entries</button>
+      <button data-view="statements"><span class="nav-ico">🧾</span>Balance Sheets</button>
+      <button data-view="credits"><span class="nav-ico">🤝</span>Loans</button>
+      <button data-view="modes"><span class="nav-ico">💳</span>Payment Modes</button>
     </nav>
 
     <div style="margin-top:20px;">
@@ -524,12 +613,15 @@
 
   <div class="main">
     <header class="topbar glass">
-      <div>
-        <h1 id="viewTitle">Dashboard</h1>
-        <div class="date" id="todayDate"></div>
+      <div class="topbar-left">
+        <div class="avatar avatar-p0 avatar-lg" id="topbarAvatar" style="display:none;">?</div>
+        <div>
+          <h1 id="viewTitle">Dashboard</h1>
+          <div class="date" id="todayDate"></div>
+        </div>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-gold" id="openTxModal">Add Entry</button>
+        <button class="btn btn-gold" id="openTxModal">+ Add Entry</button>
       </div>
     </header>
 
@@ -537,34 +629,43 @@
       <section class="view active" id="view-dashboard">
         <div class="grid-cards">
           <div class="card balance clay">
-            <div class="label">Total Balance</div>
+            <div class="card-top-row">
+              <div class="label">Total Balance</div>
+              <div class="avatar avatar-p0 avatar-xs">💰</div>
+            </div>
             <div class="value num" id="statBalance">₹0</div>
           </div>
           <div class="card clay">
-            <div class="label">Today's Spent</div>
+            <div class="card-top-row">
+              <div class="label">Today's Spent</div>
+              <div class="avatar avatar-expense avatar-xs">↗</div>
+            </div>
             <div class="value num" id="statTodaySpent" style="color:var(--expense);">₹0</div>
           </div>
           <div class="card clay">
-            <div class="label">Total Income</div>
+            <div class="card-top-row">
+              <div class="label">Total Income</div>
+              <div class="avatar avatar-income avatar-xs">↙</div>
+            </div>
             <div class="value num" id="statTotalIncome" style="color:var(--income);">₹0</div>
           </div>
         </div>
 
-        <div class="section-title">Balances across Accounts</div>
+        <div class="section-title">🪙 Balances across Accounts</div>
         <div class="dynamic-modes-grid" id="dashboardModesGrid"></div>
 
         <div class="charts-grid" style="margin-top:24px;">
           <div class="chart-card clay">
-            <h3>Timeline</h3>
+            <h3>📈 Timeline</h3>
             <div class="chart-wrap"><canvas id="chartFlow"></canvas></div>
           </div>
           <div class="chart-card clay">
-            <h3>Categories</h3>
+            <h3>🍩 Categories</h3>
             <div class="chart-wrap"><canvas id="chartCatMini"></canvas></div>
           </div>
         </div>
 
-        <div class="section-title">Recent Entries</div>
+        <div class="section-title">🕑 Recent Entries</div>
         <div class="panel clay" id="recentTxPanel"></div>
       </section>
 
@@ -599,7 +700,7 @@
             </div>
             <div style="text-align:right;">
               <div class="label">Closing Sheet Balance</div>
-              <div class="value num" id="sheetClosingBalance" style="font-size:22px; margin-top:4px; color:var(--wine);">₹0</div>
+              <div class="value num" id="sheetClosingBalance" style="font-size:22px; margin-top:4px; color:var(--purple);">₹0</div>
             </div>
           </div>
         </div>
@@ -619,24 +720,30 @@
       <section class="view" id="view-credits">
         <div class="grid-cards" style="grid-template-columns: 1fr 1fr;">
           <div class="card clay">
-            <div class="label">People Owe You</div>
+            <div class="card-top-row">
+              <div class="label">People Owe You</div>
+              <div class="avatar avatar-income avatar-xs">🤲</div>
+            </div>
             <div class="value num" id="statLent" style="color:var(--income);">₹0</div>
           </div>
           <div class="card clay">
-            <div class="label">You Owe People</div>
+            <div class="card-top-row">
+              <div class="label">You Owe People</div>
+              <div class="avatar avatar-expense avatar-xs">💸</div>
+            </div>
             <div class="value num" id="statBorrowed" style="color:var(--expense);">₹0</div>
           </div>
         </div>
 
-        <button class="btn btn-primary" id="openCreditModal" style="margin:20px 0; width:100%; justify-content:center;">Log New Loan Record</button>
+        <button class="btn btn-primary" id="openCreditModal" style="margin:20px 0; width:100%; justify-content:center;">+ Log New Loan Record</button>
 
         <div class="credit-cols">
           <div>
-            <h3 style="margin-bottom:10px; color:var(--wine-deep); font-size:16px;">Money Lent to Others</h3>
+            <h3 style="margin-bottom:10px; color:var(--purple-deep); font-size:16px; font-family:'Baloo 2',sans-serif;">Money Lent to Others</h3>
             <div id="lentList"></div>
           </div>
           <div>
-            <h3 style="margin-bottom:10px; color:var(--wine-deep); font-size:16px;">Money Borrowed From Others</h3>
+            <h3 style="margin-bottom:10px; color:var(--purple-deep); font-size:16px; font-family:'Baloo 2',sans-serif;">Money Borrowed From Others</h3>
             <div id="borrowedList"></div>
           </div>
         </div>
@@ -644,7 +751,7 @@
 
       <section class="view" id="view-modes">
         <div class="card clay" style="max-width:400px; margin-bottom:24px;">
-          <h3 style="margin-bottom:12px; color:var(--wine-deep); font-size:16px;">Add Custom Payment Mode</h3>
+          <h3 style="margin-bottom:12px; color:var(--purple-deep); font-size:16px;">Add Custom Payment Mode</h3>
           <form id="addModeForm">
             <div class="field">
               <label>Mode Name</label>
@@ -653,7 +760,7 @@
             <button type="submit" class="btn btn-gold" style="width:100%; justify-content:center;">Save Mode</button>
           </form>
         </div>
-        <div class="section-title">Active Payment Accounts</div>
+        <div class="section-title">💳 Active Payment Accounts</div>
         <div class="panel clay" id="customModesListPanel"></div>
       </section>
     </div>
@@ -709,7 +816,7 @@
 
       <div class="ai-interface-container" id="aiInterfaceNode" style="display:block;">
         <div class="ai-chat-history-node clay-inset" id="aiChatHistoryScroll">
-          <div class="ai-msg-bubble assistant">Console ready. Ask balance questions, type natural entries (e.g. <b>"spent 60 on burger in cash"</b>), or push loan records straight into your ledger.</div>
+          <div class="ai-msg-bubble assistant"><span class="bubble-avatar avatar-p0" style="display:flex;">🤖</span>Console ready. Ask balance questions, type natural entries (e.g. <b>"spent 60 on burger in cash"</b>), or push loan records straight into your ledger.</div>
         </div>
         <div class="ai-status-label" id="aiStatusNode">Ready for queries</div>
         <div class="ai-chat-input-row">
@@ -789,6 +896,31 @@ function computeRouteMangle(str) {
   let h = 0;
   for (let i = 0; i < str.length; i++) { h = (Math.imul(31, h) + str.charCodeAt(i)) | 0; }
   return "u_" + Math.abs(h);
+}
+
+/* ===== AVATAR HELPERS ===== */
+const AVATAR_PALETTES = ['avatar-p0','avatar-p1','avatar-p2','avatar-p3','avatar-p4','avatar-p5'];
+function hashStr(s) {
+  let h = 0;
+  const str = String(s || '?');
+  for (let i = 0; i < str.length; i++) { h = (Math.imul(31, h) + str.charCodeAt(i)) | 0; }
+  return Math.abs(h);
+}
+function avatarClass(s) { return AVATAR_PALETTES[hashStr(s) % AVATAR_PALETTES.length]; }
+function initials(s) {
+  if (!s) return '?';
+  const parts = String(s).trim().split(/\s+/);
+  const a = parts[0] ? parts[0][0] : '';
+  const b = parts[1] ? parts[1][0] : '';
+  return (a + b).toUpperCase() || '?';
+}
+function categoryEmoji(cat) {
+  const map = {
+    Food: '🍔', Transport: '🚗', Rent: '🏠', Shopping: '🛍️', Bills: '🧾',
+    Health: '💊', Entertainment: '🎬', Education: '📚', Salary: '💼',
+    Freelance: '💻', Gift: '🎁', Interest: '🏦', Refund: '↩️', Other: '✨'
+  };
+  return map[cat] || '✨';
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -1074,6 +1206,17 @@ function initializeUserSession(username, userKey) {
   databaseStreamPath = `users/${userKey}`;
 
   document.querySelectorAll(".classUserNodeDesktop").forEach(el => el.textContent = username);
+
+  const av = avatarClass(username);
+  const ini = initials(username);
+  const sideAv = document.getElementById('sidebarAvatar');
+  sideAv.className = `avatar avatar-sm ${av}`;
+  sideAv.textContent = ini;
+  const topAv = document.getElementById('topbarAvatar');
+  topAv.className = `avatar avatar-lg ${av}`;
+  topAv.textContent = ini;
+  topAv.style.display = 'flex';
+
   document.getElementById("authGate").style.display = "none";
   document.getElementById("appShell").style.display = "flex";
   document.getElementById("viewTitle").textContent = `Hi, ${username}`;
@@ -1268,7 +1411,8 @@ window.deleteCustomMode = async (modeName) => {
 function renderModesView() {
   const panel = document.getElementById("customModesListPanel");
   panel.innerHTML = paymentModes.map(m => `
-    <div class="tx-row" style="grid-template-columns: 1fr auto;">
+    <div class="tx-row" style="grid-template-columns: 40px 1fr auto;">
+      <div class="avatar avatar-sm ${avatarClass(m)}">${escapeHTML(initials(m))}</div>
       <div style="font-weight:700;">${escapeHTML(m)}</div>
       <button class="mini-btn del" onclick="deleteCustomMode('${escapeHTML(m)}')">Delete Mode</button>
     </div>
@@ -1324,7 +1468,7 @@ function resetAIInterfaceUI() {
   document.getElementById('aiStatusNode').textContent = 'Ready to assist';
   document.getElementById('aiChatTextBar').value = '';
   document.getElementById('aiChatHistoryScroll').innerHTML = `
-    <div class="ai-msg-bubble assistant">Console ready. Ask balance questions, type natural entries (e.g. <b>"spent 60 on burger in cash"</b>), or push loan records straight into your ledger.</div>
+    <div class="ai-msg-bubble assistant"><span class="bubble-avatar avatar-p0" style="display:flex;">🤖</span>Console ready. Ask balance questions, type natural entries (e.g. <b>"spent 60 on burger in cash"</b>), or push loan records straight into your ledger.</div>
   `;
   const btn = document.getElementById('aiVoiceMicBtn');
   btn.classList.remove('recording');
@@ -1465,7 +1609,12 @@ function appendMessageToBubble(sender, text) {
   const historyScroll = document.getElementById('aiChatHistoryScroll');
   const bubble = document.createElement('div');
   bubble.className = `ai-msg-bubble ${sender}`;
-  bubble.innerHTML = text;
+  if (sender === 'assistant') {
+    bubble.innerHTML = `<span class="bubble-avatar avatar-p0" style="display:flex;">🤖</span><span>${text}</span>`;
+  } else {
+    const av = avatarClass(currentSessionUser || 'u');
+    bubble.innerHTML = `<span class="bubble-avatar ${av}" style="display:flex; color:#fff; font-weight:700;">${escapeHTML(initials(currentSessionUser || 'U'))}</span><span>${escapeHTML(text)}</span>`;
+  }
   historyScroll.appendChild(bubble);
   historyScroll.scrollTop = historyScroll.scrollHeight;
 }
@@ -1534,11 +1683,11 @@ function generateAccountBalanceSheet() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${formatDate(row.date)}</td>
-      <td><span class="label" style="color:var(--wine); border: 1px solid rgba(125,46,69,0.2); padding: 2px 8px; border-radius:8px; font-size:11px;">${escapeHTML(row.type)}</span></td>
+      <td><span class="label" style="color:var(--purple); border: 1px solid rgba(124,58,237,0.2); padding: 2px 8px; border-radius:8px; font-size:11px;">${escapeHTML(row.type)}</span></td>
       <td>${escapeHTML(row.desc)}</td>
       <td class="num" style="color:var(--expense); font-weight:700;">${row.out}</td>
       <td class="num" style="color:var(--income); font-weight:700;">${row.in}</td>
-      <td class="num" style="font-weight:700; color:var(--wine);">${row.bal}</td>
+      <td class="num" style="font-weight:700; color:var(--purple);">${row.bal}</td>
     `;
     tBody.appendChild(tr);
   });
@@ -1581,9 +1730,12 @@ function mergeAllState() {
 
   const dGrid = document.getElementById("dashboardModesGrid");
   dGrid.innerHTML = Object.keys(s.modeBalances).map(modeKey => `
-    <div class="card clay" style="padding:15px 20px;">
-      <div class="label" style="color:var(--wine); font-size:12px;">${escapeHTML(modeKey)}</div>
-      <div class="value num" style="font-size:20px; margin-top:8px;">${fmt(s.modeBalances[modeKey])}</div>
+    <div class="card clay mode-card">
+      <div class="avatar avatar-sm ${avatarClass(modeKey)}">${escapeHTML(initials(modeKey))}</div>
+      <div class="mode-info">
+        <div class="label" style="color:var(--purple);">${escapeHTML(modeKey)}</div>
+        <div class="value num">${fmt(s.modeBalances[modeKey])}</div>
+      </div>
     </div>
   `).join('');
 
@@ -1601,12 +1753,12 @@ function mergeAllState() {
 }
 
 function txListHTML(list) {
-  if(!list.length) return `<div class="empty-state">No entries logged yet.</div>`;
+  if(!list.length) return `<div class="empty-state"><div class="avatar avatar-p0 avatar-lg" style="margin:0 auto 12px;">📭</div>No entries logged yet.</div>`;
   return list.map((t, idx) => {
     const customDelay = `style="animation-delay: ${idx * 0.04}s"`;
     if(t.type === 'transfer') {
       return `<div class="tx-row" ${customDelay}>
-        <div class="tx-icon transfer">⇄</div>
+        <div class="avatar avatar-transfer">⇄</div>
         <div class="tx-main">
           <div class="cat" style="font-weight:700;">Transfer: ${escapeHTML(t.fromMethod)} ➔ ${escapeHTML(t.toMethod)}</div>
           <div class="meta">${formatDate(t.date)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
@@ -1615,8 +1767,9 @@ function txListHTML(list) {
         <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
       </div>`;
     }
+    const emo = categoryEmoji(t.category);
     return `<div class="tx-row" ${customDelay}>
-      <div class="tx-icon ${t.type}">${t.type === 'income' ? '↙' : '↗'}</div>
+      <div class="avatar ${t.type === 'income' ? 'avatar-income' : 'avatar-expense'}">${emo}</div>
       <div class="tx-main">
         <div class="cat" style="font-weight:700;">${escapeHTML(t.category)}</div>
         <div class="meta">${formatDate(t.date)} • via ${escapeHTML(t.method)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
@@ -1661,15 +1814,18 @@ function renderCredits() {
 }
 
 function creditListHTML(list) {
-  if(!list.length) return `<div class="empty-state">No loan records found.</div>`;
+  if(!list.length) return `<div class="empty-state"><div class="avatar avatar-p2 avatar-lg" style="margin:0 auto 12px;">🤝</div>No loan records found.</div>`;
   return list.map((c, idx) => `
     <div class="credit-card clay" style="animation-delay: ${idx * 0.05}s">
       <div class="credit-top">
-        <div style="font-weight:700;">${escapeHTML(c.person)}</div>
+        <div class="credit-person">
+          <div class="avatar avatar-sm ${avatarClass(c.person)}">${escapeHTML(initials(c.person))}</div>
+          <div class="pname">${escapeHTML(c.person)}</div>
+        </div>
         <div class="credit-amt ${c.type}">${fmt(c.amount)}</div>
       </div>
       <div class="credit-meta">
-        <span style="font-weight:800; color:var(--wine);">${c.status.toUpperCase()}</span>
+        <span style="font-weight:800; color:var(--purple);">${c.status.toUpperCase()}</span>
         ${c.dueDate ? '• Due: '+formatDate(c.dueDate) : ''}
         ${c.note ? '• '+escapeHTML(c.note) : ''}
       </div>
@@ -1694,17 +1850,17 @@ function renderCharts(stats) {
   const flowOut = months.map(m => transactions.filter(t => t.type === 'expense' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
 
   const isDarkTheme = document.body.classList.contains('theme-dark');
-  const textModeColor = isDarkTheme ? "#F6E7EA" : "#3A1620";
-  const gridLineColor = isDarkTheme ? "rgba(231,166,183,0.14)" : "rgba(125,46,69,0.12)";
+  const textModeColor = isDarkTheme ? "#F4EFFC" : "#2B1854";
+  const gridLineColor = isDarkTheme ? "rgba(196,181,253,0.14)" : "rgba(124,58,237,0.12)";
 
   if(cFlow) cFlow.destroy();
   cFlow = new Chart(ctxFlow, {
-    type: 'line',
+    type: 'bar',
     data: {
       labels: months.map(m => m.label),
       datasets: [
-        { label: 'Income', data: flowIn, borderColor: '#2E7D63', backgroundColor: 'rgba(46,125,99,0.08)', tension: 0.3, pointRadius: 2, fill: true },
-        { label: 'Expense', data: flowOut, borderColor: '#B3374F', backgroundColor: 'rgba(179,55,79,0.08)', tension: 0.3, pointRadius: 2, fill: true }
+        { label: 'Income', data: flowIn, backgroundColor: isDarkTheme ? '#4ADE80' : '#16A34A', borderRadius: 8, maxBarThickness: 16 },
+        { label: 'Expense', data: flowOut, backgroundColor: isDarkTheme ? '#FB923C' : '#F97316', borderRadius: 8, maxBarThickness: 16 }
       ]
     },
     options: {
@@ -1722,9 +1878,9 @@ function renderCharts(stats) {
     type: 'doughnut',
     data: {
       labels: Object.keys(catMap).length ? Object.keys(catMap) : ['None'],
-      datasets: [{ data: Object.values(catMap).length ? Object.values(catMap) : [1], backgroundColor: isDarkTheme ? ['#E3A6B7', '#E36B85', '#F0C4D0', '#D699BB', '#C77E93', '#7D2E45'] : ['#7D2E45', '#B3374F', '#C77E93', '#8C4A73', '#9A4360', '#431420'], borderWidth: 0 }]
+      datasets: [{ data: Object.values(catMap).length ? Object.values(catMap) : [1], backgroundColor: ['#7C3AED', '#F97316', '#16A34A', '#EC4899', '#0EA5E9', '#EAB308'], borderWidth: 0 }]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '68%' }
   });
 }
 window.renderAll = mergeAllState;
