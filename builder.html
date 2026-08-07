@@ -1,532 +1,1119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal APK Build Console</title>
-    <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        body {
-            background-color: #0d1117;
-            color: #c9d1d9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 24px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-        h2 {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-            text-align: center;
-            color: #f0f6fc;
-        }
-        .subtitle {
-            font-size: 0.85rem;
-            color: #8b949e;
-            text-align: center;
-            margin-bottom: 24px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            font-size: 0.85rem;
-            color: #8b949e;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        input[type="password"], select {
-            width: 100%;
-            padding: 12px;
-            background-color: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            color: #c9d1d9;
-            font-size: 1rem;
-            outline: none;
-        }
-        select {
-            cursor: pointer;
-        }
-        input[type="password"]:focus, select:focus {
-            border-color: #58a6ff;
-        }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            margin-bottom: 16px;
-            transition: background-color 0.2s, transform 0.1s;
-            text-align: center;
-            text-decoration: none;
-        }
-        .btn:active {
-            transform: scale(0.98);
-        }
-        .btn-primary {
-            background-color: #238636;
-            color: #ffffff;
-        }
-        .btn-primary:hover {
-            background-color: #2ea44f;
-        }
-        .btn-secondary {
-            background-color: #21262d;
-            color: #c9d1d9;
-            border: 1px solid #30363d;
-        }
-        .btn-secondary:hover {
-            background-color: #30363d;
-        }
-        .btn-copy {
-            background-color: #21262d;
-            color: #58a6ff;
-            border: 1px solid #30363d;
-            padding: 6px 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .btn-copy:hover {
-            background-color: #30363d;
-            color: #79c0ff;
-        }
-        .btn:disabled {
-            background-color: #21262d;
-            color: #8b949e;
-            border: 1px solid #30363d;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .status-box {
-            background-color: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 16px;
-            margin-top: 8px;
-        }
-        .status-title {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #8b949e;
-            margin-bottom: 8px;
-        }
-        .status-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .status-text {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #58a6ff;
-        }
-        .progress-container {
-            width: 100%;
-            background-color: #30363d;
-            height: 8px;
-            border-radius: 4px;
-            margin-top: 12px;
-            overflow: hidden;
-            display: none;
-        }
-        .progress-bar {
-            width: 0%;
-            height: 100%;
-            background-color: #58a6ff;
-            transition: width 0.4s ease;
-        }
-        .log-box {
-            margin-top: 16px;
-            background-color: #05070a;
-            border: 1px solid #21262d;
-            border-radius: 8px;
-            padding: 12px;
-            display: none;
-        }
-        .log-terminal {
-            width: 100%;
-            height: 160px;
-            background: transparent;
-            color: #f0f6fc;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.8rem;
-            border: none;
-            resize: none;
-            outline: none;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            margin-top: 8px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Skyforge — APK Build Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.min.js"></script>
+<style>
+  :root{
+    --radius:14px;
+    --radius-sm:8px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+    --shadow-lg:0 20px 60px rgba(40,60,80,.18);
+    --shadow-sm:0 4px 14px rgba(40,60,80,.10);
+
+    /* SKY (day) theme — beige + sky blue */
+    --bg-top:#bfe6f6;
+    --bg-mid:#e7f2ec;
+    --bg-bottom:#f2e8d3;
+    --card-bg:#fbf7ee;
+    --card-bg-2:#f6f0e0;
+    --card-border:#e3d5b4;
+    --ink:#2c2721;
+    --muted:#83795f;
+    --accent:#3fa3d8;
+    --accent-2:#1f7fae;
+    --accent-soft:#d9eef8;
+    --success:#3f9d6f;
+    --error:#c1503f;
+    --warn:#c98a2c;
+    --cloud:#ffffff;
+  }
+  body.dusk{
+    /* DUSK theme — same family, deeper */
+    --bg-top:#22475f;
+    --bg-mid:#2c3f47;
+    --bg-bottom:#3a3021;
+    --card-bg:#2a2721;
+    --card-bg-2:#332e24;
+    --card-border:#4c4531;
+    --ink:#f2ead9;
+    --muted:#b8ae95;
+    --accent:#6fc6ee;
+    --accent-2:#8fd8f7;
+    --accent-soft:#243b47;
+    --cloud:#3a5b6e;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--font-body);
+    color:var(--ink);
+    min-height:100vh;
+    overflow-x:hidden;
+    background:linear-gradient(180deg,var(--bg-top) 0%,var(--bg-mid) 45%,var(--bg-bottom) 100%);
+    background-size:100% 220%;
+    animation:drift 26s ease-in-out infinite;
+    transition:background .6s ease;
+  }
+  @keyframes drift{
+    0%,100%{background-position:0% 0%;}
+    50%{background-position:0% 40%;}
+  }
+
+  /* ---------- ambient background scenery ---------- */
+  .scenery{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;perspective:900px;}
+  .cloud{
+    position:absolute;background:var(--cloud);border-radius:50%;
+    opacity:.55;filter:blur(1px);
+    box-shadow:60px 10px 0 -10px var(--cloud),-60px 6px 0 -14px var(--cloud);
+    animation:floatCloud linear infinite;
+    transition:background .6s ease;
+  }
+  .cloud.c1{width:140px;height:52px;top:8%;left:-20%;animation-duration:70s;}
+  .cloud.c2{width:100px;height:38px;top:22%;left:-30%;animation-duration:95s;animation-delay:-20s;opacity:.4;}
+  .cloud.c3{width:170px;height:60px;top:15%;left:-40%;animation-duration:120s;animation-delay:-50s;opacity:.35;}
+  .cloud.c4{width:90px;height:34px;top:32%;left:-25%;animation-duration:60s;animation-delay:-10s;opacity:.5;}
+  @keyframes floatCloud{
+    from{transform:translateX(0);}
+    to{transform:translateX(160vw);}
+  }
+  .blob{
+    position:absolute;border-radius:42% 58% 63% 37% / 41% 44% 56% 59%;
+    background:linear-gradient(135deg,var(--accent-soft),var(--card-border));
+    opacity:.5;transform-style:preserve-3d;
+    animation:blobSpin 22s ease-in-out infinite;
+  }
+  .blob.b1{width:340px;height:340px;bottom:-140px;left:-110px;animation-duration:26s;}
+  .blob.b2{width:260px;height:260px;top:-90px;right:-80px;animation-duration:32s;animation-delay:-6s;}
+  .blob.b3{width:180px;height:180px;bottom:12%;right:8%;animation-duration:19s;animation-delay:-3s;}
+  @keyframes blobSpin{
+    0%,100%{transform:rotate3d(1,1,0,0deg) scale(1);}
+    50%{transform:rotate3d(1,1,0,25deg) scale(1.08);}
+  }
+
+  /* ---------- splash screen ---------- */
+  #splash{
+    position:fixed;inset:0;z-index:50;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+    background:linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
+    transition:opacity .6s ease, visibility .6s ease;
+  }
+  #splash.hide{opacity:0;visibility:hidden;pointer-events:none;}
+  .cube-stage{width:90px;height:90px;perspective:600px;}
+  .cube{
+    width:100%;height:100%;position:relative;transform-style:preserve-3d;
+    animation:cubeSpin 3.2s linear infinite;
+  }
+  .cube .face{
+    position:absolute;width:90px;height:90px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    border:1px solid rgba(255,255,255,.35);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;color:#fff;font-size:1.4rem;
+    box-shadow:inset 0 0 30px rgba(255,255,255,.15);
+  }
+  .cube .front{transform:translateZ(45px);}
+  .cube .back{transform:rotateY(180deg) translateZ(45px);}
+  .cube .right{transform:rotateY(90deg) translateZ(45px);}
+  .cube .left{transform:rotateY(-90deg) translateZ(45px);}
+  .cube .top{transform:rotateX(90deg) translateZ(45px);}
+  .cube .bottom{transform:rotateX(-90deg) translateZ(45px);}
+  @keyframes cubeSpin{
+    from{transform:rotateX(0deg) rotateY(0deg);}
+    to{transform:rotateX(360deg) rotateY(360deg);}
+  }
+  .splash-title{font-family:var(--font-display);font-weight:700;font-size:1.3rem;letter-spacing:.02em;}
+  .splash-sub{font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+  .splash-bar{width:200px;height:5px;border-radius:3px;background:var(--card-border);overflow:hidden;}
+  .splash-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .15s linear;}
+
+  /* ---------- layout ---------- */
+  #app{position:relative;z-index:1;display:none;min-height:100vh;align-items:center;justify-content:center;padding:28px 16px;}
+  #app.show{display:flex;}
+  .wrap{width:100%;max-width:560px;perspective:1400px;}
+
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:26px;
+    box-shadow:var(--shadow-lg);
+    transform-style:preserve-3d;
+    transition:transform .12s ease-out, background .6s ease, border-color .6s ease;
+    will-change:transform;
+  }
+  .top-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{
+    width:34px;height:34px;border-radius:9px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-display);font-weight:700;
+    transform:rotate(-6deg);
+    box-shadow:var(--shadow-sm);
+  }
+  h2{font-family:var(--font-display);font-size:1.35rem;font-weight:700;color:var(--ink);}
+  .subtitle{font-size:.78rem;color:var(--muted);margin-bottom:20px;}
+
+  .theme-toggle{
+    display:flex;align-items:center;gap:6px;background:var(--card-bg-2);border:1px solid var(--card-border);
+    border-radius:999px;padding:4px;cursor:pointer;
+  }
+  .theme-toggle button{
+    border:none;background:transparent;border-radius:999px;padding:5px 10px;font-size:.72rem;
+    font-family:var(--font-body);font-weight:600;color:var(--muted);cursor:pointer;
+  }
+  .theme-toggle button.active{background:var(--accent);color:#fff;}
+
+  .form-group{margin-bottom:16px;}
+  label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
+  .input-row{position:relative;display:flex;gap:8px;}
+  input[type="password"],input[type="text"],select{
+    width:100%;padding:11px 12px;background:var(--card-bg-2);
+    border:1px solid var(--card-border);border-radius:var(--radius-sm);
+    color:var(--ink);font-size:.92rem;outline:none;font-family:var(--font-body);
+    transition:border-color .15s ease;
+  }
+  input:focus,select:focus{border-color:var(--accent);}
+  select{cursor:pointer;}
+  .eye-btn{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    background:none;border:none;cursor:pointer;font-size:1rem;color:var(--muted);
+  }
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .meta-chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .chip{
+    font-size:.7rem;padding:3px 9px;border-radius:999px;background:var(--accent-soft);
+    color:var(--accent-2);font-weight:600;border:1px solid var(--card-border);
+  }
+
+  .btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;
+    font-size:.92rem;font-weight:600;border-radius:var(--radius-sm);border:none;cursor:pointer;
+    margin-bottom:12px;transition:transform .1s ease, filter .15s ease;font-family:var(--font-body);
+  }
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;}
+  .btn-primary:hover{filter:brightness(1.06);}
+  .btn-secondary{background:var(--card-bg-2);color:var(--ink);border:1px solid var(--card-border);}
+  .btn-secondary:hover{filter:brightness(.97);}
+  .btn-danger{background:transparent;color:var(--error);border:1px solid var(--error);}
+  .btn-row{display:flex;gap:8px;}
+  .btn-row .btn{margin-bottom:0;}
+  .btn:disabled{background:var(--card-bg-2);color:var(--muted);border:1px solid var(--card-border);cursor:not-allowed;filter:none;}
+  .btn-copy{
+    background:var(--card-bg-2);color:var(--accent-2);border:1px solid var(--card-border);
+    padding:6px 10px;font-size:.7rem;font-weight:600;border-radius:var(--radius-sm);cursor:pointer;
+  }
+  .btn-copy:hover{filter:brightness(.97);}
+
+  .status-box{background:var(--card-bg-2);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:15px;margin-top:6px;}
+  .status-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;}
+  .status-header-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+  .status-text{font-size:1.02rem;font-weight:600;color:var(--accent-2);}
+  .elapsed{font-size:.72rem;color:var(--muted);font-family:var(--font-mono);}
+  .progress-container{width:100%;background:var(--card-border);height:7px;border-radius:4px;margin-top:12px;overflow:hidden;display:none;}
+  .progress-bar{width:0%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .4s ease;}
+
+  .log-box{margin-top:14px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:12px;display:none;}
+  .log-terminal{width:100%;height:150px;background:transparent;color:var(--ink);font-family:var(--font-mono);font-size:.76rem;border:none;resize:none;outline:none;overflow-y:auto;white-space:pre-wrap;margin-top:8px;}
+
+  details.advanced{margin-top:16px;border-top:1px dashed var(--card-border);padding-top:12px;}
+  details.advanced summary{cursor:pointer;font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;list-style:none;}
+  details.advanced summary::-webkit-details-marker{display:none;}
+  details.advanced summary:before{content:'⚙ ';}
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;font-size:.82rem;border-bottom:1px solid var(--card-border);}
+  .toggle-row:last-child{border-bottom:none;}
+  .switch{position:relative;width:38px;height:21px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider-tog{position:absolute;inset:0;background:var(--card-border);border-radius:999px;cursor:pointer;transition:.2s;}
+  .slider-tog:before{content:'';position:absolute;height:15px;width:15px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;}
+  .switch input:checked + .slider-tog{background:var(--accent);}
+  .switch input:checked + .slider-tog:before{transform:translateX(17px);}
+
+  .history-list{margin-top:8px;max-height:160px;overflow-y:auto;}
+  .history-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--card-border);font-size:.78rem;}
+  .history-item:last-child{border-bottom:none;}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dot.success{background:var(--success);}
+  .dot.failure{background:var(--error);}
+  .dot.pending{background:var(--warn);}
+  .history-item a{margin-left:auto;color:var(--accent-2);text-decoration:none;font-weight:600;font-size:.72rem;white-space:nowrap;}
+
+  .ratelimit{position:fixed;bottom:12px;right:14px;font-size:.68rem;color:var(--muted);background:var(--card-bg);border:1px solid var(--card-border);padding:4px 9px;border-radius:999px;z-index:5;font-family:var(--font-mono);}
+
+  #toasts{position:fixed;top:16px;right:16px;z-index:60;display:flex;flex-direction:column;gap:8px;max-width:280px;}
+  .toast{background:var(--card-bg);border:1px solid var(--card-border);border-left:4px solid var(--accent);border-radius:var(--radius-sm);padding:10px 12px;font-size:.8rem;box-shadow:var(--shadow-sm);animation:toastIn .25s ease;color:var(--ink);}
+  .toast.success{border-left-color:var(--success);}
+  .toast.error{border-left-color:var(--error);}
+  @keyframes toastIn{from{transform:translateX(30px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+  #confetti-canvas{position:fixed;inset:0;z-index:55;pointer-events:none;display:none;}
+
+  @media (max-width:480px){
+    .card{padding:18px;}
+    h2{font-size:1.15rem;}
+    .two-col{grid-template-columns:1fr;}
+    .btn-row{flex-direction:column;}
+    #toasts{left:12px;right:12px;max-width:none;}
+    .cube-stage{width:70px;height:70px;}
+    .cube .face{width:70px;height:70px;font-size:1.1rem;}
+    .cube .front{transform:translateZ(35px);}
+    .cube .back{transform:rotateY(180deg) translateZ(35px);}
+    .cube .right{transform:rotateY(90deg) translateZ(35px);}
+    .cube .left{transform:rotateY(-90deg) translateZ(35px);}
+    .cube .top{transform:rotateX(90deg) translateZ(35px);}
+    .cube .bottom{transform:rotateX(-90deg) translateZ(35px);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001s !important;animation-iteration-count:1 !important;transition:none !important;}
+  }
+</style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Universal APK Console</h2>
-        <div class="subtitle" id="consoleSubtitle">Secure Local Session</div>
+  <div class="scenery" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+    <div class="cloud c4"></div>
+  </div>
+
+  <canvas id="confetti-canvas"></canvas>
+  <div id="toasts"></div>
+
+  <div id="splash">
+    <div class="cube-stage">
+      <div class="cube">
+        <div class="face front">SF</div>
+        <div class="face back">SF</div>
+        <div class="face right">SF</div>
+        <div class="face left">SF</div>
+        <div class="face top">SF</div>
+        <div class="face bottom">SF</div>
+      </div>
+    </div>
+    <div class="splash-title">Skyforge Console</div>
+    <div class="splash-sub" id="splashSub">Booting build environment…</div>
+    <div class="splash-bar"><div class="splash-bar-fill" id="splashBar"></div></div>
+  </div>
+
+  <div id="app">
+    <div class="wrap">
+      <div class="card" id="tiltCard">
+        <div class="top-row">
+          <div class="brand">
+            <div class="brand-mark">SF</div>
+            <div>
+              <h2>Skyforge Console</h2>
+            </div>
+          </div>
+          <div class="theme-toggle" id="themeToggle">
+            <button id="btnDay" class="active" onclick="setTheme('sky')">☀ Sky</button>
+            <button id="btnDusk" onclick="setTheme('dusk')">🌙 Dusk</button>
+          </div>
+        </div>
+        <div class="subtitle">Trigger cloud APK builds and pull the finished package — straight from your phone or desktop.</div>
 
         <div class="form-group">
-            <label for="tokenInput">ENTER SECRET CODE</label>
-            <input type="password" id="tokenInput" placeholder="••••••••••••••••" oninput="initializeDashboard()">
+          <label for="tokenInput">Secret Code (GitHub PAT)</label>
+          <div class="input-row">
+            <input type="password" id="tokenInput" placeholder="••••••••••••••••" oninput="initializeDashboard()" onkeydown="if(event.key==='Enter')initializeDashboard()">
+            <button class="eye-btn" onclick="toggleTokenVisibility()" title="Show / hide">👁</button>
+          </div>
         </div>
 
         <div class="form-group">
-            <label for="repoSelect">CHOOSE TARGET REPOSITORY</label>
+          <label for="repoFilter">Filter Repositories</label>
+          <input type="text" id="repoFilter" placeholder="Type to filter…" oninput="filterRepos()" disabled>
+        </div>
+
+        <div class="two-col">
+          <div class="form-group">
+            <label for="repoSelect">Target Repository</label>
             <select id="repoSelect" onchange="onRepoChange()" disabled>
-                <option>Awaiting Secret Code validation...</option>
+              <option>Awaiting Secret Code…</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label for="branchSelect">Branch</label>
+            <select id="branchSelect" onchange="onBranchChange()" disabled>
+              <option>—</option>
+            </select>
+          </div>
         </div>
 
-        <button id="uploadBtn" class="btn btn-primary" onclick="triggerBuild()" disabled>🚀 Start Cloud Build</button>
-        <button id="downloadBtn" class="btn btn-secondary" onclick="downloadArtifact()" disabled>📦 Download APK File</button>
+        <div class="meta-chip-row" id="metaChips"></div>
+
+        <div class="btn-row" style="margin-top:16px;">
+          <button id="uploadBtn" class="btn btn-primary" onclick="triggerBuild()" disabled>🚀 Start Cloud Build</button>
+        </div>
+        <div class="btn-row">
+          <button id="cancelBtn" class="btn btn-danger" onclick="cancelBuild()" style="display:none;">✕ Cancel Build</button>
+        </div>
+        <div class="btn-row">
+          <button id="downloadBtn" class="btn btn-secondary" onclick="downloadArtifact()" disabled>📦 Download APK File</button>
+          <button id="refreshBtn" class="btn btn-secondary" onclick="checkStatus()" disabled title="Refresh status now" style="max-width:52px;">⟳</button>
+        </div>
 
         <div class="status-box">
+          <div class="status-header-row">
             <div class="status-title">System Status</div>
-            <div id="statusText" class="status-text" style="color: #8b949e;">Please provide your Secret Code above to unlock.</div>
-            <div id="progressContainer" class="progress-container">
-                <div id="progressBar" class="progress-bar"></div>
-            </div>
+            <span class="elapsed" id="elapsedText"></span>
+          </div>
+          <div id="statusText" class="status-text" style="color:var(--muted);font-weight:600;font-size:.95rem;">Please provide your Secret Code above to unlock.</div>
+          <div class="progress-container" id="progressContainer">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
         </div>
 
         <div class="log-box" id="logBox">
-            <div class="status-header-row">
-                <div class="status-title" style="margin: 0;">Detailed Logs / Errors</div>
-                <button class="btn-copy" onclick="copyLogs()">📋 Copy Whole Log</button>
-            </div>
-            <textarea id="logTerminal" class="log-terminal" readonly></textarea>
+          <div class="status-header-row">
+            <div class="status-title" style="margin:0;">Detailed Logs / Errors</div>
+            <button class="btn-copy" onclick="copyLogs()">📋 Copy Log</button>
+          </div>
+          <textarea id="logTerminal" class="log-terminal" readonly></textarea>
         </div>
+
+        <div class="log-box" id="historyBox">
+          <div class="status-header-row">
+            <div class="status-title" style="margin:0;">Recent Builds</div>
+            <button class="btn-copy" onclick="fetchHistory()">⟳ Refresh</button>
+          </div>
+          <div class="history-list" id="historyList"></div>
+        </div>
+
+        <details class="advanced">
+          <summary>Advanced Settings</summary>
+          <div class="toggle-row">
+            <span>Auto-refresh build status</span>
+            <label class="switch"><input type="checkbox" id="autoRefreshToggle" checked onchange="onAutoRefreshToggle()"><span class="slider-tog"></span></label>
+          </div>
+          <div class="toggle-row">
+            <span>Sound alert on completion</span>
+            <label class="switch"><input type="checkbox" id="soundToggle"><span class="slider-tog"></span></label>
+          </div>
+          <div class="toggle-row">
+            <span>Desktop notification on completion</span>
+            <label class="switch"><input type="checkbox" id="notifToggle" onchange="onNotifToggle()"><span class="slider-tog"></span></label>
+          </div>
+          <div class="toggle-row">
+            <span>Remember last repo &amp; branch</span>
+            <label class="switch"><input type="checkbox" id="rememberToggle" checked><span class="slider-tog"></span></label>
+          </div>
+          <div class="btn-row" style="margin-top:12px;">
+            <button class="btn btn-secondary" onclick="copyRepoName()">📋 Copy Repo Name</button>
+            <button class="btn btn-danger" onclick="logout()">🚪 Clear Secret Code</button>
+          </div>
+        </details>
+
+      </div>
     </div>
+  </div>
 
-    <script>
-        const OWNER = "aklavyaaa";
-        const WORKFLOW_ID = "manual-build.yml";
+  <div class="ratelimit" id="rateLimitBadge" style="display:none;"></div>
 
-        let selectedRepo = "";
-        let defaultBranch = "main";
-        let intervalId = null;
-        let activeRunId = null;
+<script>
+/* =========================================================
+   SKYFORGE CONSOLE — core config
+   ========================================================= */
+const OWNER = "aklavyaaa";
+const WORKFLOW_ID = "manual-build.yml";
 
-        function getHeaders() {
-            const tokenValue = document.getElementById("tokenInput").value.trim();
-            return {
-                "Authorization": `token ${tokenValue}`,
-                "Accept": "application/vnd.github+json"
-            };
+let repoData = [];          // full repo objects from GitHub
+let selectedRepo = "";
+let selectedBranch = "";
+let intervalId = null;
+let activeRunId = null;
+let buildStartTime = null;
+let elapsedIntervalId = null;
+let autoRefreshOn = true;
+
+/* =========================================================
+   SPLASH SCREEN (feature: animated 3D splash)
+   ========================================================= */
+(function runSplash(){
+  const bar = document.getElementById('splashBar');
+  const sub = document.getElementById('splashSub');
+  const messages = ["Booting build environment…","Warming up compilers…","Syncing with cloud runners…","Almost there…"];
+  let pct = 0, msgIdx = 0;
+  const t = setInterval(() => {
+    pct += Math.random()*18 + 6;
+    if (pct >= 100){ pct = 100; clearInterval(t); }
+    bar.style.width = pct + "%";
+    const newIdx = Math.min(messages.length-1, Math.floor(pct/26));
+    if (newIdx !== msgIdx){ msgIdx = newIdx; sub.textContent = messages[msgIdx]; }
+    if (pct === 100){
+      setTimeout(() => {
+        document.getElementById('splash').classList.add('hide');
+        document.getElementById('app').classList.add('show');
+      }, 350);
+    }
+  }, 180);
+})();
+
+/* =========================================================
+   THEME (feature: dynamic sky/dusk theme, persisted)
+   ========================================================= */
+function setTheme(mode){
+  document.body.classList.toggle('dusk', mode === 'dusk');
+  document.getElementById('btnDay').classList.toggle('active', mode !== 'dusk');
+  document.getElementById('btnDusk').classList.toggle('active', mode === 'dusk');
+  localStorage.setItem('sf_theme', mode);
+}
+setTheme(localStorage.getItem('sf_theme') || 'sky');
+
+/* =========================================================
+   3D TILT CARD (feature: interactive 3D parallax tilt)
+   ========================================================= */
+(function initTilt(){
+  const card = document.getElementById('tiltCard');
+  const isTouch = matchMedia('(pointer:coarse)').matches;
+  if (isTouch) return;
+  card.addEventListener('mousemove', (e) => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    card.style.transform = `rotateY(${x*6}deg) rotateX(${-y*6}deg) translateZ(0)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'rotateY(0deg) rotateX(0deg)';
+  });
+})();
+
+/* =========================================================
+   TOASTS (feature: non-blocking notifications)
+   ========================================================= */
+function showToast(msg, type){
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4200);
+}
+
+/* =========================================================
+   TOKEN handling (feature: masked show/hide, feature: logout)
+   ========================================================= */
+function toggleTokenVisibility(){
+  const inp = document.getElementById('tokenInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+function logout(){
+  localStorage.removeItem('gh_pat_secure');
+  localStorage.removeItem('sf_last_repo');
+  localStorage.removeItem('sf_last_branch');
+  document.getElementById('tokenInput').value = '';
+  location.reload();
+}
+function getHeaders(){
+  const tokenValue = document.getElementById("tokenInput").value.trim();
+  return {
+    "Authorization": `token ${tokenValue}`,
+    "Accept": "application/vnd.github+json"
+  };
+}
+
+/* wrapper around fetch to GitHub API — also updates rate-limit badge (feature) */
+async function ghFetch(url, opts){
+  const res = await fetch(url, opts);
+  const remaining = res.headers.get('x-ratelimit-remaining');
+  const limit = res.headers.get('x-ratelimit-limit');
+  if (remaining !== null){
+    const badge = document.getElementById('rateLimitBadge');
+    badge.style.display = 'block';
+    badge.textContent = `GitHub API: ${remaining}/${limit || '?'} calls left`;
+  }
+  return res;
+}
+
+window.onload = function() {
+  const savedToken = localStorage.getItem("gh_pat_secure");
+  if (savedToken) {
+    document.getElementById("tokenInput").value = savedToken;
+    initializeDashboard();
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter'){
+      const btn = document.getElementById('uploadBtn');
+      if (!btn.disabled) triggerBuild();
+    }
+  });
+};
+
+async function initializeDashboard() {
+  const tokenValue = document.getElementById("tokenInput").value.trim();
+  const statusText = document.getElementById("statusText");
+
+  if (!tokenValue.startsWith("ghp_") && !tokenValue.startsWith("github_pat_")) {
+    statusText.innerText = "Awaiting a valid Secret Code...";
+    statusText.style.color = "var(--muted)";
+    document.getElementById("repoSelect").disabled = true;
+    document.getElementById("repoFilter").disabled = true;
+    document.getElementById("uploadBtn").disabled = true;
+    return;
+  }
+
+  localStorage.setItem("gh_pat_secure", tokenValue);
+  statusText.innerText = "Unlocking Console & Fetching Repositories...";
+  statusText.style.color = "var(--accent-2)";
+
+  await fetchRepositories();
+}
+
+/* =========================================================
+   REPOSITORIES  (feature: filter box, feature: meta chips)
+   ========================================================= */
+async function fetchRepositories() {
+  const repoSelect = document.getElementById("repoSelect");
+  const statusText = document.getElementById("statusText");
+
+  try {
+    const response = await ghFetch(`https://api.github.com/user/repos?per_page=100&sort=pushed`, { headers: getHeaders() });
+    if (!response.ok) throw new Error("Invalid Secret Code or mapping configuration error.");
+
+    repoData = await response.json();
+    repoSelect.innerHTML = "";
+
+    if (repoData.length === 0) {
+      repoSelect.innerHTML = "<option>No repositories found</option>";
+      statusText.innerText = "No projects found under this account.";
+      return;
+    }
+
+    renderRepoOptions(repoData);
+    repoSelect.disabled = false;
+    document.getElementById("repoFilter").disabled = false;
+
+    // feature: remember last repo/branch
+    const remember = document.getElementById('rememberToggle').checked;
+    const lastRepo = localStorage.getItem('sf_last_repo');
+    if (remember && lastRepo && repoData.some(r => r.name === lastRepo)) {
+      repoSelect.value = lastRepo;
+    }
+    await onRepoChange();
+    showToast(`Loaded ${repoData.length} repositories`, 'success');
+  } catch (error) {
+    statusText.innerText = "Access Denied. Double-check your Secret Code.";
+    statusText.style.color = "var(--error)";
+    showErrorInTerminal(error.toString());
+    showToast('Failed to load repositories', 'error');
+  }
+}
+
+function renderRepoOptions(list){
+  const repoSelect = document.getElementById("repoSelect");
+  const prevVal = repoSelect.value;
+  repoSelect.innerHTML = "";
+  list.forEach(repo => {
+    let option = document.createElement("option");
+    option.value = repo.name;
+    option.text = repo.name;
+    option.dataset.branch = repo.default_branch;
+    repoSelect.appendChild(option);
+  });
+  if (list.some(r => r.name === prevVal)) repoSelect.value = prevVal;
+}
+
+/* feature: client-side repo filter/search */
+function filterRepos(){
+  const q = document.getElementById('repoFilter').value.toLowerCase();
+  const filtered = repoData.filter(r => r.name.toLowerCase().includes(q));
+  renderRepoOptions(filtered.length ? filtered : repoData.filter(()=>false));
+  if (filtered.length) onRepoChange();
+}
+
+async function onRepoChange() {
+  const repoSelect = document.getElementById("repoSelect");
+  const selectedOption = repoSelect.options[repoSelect.selectedIndex];
+  if (!selectedOption) return;
+
+  selectedRepo = repoSelect.value;
+  const defaultBranch = selectedOption.dataset.branch;
+  activeRunId = null;
+
+  document.getElementById("statusText").innerText = `Target: ${selectedRepo}`;
+  document.getElementById("statusText").style.color = "var(--accent-2)";
+  document.getElementById("uploadBtn").disabled = false;
+  document.getElementById("downloadBtn").disabled = true;
+  document.getElementById("refreshBtn").disabled = false;
+  document.getElementById("progressContainer").style.display = "none";
+  document.getElementById("logBox").style.display = "none";
+  document.getElementById("logTerminal").value = "";
+  document.getElementById("cancelBtn").style.display = "none";
+  stopElapsedTimer();
+
+  if (intervalId) clearInterval(intervalId);
+
+  renderMetaChips();
+  await populateBranches(defaultBranch);
+  fetchHistory();
+
+  if (document.getElementById('rememberToggle').checked) {
+    localStorage.setItem('sf_last_repo', selectedRepo);
+  }
+}
+
+/* feature: repo meta chips — stars, visibility, last push */
+function renderMetaChips(){
+  const repo = repoData.find(r => r.name === selectedRepo);
+  const box = document.getElementById('metaChips');
+  box.innerHTML = "";
+  if (!repo) return;
+  const chips = [
+    `⭐ ${repo.stargazers_count ?? 0}`,
+    repo.private ? "🔒 Private" : "🌐 Public",
+    repo.pushed_at ? `Updated ${new Date(repo.pushed_at).toLocaleDateString()}` : ""
+  ].filter(Boolean);
+  chips.forEach(c => {
+    const span = document.createElement('span');
+    span.className = 'chip';
+    span.textContent = c;
+    box.appendChild(span);
+  });
+}
+
+/* =========================================================
+   BRANCH SELECTOR (feature: pick any branch to build)
+   ========================================================= */
+async function populateBranches(defaultBranch){
+  const branchSelect = document.getElementById('branchSelect');
+  branchSelect.innerHTML = "<option>Loading…</option>";
+  branchSelect.disabled = true;
+  try {
+    const res = await ghFetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/branches?per_page=100`, { headers: getHeaders() });
+    const branches = await res.json();
+    branchSelect.innerHTML = "";
+    if (!Array.isArray(branches) || branches.length === 0){
+      branchSelect.innerHTML = `<option value="${defaultBranch}">${defaultBranch}</option>`;
+      selectedBranch = defaultBranch;
+      branchSelect.disabled = false;
+      return;
+    }
+    branches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.name;
+      opt.textContent = b.name;
+      branchSelect.appendChild(opt);
+    });
+    const remember = document.getElementById('rememberToggle').checked;
+    const lastBranch = localStorage.getItem('sf_last_branch');
+    if (remember && lastBranch && branches.some(b => b.name === lastBranch)) {
+      branchSelect.value = lastBranch;
+    } else if (branches.some(b => b.name === defaultBranch)) {
+      branchSelect.value = defaultBranch;
+    }
+    selectedBranch = branchSelect.value;
+    branchSelect.disabled = false;
+  } catch (e) {
+    branchSelect.innerHTML = `<option value="${defaultBranch}">${defaultBranch}</option>`;
+    selectedBranch = defaultBranch;
+    branchSelect.disabled = false;
+  }
+}
+function onBranchChange(){
+  selectedBranch = document.getElementById('branchSelect').value;
+  if (document.getElementById('rememberToggle').checked) {
+    localStorage.setItem('sf_last_branch', selectedBranch);
+  }
+}
+
+/* =========================================================
+   TRIGGER BUILD
+   ========================================================= */
+async function triggerBuild() {
+  const statusText = document.getElementById("statusText");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const downloadBtn = document.getElementById("downloadBtn");
+  const progressContainer = document.getElementById("progressContainer");
+  const progressBar = document.getElementById("progressBar");
+
+  statusText.innerText = `Triggering build for ${selectedRepo}...`;
+  statusText.style.color = "var(--accent-2)";
+  uploadBtn.disabled = true;
+  downloadBtn.disabled = true;
+  document.getElementById("logBox").style.display = "none";
+  document.getElementById("logTerminal").value = "";
+
+  try {
+    const response = await ghFetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/workflows/${WORKFLOW_ID}/dispatches`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ ref: selectedBranch || "main" })
+    });
+
+    if (response.status === 204) {
+      statusText.innerText = "Build requested! Waiting for cloud runner...";
+      progressContainer.style.display = "block";
+      progressBar.style.width = "10%";
+      startElapsedTimer();
+      showToast('Build triggered', 'success');
+
+      setTimeout(() => { startCheckingStatus(); }, 10000);
+    } else {
+      const data = await response.json().catch(() => ({}));
+      statusText.innerText = `Error running build. Check setup logs below.`;
+      statusText.style.color = "var(--error)";
+      uploadBtn.disabled = false;
+      showErrorInTerminal(`HTTP Status: ${response.status}\nError Details: ${data.message || response.statusText || 'Workflow config folder missing.'}\n\nMake sure '.github/workflows/${WORKFLOW_ID}' exists inside the target repository branch.`);
+      showToast('Build request failed', 'error');
+    }
+  } catch (error) {
+    statusText.innerText = `Connection Failed`;
+    statusText.style.color = "var(--error)";
+    uploadBtn.disabled = false;
+    showErrorInTerminal(error.toString());
+  }
+}
+
+/* =========================================================
+   ELAPSED TIMER (feature)
+   ========================================================= */
+function startElapsedTimer(){
+  buildStartTime = Date.now();
+  stopElapsedTimer();
+  elapsedIntervalId = setInterval(() => {
+    const s = Math.floor((Date.now() - buildStartTime)/1000);
+    const mm = String(Math.floor(s/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    document.getElementById('elapsedText').textContent = `⏱ ${mm}:${ss}`;
+  }, 1000);
+}
+function stopElapsedTimer(){
+  if (elapsedIntervalId) clearInterval(elapsedIntervalId);
+  document.getElementById('elapsedText').textContent = "";
+}
+
+/* =========================================================
+   STATUS POLLING (feature: auto-refresh toggle, manual refresh)
+   ========================================================= */
+function startCheckingStatus() {
+  if (intervalId) clearInterval(intervalId);
+  if (autoRefreshOn){
+    intervalId = setInterval(checkStatus, 15000);
+  }
+  checkStatus();
+}
+function onAutoRefreshToggle(){
+  autoRefreshOn = document.getElementById('autoRefreshToggle').checked;
+  if (intervalId) clearInterval(intervalId);
+  if (autoRefreshOn && activeRunId) {
+    intervalId = setInterval(checkStatus, 15000);
+  }
+  showToast(autoRefreshOn ? 'Auto-refresh enabled' : 'Auto-refresh paused');
+}
+
+async function checkStatus() {
+  const statusText = document.getElementById("statusText");
+  const progressBar = document.getElementById("progressBar");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const cancelBtn = document.getElementById("cancelBtn");
+
+  try {
+    const response = await ghFetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/runs?workflow_id=${WORKFLOW_ID}`, { headers: getHeaders() });
+    const data = await response.json();
+
+    if (data.workflow_runs && data.workflow_runs.length > 0) {
+      const latestRun = data.workflow_runs[0];
+      activeRunId = latestRun.id;
+      const status = latestRun.status;
+      const conclusion = latestRun.conclusion;
+
+      if (status === "queued") {
+        statusText.innerText = "Cloud Status: Queued...";
+        statusText.style.color = "var(--warn)";
+        progressBar.style.width = "30%";
+        cancelBtn.style.display = "block";
+      } else if (status === "in_progress") {
+        statusText.innerText = "Cloud Status: Compiling APK...";
+        statusText.style.color = "var(--accent-2)";
+        progressBar.style.width = "60%";
+        cancelBtn.style.display = "block";
+      } else if (status === "completed") {
+        clearInterval(intervalId);
+        uploadBtn.disabled = false;
+        cancelBtn.style.display = "none";
+        stopElapsedTimer();
+
+        if (conclusion === "success") {
+          statusText.innerText = "Build Successful! ✅ Ready to download.";
+          statusText.style.color = "var(--success)";
+          progressBar.style.width = "100%";
+          document.getElementById("downloadBtn").disabled = false;
+          onBuildFinished(true);
+        } else {
+          statusText.innerText = `Build Failed ❌ (${conclusion})`;
+          statusText.style.color = "var(--error)";
+          progressBar.style.width = "0%";
+          fetchFailedLogs();
+          onBuildFinished(false);
         }
+        fetchHistory();
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching status:", error);
+  }
+}
 
-        window.onload = function() {
-            const savedToken = localStorage.getItem("gh_pat_secure");
-            if (savedToken) {
-                document.getElementById("tokenInput").value = savedToken;
-                initializeDashboard();
+/* =========================================================
+   COMPLETION EFFECTS: sound, notification, confetti (features)
+   ========================================================= */
+function onBuildFinished(success){
+  showToast(success ? 'Build succeeded 🎉' : 'Build failed', success ? 'success' : 'error');
+
+  if (document.getElementById('soundToggle').checked){
+    playTone(success ? 880 : 220, success ? 0.18 : 0.35);
+  }
+  if (document.getElementById('notifToggle').checked && 'Notification' in window && Notification.permission === 'granted'){
+    new Notification(success ? 'Skyforge: Build succeeded ✅' : 'Skyforge: Build failed ❌', {
+      body: `${selectedRepo} — ${success ? 'APK ready to download.' : 'Check logs in console.'}`
+    });
+  }
+  if (success) confettiBurst();
+}
+
+function playTone(freq, duration){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch(e){ /* audio not available */ }
+}
+
+function onNotifToggle(){
+  if (document.getElementById('notifToggle').checked && 'Notification' in window && Notification.permission !== 'granted'){
+    Notification.requestPermission().then(p => {
+      if (p !== 'granted'){
+        document.getElementById('notifToggle').checked = false;
+        showToast('Notifications were not allowed', 'error');
+      }
+    });
+  }
+}
+
+/* feature: lightweight canvas confetti burst on success */
+function confettiBurst(){
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.width = innerWidth; canvas.height = innerHeight;
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  const colors = ['#3fa3d8','#1f7fae','#c98a2c','#3f9d6f','#f2e8d3'];
+  const particles = Array.from({length:90}, () => ({
+    x: canvas.width/2, y: canvas.height/2,
+    vx: (Math.random()-0.5)*14, vy: (Math.random()-1.2)*14,
+    size: Math.random()*6+3, color: colors[Math.floor(Math.random()*colors.length)],
+    rot: Math.random()*360, life: 0
+  }));
+  let frame = 0;
+  function step(){
+    frame++;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      p.vy += 0.35; p.x += p.vx; p.y += p.vy; p.life++;
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+      ctx.restore();
+    });
+    if (frame < 100){
+      requestAnimationFrame(step);
+    } else {
+      canvas.style.display = 'none';
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+  }
+  step();
+}
+
+/* =========================================================
+   CANCEL BUILD (feature)
+   ========================================================= */
+async function cancelBuild(){
+  if (!activeRunId) return;
+  try {
+    await ghFetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/runs/${activeRunId}/cancel`, {
+      method: 'POST', headers: getHeaders()
+    });
+    showToast('Cancel requested', 'success');
+    document.getElementById('cancelBtn').style.display = 'none';
+  } catch (e) {
+    showToast('Could not cancel build', 'error');
+  }
+}
+
+/* =========================================================
+   BUILD HISTORY (feature)
+   ========================================================= */
+async function fetchHistory(){
+  if (!selectedRepo) return;
+  const historyBox = document.getElementById('historyBox');
+  const list = document.getElementById('historyList');
+  try {
+    const res = await ghFetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/runs?workflow_id=${WORKFLOW_ID}&per_page=5`, { headers: getHeaders() });
+    const data = await res.json();
+    list.innerHTML = "";
+    if (!data.workflow_runs || data.workflow_runs.length === 0){
+      list.innerHTML = "<div style='color:var(--muted);font-size:.78rem;'>No previous runs yet.</div>";
+    } else {
+      data.workflow_runs.forEach(run => {
+        const dotClass = run.status !== 'completed' ? 'pending' : (run.conclusion === 'success' ? 'success' : 'failure');
+        const row = document.createElement('div');
+        row.className = 'history-item';
+        row.innerHTML = `<span class="dot ${dotClass}"></span> #${run.run_number} · ${run.status === 'completed' ? (run.conclusion || 'unknown') : run.status} <a href="${run.html_url}" target="_blank" rel="noopener">View ↗</a>`;
+        list.appendChild(row);
+      });
+    }
+    historyBox.style.display = 'block';
+  } catch(e){
+    historyBox.style.display = 'none';
+  }
+}
+
+/* =========================================================
+   LOGS
+   ========================================================= */
+async function fetchFailedLogs() {
+  if (!activeRunId) return;
+  showErrorInTerminal("Fetching comprehensive compilation break reports from cloud runner layers...");
+
+  try {
+    const response = await ghFetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/runs/${activeRunId}/jobs`, { headers: getHeaders() });
+    const data = await response.json();
+
+    let errorDetails = `=== CRITICAL COMPILATION FAULT REPORT ===\nRun ID: ${activeRunId}\n`;
+    if (data.jobs && data.jobs.length > 0) {
+      data.jobs.forEach(job => {
+        errorDetails += `Job Name: ${job.name} -> Target Status: ${job.conclusion}\n`;
+        if (job.steps) {
+          job.steps.forEach(step => {
+            if (step.conclusion === "failure") {
+              errorDetails += `\n[X] BROKEN ENVIRONMENT COMPONENT DETECTED:\nStep Name: "${step.name}"\nStatus: Failed\n`;
             }
-        };
-
-        async function initializeDashboard() {
-            const tokenValue = document.getElementById("tokenInput").value.trim();
-            const statusText = document.getElementById("statusText");
-            
-            if (!tokenValue.startsWith("ghp_")) {
-                statusText.innerText = "Awaiting a valid Secret Code...";
-                statusText.style.color = "#8b949e";
-                document.getElementById("repoSelect").disabled = true;
-                document.getElementById("uploadBtn").disabled = true;
-                return;
-            }
-
-            localStorage.setItem("gh_pat_secure", tokenValue);
-            statusText.innerText = "Unlocking Console & Fetching Repositories...";
-            statusText.style.color = "#58a6ff";
-            
-            await fetchRepositories();
+          });
         }
+      });
+      errorDetails += `\nFix Steps:\n1. Pull your code locally and verify your dependencies inside build.gradle or settings.gradle.\n2. Ensure compileSdkVersion and JDK versions match structural targets.\n3. Push the fixed workspace changes back to GitHub and launch a fresh compilation build query loop.`;
+    } else {
+      errorDetails += "Failed to parse individual workflow runner modules data metrics.";
+    }
+    showErrorInTerminal(errorDetails);
+  } catch (e) {
+    showErrorInTerminal(`Decompiled report stream metrics collection failure state: ${e.toString()}`);
+  }
+}
 
-        async function fetchRepositories() {
-            const repoSelect = document.getElementById("repoSelect");
-            const statusText = document.getElementById("statusText");
-            
-            try {
-                const response = await fetch(`https://api.github.com/user/repos?per_page=100&sort=pushed`, { headers: getHeaders() });
-                if (!response.ok) throw new Error("Invalid Secret Code or mapping configuration error.");
-                
-                const repos = await response.json();
-                repoSelect.innerHTML = "";
-                
-                if(repos.length === 0) {
-                    repoSelect.innerHTML = "<option>No repositories found</option>";
-                    statusText.innerText = "No projects found under this account.";
-                    return;
-                }
+function showErrorInTerminal(text) {
+  const logBox = document.getElementById("logBox");
+  const logTerminal = document.getElementById("logTerminal");
+  logBox.style.display = "block";
+  logTerminal.value = text;
+}
 
-                repos.forEach(repo => {
-                    let option = document.createElement("option");
-                    option.value = repo.name;
-                    option.text = repo.name;
-                    option.dataset.branch = repo.default_branch;
-                    repoSelect.appendChild(option);
-                });
+function copyLogs() {
+  const logTerminal = document.getElementById("logTerminal");
+  if (!logTerminal.value) {
+    showToast("No log errors found to copy!", "error");
+    return;
+  }
+  logTerminal.select();
+  logTerminal.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(logTerminal.value);
+  showToast("Log copied to clipboard", "success");
+}
 
-                repoSelect.disabled = false;
-                onRepoChange();
-            } catch (error) {
-                statusText.innerText = "Access Denied. Double-check your Secret Code.";
-                statusText.style.color = "#f85149";
-                showErrorInTerminal(error.toString());
-            }
-        }
+/* feature: copy repo name */
+function copyRepoName(){
+  if (!selectedRepo){ showToast('No repository selected', 'error'); return; }
+  navigator.clipboard.writeText(selectedRepo);
+  showToast('Repository name copied', 'success');
+}
 
-        function onRepoChange() {
-            const repoSelect = document.getElementById("repoSelect");
-            const selectedOption = repoSelect.options[repoSelect.selectedIndex];
-            
-            selectedRepo = repoSelect.value;
-            defaultBranch = selectedOption.dataset.branch;
-            activeRunId = null;
-            
-            document.getElementById("statusText").innerText = `Target: ${selectedRepo} (${defaultBranch})`;
-            document.getElementById("statusText").style.color = "#58a6ff";
-            document.getElementById("uploadBtn").disabled = false;
-            document.getElementById("downloadBtn").disabled = true;
-            document.getElementById("progressContainer").style.display = "none";
-            document.getElementById("logBox").style.display = "none";
-            document.getElementById("logTerminal").value = "";
-            
-            if (intervalId) clearInterval(intervalId);
-        }
+/* =========================================================
+   DOWNLOAD ARTIFACT (feature: shows file size before download)
+   ========================================================= */
+async function downloadArtifact() {
+  const statusText = document.getElementById("statusText");
+  statusText.innerText = "Locating build archive...";
 
-        async function triggerBuild() {
-            const statusText = document.getElementById("statusText");
-            const uploadBtn = document.getElementById("uploadBtn");
-            const downloadBtn = document.getElementById("downloadBtn");
-            const progressContainer = document.getElementById("progressContainer");
-            const progressBar = document.getElementById("progressBar");
+  try {
+    const response = await ghFetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/artifacts`, { headers: getHeaders() });
+    const data = await response.json();
 
-            statusText.innerText = `Triggering build for ${selectedRepo}...`;
-            statusText.style.color = "#58a6ff";
-            uploadBtn.disabled = true;
-            downloadBtn.disabled = true;
-            document.getElementById("logBox").style.display = "none";
-            document.getElementById("logTerminal").value = "";
+    if (data.artifacts && data.artifacts.length > 0) {
+      const artifact = data.artifacts[0];
+      const sizeKb = artifact.size_in_bytes ? Math.round(artifact.size_in_bytes/1024) : null;
+      statusText.innerText = sizeKb ? `Downloading zip container (${sizeKb} KB)...` : "Downloading zip container...";
 
-            try {
-                const response = await fetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/workflows/${WORKFLOW_ID}/dispatches`, {
-                    method: "POST",
-                    headers: getHeaders(),
-                    body: JSON.stringify({ ref: defaultBranch })
-                });
+      const downloadUrl = `https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/artifacts/${artifact.id}/zip`;
 
-                if (response.status === 204) {
-                    statusText.innerText = "Build requested! Waiting for cloud runner...";
-                    progressContainer.style.display = "block";
-                    progressBar.style.width = "10%";
-                    
-                    setTimeout(() => {
-                        startCheckingStatus();
-                    }, 10000);
-                } else {
-                    const data = await response.json().catch(() => ({}));
-                    statusText.innerText = `Error running build. Check setup logs below.`;
-                    statusText.style.color = "#f85149";
-                    uploadBtn.disabled = false;
-                    showErrorInTerminal(`HTTP Status: ${response.status}\nError Details: ${data.message || response.statusText || 'Workflow config folder missing.'}\n\nMake sure '.github/workflows/${WORKFLOW_ID}' exists inside the target repository branch.`);
-                }
-            } catch (error) {
-                statusText.innerText = `Connection Failed`;
-                statusText.style.color = "#f85149";
-                uploadBtn.disabled = false;
-                showErrorInTerminal(error.toString());
-            }
-        }
+      ghFetch(downloadUrl, { headers: getHeaders() })
+        .then(res => {
+          if (!res.ok) throw new Error("File stream error");
+          return res.arrayBuffer();
+        })
+        .then(buffer => {
+          statusText.innerText = "Extracting raw APK in memory...";
 
-        function startCheckingStatus() {
-            if (intervalId) clearInterval(intervalId);
-            intervalId = setInterval(checkStatus, 15000);
-            checkStatus();
-        }
+          const zippedUint8 = new Uint8Array(buffer);
+          const unzippedFiles = fflate.unzipSync(zippedUint8);
 
-        async function checkStatus() {
-            const statusText = document.getElementById("statusText");
-            const progressBar = document.getElementById("progressBar");
-            const uploadBtn = document.getElementById("uploadBtn");
-            const downloadBtn = document.getElementById("downloadBtn");
+          let apkFileName = Object.keys(unzippedFiles).find(name => name.endsWith('.apk'));
 
-            try {
-                const response = await fetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/runs?workflow_id=${WORKFLOW_ID}`, { headers: getHeaders() });
-                const data = await response.json();
+          if (!apkFileName) {
+            throw new Error("No APK file found inside the package.");
+          }
 
-                if (data.workflow_runs && data.workflow_runs.length > 0) {
-                    const latestRun = data.workflow_runs[0];
-                    activeRunId = latestRun.id; 
-                    const status = latestRun.status;         
-                    const conclusion = latestRun.conclusion; 
+          const apkData = unzippedFiles[apkFileName];
+          const blob = new Blob([apkData], { type: "application/vnd.android.package-archive" });
 
-                    if (status === "queued") {
-                        statusText.innerText = "Cloud Status: Queued...";
-                        statusText.style.color = "#d29922";
-                        progressBar.style.width = "30%";
-                    } else if (status === "in_progress") {
-                        statusText.innerText = "Cloud Status: Compiling APK...";
-                        statusText.style.color = "#58a6ff";
-                        progressBar.style.width = "60%";
-                    } else if (status === "completed") {
-                        clearInterval(intervalId);
-                        uploadBtn.disabled = false;
-                        
-                        if (conclusion === "success") {
-                            statusText.innerText = "Build Successful! ✅ Ready to download.";
-                            statusText.style.color = "#3fb950";
-                            progressBar.style.width = "100%";
-                            downloadBtn.disabled = false;
-                        } else {
-                            statusText.innerText = `Build Failed ❌ (${conclusion})`;
-                            statusText.style.color = "#f85149";
-                            progressBar.style.width = "0%";
-                            fetchFailedLogs();
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching status:", error);
-            }
-        }
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `${selectedRepo}-build.apk`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(url);
 
-        async function fetchFailedLogs() {
-            if (!activeRunId) return;
-            showErrorInTerminal("Fetching comprehensive compilation break reports from cloud runner layers...");
-            
-            try {
-                const response = await fetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/runs/${activeRunId}/jobs`, { headers: getHeaders() });
-                const data = await response.json();
-                
-                let errorDetails = `=== CRITICAL COMPILATION FAULT REPORT ===\nRun ID: ${activeRunId}\n`;
-                if(data.jobs && data.jobs.length > 0) {
-                    data.jobs.forEach(job => {
-                        errorDetails += `Job Name: ${job.name} -> Target Status: ${job.conclusion}\n`;
-                        if(job.steps) {
-                            job.steps.forEach(step => {
-                                if(step.conclusion === "failure") {
-                                    errorDetails += `\n[X] BROKEN ENVIRONMENT COMPONENT DETECTED:\nStep Name: "${step.name}"\nStatus: Failed\n`;
-                                }
-                            });
-                        }
-                    });
-                    errorDetails += `\nFix Steps:\n1. Pull your code locally and verify your dependencies inside build.gradle or settings.gradle.\n2. Ensure compileSdkVersion and JDK versions match structural targets.\n3. Push the fixed workspace changes back to GitHub and launch a fresh compilation build query loop.`;
-                } else {
-                    errorDetails += "Failed to parse individual workflow runner modules data metrics.";
-                }
-                showErrorInTerminal(errorDetails);
-            } catch (e) {
-                showErrorInTerminal(`Decompiled report stream metrics collection failure state: ${e.toString()}`);
-            }
-        }
+          statusText.innerText = `APK downloaded (${(apkData.length/1024).toFixed(0)} KB)! Tap to install.`;
+          statusText.style.color = "var(--success)";
+          showToast('APK downloaded', 'success');
+        }).catch((err) => {
+          statusText.innerText = `Extraction failed: ${err.message || err}`;
+          statusText.style.color = "var(--error)";
+          showErrorInTerminal(err.toString());
+        });
 
-        function showErrorInTerminal(text) {
-            const logBox = document.getElementById("logBox");
-            const logTerminal = document.getElementById("logTerminal");
-            logBox.style.display = "block";
-            logTerminal.value = text;
-        }
-
-        function copyLogs() {
-            const logTerminal = document.getElementById("logTerminal");
-            if (!logTerminal.value) {
-                alert("No log errors found to copy!");
-                return;
-            }
-            logTerminal.select();
-            logTerminal.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(logTerminal.value);
-            alert("Whole log block successfully copied to clipboard!");
-        }
-
-        async function downloadArtifact() {
-            const statusText = document.getElementById("statusText");
-            statusText.innerText = "Locating build archive...";
-
-            try {
-                const response = await fetch(`https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/artifacts`, { headers: getHeaders() });
-                const data = await response.json();
-
-                if (data.artifacts && data.artifacts.length > 0) {
-                    const artifactId = data.artifacts[0].id;
-                    statusText.innerText = "Downloading zip container...";
-                    
-                    const downloadUrl = `https://api.github.com/repos/${OWNER}/${selectedRepo}/actions/artifacts/${artifactId}/zip`;
-                    
-                    fetch(downloadUrl, { headers: getHeaders() })
-                        .then(res => {
-                            if (!res.ok) throw new Error("File stream error");
-                            return res.arrayBuffer();
-                        })
-                        .then(buffer => {
-                            statusText.innerText = "Extracting raw APK in memory...";
-                            
-                            const zippedUint8 = new Uint8Array(buffer);
-                            const unzippedFiles = fflate.unzipSync(zippedUint8);
-                            
-                            let apkFileName = Object.keys(unzippedFiles).find(name => name.endsWith('.apk'));
-                            
-                            if (!apkFileName) {
-                                throw new Error("No APK file found inside the package.");
-                            }
-                            
-                            const apkData = unzippedFiles[apkFileName];
-                            const blob = new Blob([apkData], { type: "application/vnd.android.package-archive" });
-                            
-                            const url = window.URL.createObjectURL(blob);
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.setAttribute('download', `${selectedRepo}-build.apk`);
-                            document.body.appendChild(link);
-                            link.click();
-                            link.remove();
-                            window.URL.revokeObjectURL(url);
-                            
-                            statusText.innerText = "APK downloaded directly! Tap to install.";
-                            statusText.style.color = "#3fb950";
-                        }).catch((err) => {
-                            statusText.innerText = `Extraction failed: ${err.message || err}`;
-                            statusText.style.color = "#f85149";
-                            showErrorInTerminal(err.toString());
-                        });
-
-                } else {
-                    statusText.innerText = "No build packages found on server.";
-                    statusText.style.color = "#f85149";
-                }
-            } catch (error) {
-                statusText.innerText = "Failed to pull down file artifact.";
-                statusText.style.color = "#f85149";
-                showErrorInTerminal(error.toString());
-            }
-        }
-    </script>
+    } else {
+      statusText.innerText = "No build packages found on server.";
+      statusText.style.color = "var(--error)";
+    }
+  } catch (error) {
+    statusText.innerText = "Failed to pull down file artifact.";
+    statusText.style.color = "var(--error)";
+    showErrorInTerminal(error.toString());
+  }
+}
+</script>
 </body>
 </html>
