@@ -1,1657 +1,397 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="lavender">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sanchi Tuition Classes</title>
-    <style>
-        :root {
-            --primary: #8B5CF6;
-            --primary-dark: #6D28D9;
-            --primary-light: #DDD6FE;
-            --bg: #F3E8FF;
-            --card-bg: rgba(233, 213, 255, 0.85);
-            --text: #3B0764;
-            --text-muted: #7E22CE;
-            --success: #10B981;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            --border: rgba(255, 255, 255, 0.7);
-            --shadow-out: 8px 8px 18px #d8b4fe, -8px -8px 18px #ffffff;
-            --shadow-in: inset 4px 4px 8px #d8b4fe, inset -4px -4px 8px #ffffff;
-        }
-
-        [data-theme="dark-lavender"] {
-            --primary: #A78BFA;
-            --primary-dark: #8B5CF6;
-            --primary-light: #4C1D95;
-            --bg: #1e0a45;
-            --card-bg: rgba(59, 7, 100, 0.85);
-            --text: #F3E8FF;
-            --text-muted: #C084FC;
-            --success: #34D399;
-            --danger: #F87171;
-            --warning: #FBBF24;
-            --border: rgba(255, 255, 255, 0.1);
-            --shadow-out: 8px 8px 18px #12062d, -8px -8px 18px #2b0f5e;
-            --shadow-in: inset 4px 4px 8px #12062d, inset -4px -4px 8px #2b0f5e;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Dynamic Animated Background for Whole App */
-        body {
-            background: linear-gradient(-45deg, #f3e8ff, #e9d5ff, #f5f3ff, #ede9fe);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            max-width: 480px;
-            margin: 0 auto;
-            position: relative;
-            overflow: hidden;
-        }
-
-        [data-theme="dark-lavender"] body {
-            background: linear-gradient(-45deg, #1e0a45, #2e1065, #3b0764, #180538);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Splash Screen with Custom Logo */
-        #splash-screen {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #8B5CF6, #4C1D95, #2E1065);
-            background-size: 200% 200%;
-            animation: gradientBG 6s ease infinite;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.6s ease, transform 0.6s ease, visibility 0.6s;
-        }
-
-        #splash-screen.hidden {
-            opacity: 0;
-            transform: scale(1.1);
-            visibility: hidden;
-        }
-
-        .splash-logo-img {
-            width: 130px;
-            height: 130px;
-            border-radius: 50%;
-            object-fit: cover;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            margin-bottom: 16px;
-            border: 4px solid rgba(255,255,255,0.8);
-            animation: float3d 2.5s ease-in-out infinite alternate;
-        }
-
-        @keyframes float3d {
-            0% { transform: translateY(0) scale(1); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-            100% { transform: translateY(-12px) scale(1.05); box-shadow: 0 20px 35px rgba(139, 92, 246, 0.5); }
-        }
-
-        /* Header */
-        header {
-            background: rgba(243, 232, 255, 0.85);
-            backdrop-filter: blur(10px);
-            padding: 14px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow-out);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-        }
-
-        [data-theme="dark-lavender"] header {
-            background: rgba(30, 10, 69, 0.85);
-        }
-
-        .header-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .header-logo {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--primary);
-        }
-
-        header h1 {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: var(--primary);
-        }
-
-        .theme-toggle-btn {
-            background: var(--bg);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            box-shadow: var(--shadow-out);
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .theme-toggle-btn:active {
-            box-shadow: var(--shadow-in);
-            transform: scale(0.95);
-        }
-
-        main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 18px;
-            padding-bottom: 90px;
-        }
-
-        .page {
-            display: none;
-            opacity: 0;
-            transform: translateY(15px) scale(0.98);
-        }
-
-        .page.active {
-            display: block;
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes popIn {
-            0% { opacity: 0; transform: translateY(20px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        /* Glassmorphic/Claymorphic Cards */
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(8px);
-            border-radius: 20px;
-            padding: 18px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-out);
-            border: 1px solid var(--border);
-        }
-
-        .card-title {
-            font-weight: 800;
-            font-size: 1rem;
-            margin-bottom: 12px;
-            color: var(--primary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(8px);
-            border-radius: 18px;
-            padding: 16px;
-            text-align: center;
-            box-shadow: var(--shadow-out);
-        }
-
-        .stat-number {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: var(--primary);
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-            font-weight: 600;
-        }
-
-        .form-group {
-            margin-bottom: 14px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            font-weight: 700;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px 14px;
-            border: none;
-            border-radius: 14px;
-            font-size: 0.9rem;
-            outline: none;
-            background: var(--bg);
-            color: var(--text);
-            box-shadow: var(--shadow-in);
-        }
-
-        /* Buttons with Dynamic Backgrounds & Loop Animations */
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #8B5CF6, #6D28D9, #9333EA, #7E22CE);
-            background-size: 300% 300%;
-            animation: btnGradientLoop 4s ease infinite, btnPulseLoop 2.5s infinite alternate;
-            color: white;
-            font-weight: 700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 8px 18px rgba(139, 92, 246, 0.35);
-            transform: translateY(0);
-        }
-
-        @keyframes btnGradientLoop {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        @keyframes btnPulseLoop {
-            0% { transform: scale(1); box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); }
-            100% { transform: scale(1.02); box-shadow: 0 10px 22px rgba(139, 92, 246, 0.5); }
-        }
-
-        .btn:active {
-            transform: translateY(2px) scale(0.98) !important;
-            box-shadow: 0 3px 6px rgba(139, 92, 246, 0.2);
-        }
-
-        .btn-whatsapp {
-            background: linear-gradient(135deg, #25D366, #128C7E, #075E54, #10B981);
-            background-size: 300% 300%;
-            animation: btnGradientLoop 4s ease infinite, btnPulseLoop 2.5s infinite alternate;
-            box-shadow: 0 8px 18px rgba(37, 211, 102, 0.35);
-            color: white;
-        }
-
-        .btn-small {
-            padding: 8px 14px;
-            font-size: 0.8rem;
-            border-radius: 12px;
-            width: auto;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #EF4444, #DC2626, #B91C1C, #F87171);
-            background-size: 300% 300%;
-            animation: btnGradientLoop 4s ease infinite, btnPulseLoop 2.5s infinite alternate;
-            box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35);
-            color: white;
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, #F59E0B, #D97706, #B45309, #FBBF24);
-            background-size: 300% 300%;
-            animation: btnGradientLoop 4s ease infinite, btnPulseLoop 2.5s infinite alternate;
-            box-shadow: 0 6px 14px rgba(245, 158, 11, 0.35);
-            color: white;
-        }
-
-        .avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 0.95rem;
-            box-shadow: var(--shadow-out);
-            flex-shrink: 0;
-        }
-
-        .list-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            gap: 12px;
-        }
-
-        .list-item:last-child {
-            border-bottom: none;
-        }
-
-        .student-info h4 {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        .student-info p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .tick-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-
-        .tick-box {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: white;
-            background: var(--bg);
-            box-shadow: var(--shadow-out);
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .tick-box.checked {
-            background: var(--success);
-            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
-            transform: scale(1.08);
-        }
-
-        .tick-box.absent-check {
-            background: var(--danger);
-            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
-            transform: scale(1.08);
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(6px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            padding: 24px;
-            width: 90%;
-            max-width: 420px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-            text-align: center;
-            transform: scale(0.8);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            max-height: 85vh;
-            overflow-y: auto;
-            border: 1px solid var(--border);
-        }
-
-        .modal-overlay.active .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-title {
-            font-weight: 800;
-            margin-bottom: 10px;
-            color: var(--text);
-        }
-
-        .modal-body {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 18px;
-            text-align: left;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 14px;
-        }
-
-        #toast {
-            position: fixed;
-            top: 25px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: var(--text);
-            color: var(--card-bg);
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            z-index: 10000;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        #toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .voice-btn {
-            background: linear-gradient(135deg, #EF4444, #DC2626);
-            color: white;
-            border-radius: 50%;
-            width: 42px;
-            height: 42px;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1.2rem;
-            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .voice-btn.recording {
-            animation: pulse3d 1s infinite alternate;
-        }
-
-        @keyframes pulse3d {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            100% { transform: scale(1.15); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
-        }
-
-        .msg-option-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-
-        .msg-tab-btn {
-            flex: 1;
-            padding: 8px;
-            font-size: 0.75rem;
-            border-radius: 10px;
-            border: none;
-            background: var(--bg);
-            color: var(--text-muted);
-            font-weight: 700;
-            cursor: pointer;
-            animation: btnPulseLoop 3s infinite alternate;
-        }
-
-        .msg-tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        nav {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 480px;
-            background: rgba(243, 232, 255, 0.9);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 -8px 20px rgba(0,0,0,0.06);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            z-index: 10;
-        }
-
-        [data-theme="dark-lavender"] nav {
-            background: rgba(30, 10, 69, 0.9);
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-muted);
-            font-size: 0.65rem;
-            font-weight: 700;
-            cursor: pointer;
-            width: 20%;
-        }
-
-        .nav-item svg {
-            width: 24px;
-            height: 24px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2.2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            margin-bottom: 2px;
-            transition: transform 0.2s;
-        }
-
-        .nav-item.active {
-            color: var(--primary);
-        }
-
-        .nav-item.active svg {
-            transform: translateY(-3px) scale(1.1);
-        }
-
-        .badge-chip {
-            background: var(--primary);
-            color: white;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Real-Time Collaborative Whiteboard</title>
+  <!-- PeerJS Library for WebRTC peer-to-peer connection -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      background-color: #f4f6f9;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      touch-action: none; /* Prevents mobile browser pull-to-refresh & scrolling */
+    }
+
+    /* Auth Screen Overlay */
+    #auth-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(244, 246, 249, 0.98);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 320px;
+    }
+
+    .card h2 {
+      margin-bottom: 20px;
+      color: #333;
+      font-size: 20px;
+    }
+
+    .card button {
+      width: 100%;
+      padding: 14px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-secondary {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #1e7e34;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* Header & Controls */
+    header {
+      background: white;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .toolbar label {
+      font-size: 13px;
+      font-weight: bold;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .toolbar input[type="color"] {
+      border: none;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      background: none;
+      border-radius: 4px;
+    }
+
+    .toolbar input[type="range"] {
+      width: 70px;
+    }
+
+    .toolbar button {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      background: #f8f9fa;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .toolbar button:active {
+      background: #e2e6ea;
+    }
+
+    .connection-indicator {
+      font-size: 12px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .status-disconnected { color: #dc3545; }
+    .status-connected { color: #28a745; }
+
+    /* Canvas Container */
+    #canvas-container {
+      flex: 1;
+      position: relative;
+      background: white;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Splash Screen with Logo -->
-    <div id="splash-screen">
-        <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784999225/a2172aef-fa8f-44e3-9c6d-b086aa17f5bd_ietgnb.jpg" alt="Sanchi Tuition Logo" class="splash-logo-img">
-        <h2>Sanchi Tuition Classes</h2>
-        <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 6px;">Guardian Edition Ready...</p>
+  <!-- Login Overlay -->
+  <div id="auth-screen">
+    <div class="card">
+      <h2>Select User Role</h2>
+      <button class="btn-primary" onclick="login('user1')">Login as User 1</button>
+      <button class="btn-secondary" onclick="login('user2')">Login as User 2</button>
+      <div id="status">Select a user to connect</div>
     </div>
+  </div>
 
-    <!-- Toast Notification -->
-    <div id="toast">Message</div>
-
-    <!-- General Confirmation Modal -->
-    <div class="modal-overlay" id="custom-modal">
-        <div class="modal-content">
-            <h3 class="modal-title" id="modal-title">Alert</h3>
-            <div class="modal-body" id="modal-body">Modal details...</div>
-            <div class="modal-actions" id="modal-actions">
-                <button class="btn" style="background: var(--card-bg); color: var(--text);" id="modal-cancel">Close</button>
-                <button class="btn" id="modal-confirm">Confirm</button>
-            </div>
-        </div>
+  <!-- Header Controls -->
+  <header>
+    <div class="toolbar">
+      <label>Color <input type="color" id="colorPicker" value="#000000"></label>
+      <label>Size <input type="range" id="lineWidth" min="1" max="30" value="5"></label>
+      <button onclick="clearCanvas(true)">Clear</button>
     </div>
-
-    <!-- WhatsApp Message Dispatcher Modal -->
-    <div class="modal-overlay" id="whatsapp-options-modal">
-        <div class="modal-content">
-            <h3 class="modal-title" id="wa-modal-title">Send Message to Guardian</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;" id="wa-modal-guardian-name">Guardian: Parent</p>
-
-            <div class="msg-option-tabs">
-                <button class="msg-tab-btn active" onclick="switchMsgMode('en')">English</button>
-                <button class="msg-tab-btn" onclick="switchMsgMode('hi')">Hindi</button>
-                <button class="msg-tab-btn" onclick="switchMsgMode('custom')">Custom</button>
-            </div>
-
-            <div class="form-group">
-                <textarea id="wa-editable-msg" rows="6" placeholder="Type custom message for guardian here..."></textarea>
-            </div>
-
-            <div class="modal-actions">
-                <button type="button" class="btn" style="background: var(--card-bg); color: var(--text);" onclick="closeWhatsAppModal()">Cancel</button>
-                <button type="button" class="btn btn-whatsapp" onclick="dispatchWhatsAppMessage()">Send via WhatsApp</button>
-            </div>
-        </div>
+    <div class="connection-indicator">
+      Status: <span id="peer-status" class="status-disconnected">Offline</span>
     </div>
+  </header>
 
-    <!-- Edit Student Modal Popup -->
-    <div class="modal-overlay" id="edit-modal">
-        <div class="modal-content">
-            <h3 class="modal-title">Edit Student & Guardian Details</h3>
-            <form id="edit-student-form" style="text-align: left; margin-top: 12px;">
-                <input type="hidden" id="edit-id">
-                <div class="form-group">
-                    <label>Student Name</label>
-                    <input type="text" id="edit-name" required>
-                </div>
-                <div class="form-group">
-                    <label>Parent / Guardian Name</label>
-                    <input type="text" id="edit-parent-name" placeholder="Guardian Name" required>
-                </div>
-                <div class="form-group">
-                    <label>Guardian WhatsApp Number</label>
-                    <input type="tel" id="edit-phone" required>
-                </div>
-                <div class="form-group">
-                    <label>Class / Batch</label>
-                    <input type="text" id="edit-class" required>
-                </div>
-                <div class="form-group">
-                    <label>Class Time Slot</label>
-                    <input type="text" id="edit-timing" placeholder="e.g. 4:00 PM - 5:00 PM">
-                </div>
-                <div class="form-group">
-                    <label>Monthly Fee (₹)</label>
-                    <input type="number" id="edit-fee" required>
-                </div>
-                <div class="form-group">
-                    <label>Monthly Due Day (1-31)</label>
-                    <input type="number" id="edit-due-day" min="1" max="31" required>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn" style="background: var(--card-bg); color: var(--text);" onclick="closeEditModal()">Cancel</button>
-                    <button type="submit" class="btn">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
+  <!-- Whiteboard Canvas -->
+  <div id="canvas-container">
+    <canvas id="whiteboard"></canvas>
+  </div>
 
-    <!-- Header -->
-    <header>
-        <div class="header-brand">
-            <img src="https://res.cloudinary.com/dl1ishrkv/image/upload/v1784999225/a2172aef-fa8f-44e3-9c6d-b086aa17f5bd_ietgnb.jpg" alt="Logo" class="header-logo">
-            <h1 id="header-title">Sanchi Tuition</h1>
-        </div>
-        <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
-    </header>
+  <script>
+    // Canvas Setup
+    const canvas = document.getElementById('whiteboard');
+    const ctx = canvas.getContext('2d');
+    const colorPicker = document.getElementById('colorPicker');
+    const lineWidth = document.getElementById('lineWidth');
 
-    <main>
-        <!-- PAGE 1: DASHBOARD -->
-        <div id="page-dashboard" class="page active">
-            <div class="card" style="border-left: 5px solid var(--primary);">
-                <div class="card-title">📌 Tuition Notice <span class="badge-chip">Live</span></div>
-                <p style="font-size: 0.8rem; color: var(--text-muted);" id="dashboard-notice">Welcome to Sanchi Tuition Classes! All notifications are addressed to parents and guardians.</p>
-            </div>
+    let isDrawing = false;
+    let currentUser = null;
+    let peer = null;
+    let conn = null;
 
-            <div id="dashboard-reminder-popups"></div>
+    // Resize canvas dynamically to match layout
+    function resizeCanvas() {
+      const container = document.getElementById('canvas-container');
+      const rect = container.getBoundingClientRect();
+      
+      // Store current drawing before resizing
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(canvas, 0, 0);
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-total-students">0</div>
-                    <div class="stat-label">Total Enrolled</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-today-attendance">0/0</div>
-                    <div class="stat-label">Present Today</div>
-                </div>
-            </div>
+      canvas.width = rect.width;
+      canvas.height = rect.height;
 
-            <div class="card">
-                <div class="card-title">💰 Monthly Revenue Summary</div>
-                <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 8px;">
-                    <div>
-                        <div style="font-size: 1.1rem; font-weight: 800; color: var(--success);" id="rev-collected">₹0</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Collected</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 1.1rem; font-weight: 800; color: var(--danger);" id="rev-pending">₹0</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Pending</div>
-                    </div>
-                </div>
-            </div>
+      // Restore drawing
+      ctx.drawImage(tempCanvas, 0, 0, rect.width, rect.height);
+    }
 
-            <div class="card">
-                <div class="card-title">Quick Actions</div>
-                <button class="btn" style="margin-bottom: 10px;" onclick="switchTab('attendance')">Mark Today's Attendance</button>
-                <button class="btn" style="margin-bottom: 10px;" onclick="switchTab('tests')">📝 Test Marks Manager</button>
-                <button class="btn btn-whatsapp" onclick="switchTab('broadcast')">📢 Mass Broadcast to All Guardians</button>
-            </div>
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
 
-            <div class="card">
-                <div class="card-title">Pending Fee Alerts</div>
-                <div id="dashboard-fee-alerts">Loading...</div>
-            </div>
-        </div>
+    // Get pointer coordinates (handles both Touch and Mouse)
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      let clientX, clientY;
 
-        <!-- PAGE 2: STUDENTS DIRECTORY & MANAGEMENT -->
-        <div id="page-students" class="page">
-            <div class="card">
-                <div class="card-title">Add New Student & Guardian</div>
-                <form id="student-form">
-                    <div class="form-group">
-                        <label>Student Name</label>
-                        <input type="text" id="student-name" placeholder="e.g. Rahul Sharma" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Parent / Guardian Name</label>
-                        <input type="text" id="student-parent-name" placeholder="e.g. Mr. Sharma" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Guardian WhatsApp Number</label>
-                        <input type="tel" id="student-phone" placeholder="e.g. 919876543210" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Class / Batch</label>
-                        <input type="text" id="student-class" placeholder="e.g. Class 10 - Maths" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Class Time Slot</label>
-                        <input type="text" id="student-timing" placeholder="e.g. 4:00 PM - 5:00 PM">
-                    </div>
-                    <div class="form-group">
-                        <label>Monthly Fee (₹)</label>
-                        <input type="number" id="student-fee" placeholder="e.g. 1500" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Monthly Due Day (1-31)</label>
-                        <input type="number" id="student-due-day" placeholder="5" min="1" max="31" value="5" required>
-                    </div>
-                    <button type="submit" class="btn">Save Student & Guardian</button>
-                </form>
-            </div>
+      if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
 
-            <div class="card">
-                <div class="card-title">
-                    Directory
-                    <button class="btn btn-small" onclick="exportJSONBackup()">💾 Backup Data</button>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="search-student-input" placeholder="🔍 Search student or guardian name..." onkeyup="filterStudentList()">
-                </div>
-                <div id="students-list-container">Loading...</div>
-            </div>
-        </div>
+      return {
+        xRatio: (clientX - rect.left) / canvas.width,
+        yRatio: (clientY - rect.top) / canvas.height
+      };
+    }
 
-        <!-- PAGE 3: GROQ AI ASSISTANT & TEMPLATES -->
-        <div id="page-ai-assistant" class="page">
-            <div class="card">
-                <div class="card-title">⚡ Groq Guardian Update AI</div>
-                <div class="form-group">
-                    <label>Select Student</label>
-                    <select id="ai-student-select">
-                        <option value="">-- Choose Student --</option>
-                    </select>
-                </div>
+    // Event Handlers for Mouse & Touch
+    function startDrawing(e) {
+      e.preventDefault();
+      isDrawing = true;
+      const pos = getPointerPos(e);
+      draw(e);
+    }
 
-                <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label style="margin:0;">Taught Topics & Homework</label>
-                        <button type="button" class="voice-btn" id="mic-btn" title="Tap to Speak">🎙️</button>
-                    </div>
-                    <textarea id="ai-input-text" rows="3" placeholder="e.g. Trigonometry Chapter 8 exercise 8.2 taught today. Homework: finish exercise 8.2."></textarea>
-                </div>
+    function stopDrawing(e) {
+      if (!isDrawing) return;
+      isDrawing = false;
+      ctx.beginPath();
 
-                <button class="btn" id="generate-ai-btn" onclick="generateAIUpdate()">⚡ Generate Update for Guardian</button>
-            </div>
+      // Notify peer that drawing stroke has ended
+      if (conn && conn.open) {
+        conn.send({ type: 'end' });
+      }
+    }
 
-            <div class="card">
-                <div class="card-title">⚡ Quick Guardian Templates</div>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                    <button class="btn btn-small" onclick="applyTemplate('test-tomorrow')">📅 Test Tomorrow</button>
-                    <button class="btn btn-small" onclick="applyTemplate('fee-reminder')">💰 Fee Due</button>
-                    <button class="btn btn-small" onclick="applyTemplate('holiday-notice')">🎉 Holiday Notice</button>
-                </div>
-            </div>
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
 
-            <div class="card" id="ai-result-card" style="display: none;">
-                <div class="card-title">
-                    Message Preview
-                    <button class="btn btn-small" onclick="copyAIText()">📋 Copy Text</button>
-                </div>
-                <textarea id="ai-output-text" rows="5"></textarea>
-                <button class="btn btn-whatsapp" style="margin-top: 10px;" onclick="sendAIWhatsApp()">📲 Open Message Options</button>
-            </div>
-        </div>
+      const pos = getPointerPos(e);
+      const strokeData = {
+        xRatio: pos.xRatio,
+        yRatio: pos.yRatio,
+        color: colorPicker.value,
+        size: lineWidth.value
+      };
 
-        <!-- PAGE 4: TICK ATTENDANCE -->
-        <div id="page-attendance" class="page">
-            <div class="card">
-                <div class="card-title">Mark Daily Attendance</div>
-                <div class="form-group">
-                    <label>Select Date</label>
-                    <input type="date" id="attendance-date">
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-small" style="background: var(--success);" onclick="markAllPresent()">✓ Mark All Present</button>
-                    <button class="btn btn-small btn-danger" onclick="resetAttendanceSelection()">✕ Reset All</button>
-                </div>
-            </div>
+      // Draw locally
+      renderStroke(strokeData);
 
-            <div class="card">
-                <div class="card-title">Student Attendance List</div>
-                <div id="attendance-list-container">Loading...</div>
-                <button class="btn" style="margin-top: 16px;" onclick="saveAttendance()">Save Attendance</button>
-            </div>
-        </div>
+      // Send stroke data to connected peer
+      if (conn && conn.open) {
+        conn.send({ type: 'draw', data: strokeData });
+      }
+    }
 
-        <!-- PAGE 5: TEST MARKS MANAGER -->
-        <div id="page-tests" class="page">
-            <div class="card">
-                <div class="card-title">📝 Add Test Score for Guardian Report</div>
-                <div class="form-group">
-                    <label>Select Student</label>
-                    <select id="test-student-select"></select>
-                </div>
-                <div class="form-group">
-                    <label>Test Subject / Name</label>
-                    <input type="text" id="test-name" placeholder="e.g. Science Chapter 4 Test">
-                </div>
-                <div class="form-group">
-                    <label>Marks Obtained</label>
-                    <input type="number" id="test-obtained" placeholder="e.g. 18">
-                </div>
-                <div class="form-group">
-                    <label>Total Marks</label>
-                    <input type="number" id="test-total" placeholder="e.g. 20">
-                </div>
-                <button class="btn" onclick="saveTestScore()">Generate Test Report for Guardian</button>
-            </div>
-        </div>
+    function renderStroke(data) {
+      ctx.lineWidth = data.size;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = data.color;
 
-        <!-- PAGE 6: REPORTS & FEES -->
-        <div id="page-reports" class="page">
-            <div class="card">
-                <div class="card-title">Fee Reminders for Guardians</div>
-                <div id="fee-list-container">Loading...</div>
-            </div>
+      const x = data.xRatio * canvas.width;
+      const y = data.yRatio * canvas.height;
 
-            <div class="card">
-                <div class="card-title">Student Attendance Report</div>
-                <div class="form-group">
-                    <label>Select Student</label>
-                    <select id="report-student-select" onchange="generateReport()">
-                        <option value="">-- Select Student --</option>
-                    </select>
-                </div>
-                <div id="report-results-container">Select a student to view report.</div>
-            </div>
-        </div>
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
 
-        <!-- PAGE 7: BROADCAST -->
-        <div id="page-broadcast" class="page">
-            <div class="card">
-                <div class="card-title">Mass Broadcast Announcement</div>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
-                    This announcement will be dispatched directly to all enrolled guardians.
-                </p>
-                <div class="form-group">
-                    <label>Broadcast Message Text</label>
-                    <textarea id="broadcast-msg" rows="4" placeholder="Dear Guardian, Tuition will remain closed tomorrow due to..."></textarea>
-                </div>
-                <button class="btn btn-whatsapp" onclick="triggerMassBroadcastAll()">🚀 Send Mass Broadcast to ALL Guardians at Once</button>
-            </div>
+    function clearCanvas(broadcast = false) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (broadcast && conn && conn.open) {
+        conn.send({ type: 'clear' });
+      }
+    }
 
-            <div class="card">
-                <div class="card-title">Send Individually to Guardians</div>
-                <div id="broadcast-list-container">Loading...</div>
-            </div>
-        </div>
-    </main>
+    // Attach Unified Event Listeners (Desktop + Android Touch)
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
 
-    <nav>
-        <div class="nav-item active" onclick="switchTab('dashboard')">
-            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
-            Home
-        </div>
-        <div class="nav-item" onclick="switchTab('students')">
-            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
-            Students
-        </div>
-        <div class="nav-item" onclick="switchTab('ai-assistant')">
-            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"></path></svg>
-            AI Update
-        </div>
-        <div class="nav-item" onclick="switchTab('attendance')">
-            <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-            Attendance
-        </div>
-        <div class="nav-item" onclick="switchTab('reports')">
-            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-            Reports
-        </div>
-    </nav>
+    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing);
 
-    <!-- Firebase SDK & App Logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    // Initial resize call
+    resizeCanvas();
 
-        const GROQ_API_KEY = "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";
+    // PeerJS Connection Management
+    function login(userRole) {
+      currentUser = userRole;
+      document.getElementById('status').innerText = `Initializing as ${userRole}...`;
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDE_Tzjwmoh-xuFTFYpT5ElGjfN6T0VEsI",
-            authDomain: "sanchitution.firebaseapp.com",
-            projectId: "sanchitution",
-            storageBucket: "sanchitution.firebasestorage.app",
-            messagingSenderId: "349272071034",
-            appId: "1:349272071034:web:e06bb9e9218a93741314c3",
-            measurementId: "G-HM1LLDNN2R",
-            databaseURL: "https://sanchitution-default-rtdb.firebaseio.com"
-        };
+      const myPeerId = userRole === 'user1' ? 'draw-app-user-1' : 'draw-app-user-2';
+      const targetPeerId = userRole === 'user1' ? 'draw-app-user-2' : 'draw-app-user-1';
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+      peer = new Peer(myPeerId);
 
-        let students = {};
-        let attendance = {};
-        let tempAttendanceState = {};
+      peer.on('open', (id) => {
+        document.getElementById('auth-screen').style.display = 'none';
+        updateStatus(false, 'Waiting for peer...');
 
-        let activeTargetPhone = '';
-        let activeTargetGuardian = '';
-        let activeMessageContext = { en: '', hi: '', custom: '' };
-
-        window.openWhatsAppNative = function(phone, text) {
-            if (!phone) return showToast("Phone number missing!");
-            let cleanPhone = phone.replace(/\D/g, '');
-            if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
-
-            const encodedMsg = encodeURIComponent(text);
-            window.location.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
-        };
-
-        window.openMessageModal = function(phone, guardianName, msgTemplates) {
-            activeTargetPhone = phone;
-            activeTargetGuardian = guardianName || 'Guardian';
-            activeMessageContext = msgTemplates;
-
-            document.getElementById('wa-modal-guardian-name').innerText = `Guardian: ${activeTargetGuardian}`;
-            switchMsgMode('en');
-            document.getElementById('whatsapp-options-modal').classList.add('active');
-        };
-
-        window.closeWhatsAppModal = function() {
-            document.getElementById('whatsapp-options-modal').classList.remove('active');
-        };
-
-        window.switchMsgMode = function(mode) {
-            document.querySelectorAll('.msg-tab-btn').forEach(btn => btn.classList.remove('active'));
-            if (mode === 'en') document.querySelectorAll('.msg-tab-btn')[0].classList.add('active');
-            if (mode === 'hi') document.querySelectorAll('.msg-tab-btn')[1].classList.add('active');
-            if (mode === 'custom') document.querySelectorAll('.msg-tab-btn')[2].classList.add('active');
-
-            const txtArea = document.getElementById('wa-editable-msg');
-            txtArea.value = activeMessageContext[mode] || '';
-        };
-
-        window.dispatchWhatsAppMessage = function() {
-            const finalMsg = document.getElementById('wa-editable-msg').value.trim();
-            if (!finalMsg) return showToast("Message text cannot be empty!");
-
-            closeWhatsAppModal();
-            openWhatsAppNative(activeTargetPhone, finalMsg);
-        };
-
-        function getInitials(name) {
-            if (!name) return 'S';
-            const parts = name.trim().split(' ');
-            return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
+        if (currentUser === 'user2') {
+          connectToPeer(targetPeerId);
         }
+      });
 
-        window.showToast = function(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        };
+      peer.on('connection', (incomingConn) => {
+        conn = incomingConn;
+        setupConnectionEvents();
+      });
 
-        window.showModal = function({ title, body, onConfirm }) {
-            const modal = document.getElementById('custom-modal');
-            document.getElementById('modal-title').innerText = title || 'Alert';
-            document.getElementById('modal-body').innerHTML = body || 'Are you sure?';
-
-            const confirmBtn = document.getElementById('modal-confirm');
-            const cancelBtn = document.getElementById('modal-cancel');
-            const close = () => modal.classList.remove('active');
-
-            confirmBtn.onclick = () => { close(); if (onConfirm) onConfirm(); };
-            cancelBtn.onclick = close;
-            modal.classList.add('active');
-        };
-
-        const themeBtn = document.getElementById('theme-toggle');
-        themeBtn.addEventListener('click', () => {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark-lavender' ? 'lavender' : 'dark-lavender';
-            document.documentElement.setAttribute('data-theme', next);
-            themeBtn.innerText = next === 'dark-lavender' ? '☀️' : '🌙';
-        });
-
-        setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 1200);
-
-        const todayStr = new Date().toISOString().split('T')[0];
-        document.getElementById('attendance-date').value = todayStr;
-
-        onValue(ref(db, 'students'), (snapshot) => {
-            students = snapshot.val() || {};
-            renderAll();
-        });
-
-        onValue(ref(db, 'attendance'), (snapshot) => {
-            attendance = snapshot.val() || {};
-            renderAttendanceList();
-            updateDashboard();
-            generateReport();
-        });
-
-        function renderAll() {
-            renderStudentsList();
-            renderAttendanceList();
-            renderBroadcastList();
-            renderFeeList();
-            populateDropdowns();
-            updateDashboard();
-            checkFeeReminders();
+      peer.on('error', (err) => {
+        if (err.type === 'unavailable-id') {
+          alert(`${userRole} is already logged in on another device or window.`);
+        } else {
+          console.error('PeerJS error:', err);
         }
+        document.getElementById('status').innerText = 'Connection error. Try again.';
+      });
+    }
 
-        document.getElementById('student-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = 'std_' + Date.now();
-            const name = document.getElementById('student-name').value.trim();
-            const parentName = document.getElementById('student-parent-name').value.trim() || 'Guardian';
-            let phone = document.getElementById('student-phone').value.trim();
-            const classVal = document.getElementById('student-class').value.trim();
-            const timing = document.getElementById('student-timing').value.trim() || 'Batch 1';
-            const fee = document.getElementById('student-fee').value.trim();
-            const dueDay = document.getElementById('student-due-day').value.trim() || 5;
+    function connectToPeer(targetId) {
+      conn = peer.connect(targetId);
+      setupConnectionEvents();
+    }
 
-            set(ref(db, 'students/' + id), {
-                id, name, parentName, phone, classVal, timing, fee, dueDay: parseInt(dueDay), feePaid: false
-            }).then(() => {
-                showToast("Student & Guardian saved!");
-                document.getElementById('student-form').reset();
-            }).catch(err => showToast("Error: " + err.message));
-        });
+    function setupConnectionEvents() {
+      conn.on('open', () => {
+        updateStatus(true, 'Connected');
+      });
 
-        window.openEditModal = function(id) {
-            const s = students[id];
-            if (!s) return;
-
-            document.getElementById('edit-id').value = s.id;
-            document.getElementById('edit-name').value = s.name;
-            document.getElementById('edit-parent-name').value = s.parentName || '';
-            document.getElementById('edit-phone').value = s.phone;
-            document.getElementById('edit-class').value = s.classVal;
-            document.getElementById('edit-timing').value = s.timing || '';
-            document.getElementById('edit-fee').value = s.fee;
-            document.getElementById('edit-due-day').value = s.dueDay || 5;
-
-            document.getElementById('edit-modal').classList.add('active');
-        };
-
-        window.closeEditModal = function() {
-            document.getElementById('edit-modal').classList.remove('active');
-        };
-
-        document.getElementById('edit-student-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit-id').value;
-            const updatedData = {
-                name: document.getElementById('edit-name').value.trim(),
-                parentName: document.getElementById('edit-parent-name').value.trim(),
-                phone: document.getElementById('edit-phone').value.trim(),
-                classVal: document.getElementById('edit-class').value.trim(),
-                timing: document.getElementById('edit-timing').value.trim(),
-                fee: document.getElementById('edit-fee').value.trim(),
-                dueDay: parseInt(document.getElementById('edit-due-day').value.trim()) || 5
-            };
-
-            update(ref(db, `students/${id}`), updatedData)
-                .then(() => {
-                    showToast("Guardian record updated!");
-                    closeEditModal();
-                })
-                .catch(err => showToast("Error: " + err.message));
-        });
-
-        window.deleteStudent = function(id) {
-            showModal({
-                title: "Delete Record",
-                body: "Are you sure you want to delete this student and guardian?",
-                onConfirm: () => {
-                    remove(ref(db, 'students/' + id))
-                        .then(() => showToast("Record deleted"))
-                        .catch(err => showToast("Error deleting"));
-                }
-            });
-        };
-
-        function renderStudentsList() {
-            const container = document.getElementById('students-list-container');
-            const keys = Object.keys(students);
-
-            if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No student records found.</p>';
-                return;
-            }
-
-            container.innerHTML = keys.map(k => {
-                const s = students[k];
-                return `
-                    <div class="list-item student-card-item" data-name="${s.name.toLowerCase()} ${s.parentName.toLowerCase()}">
-                        <div class="avatar">${getInitials(s.name)}</div>
-                        <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>Guardian: ${s.parentName || 'Parent'} • ${s.classVal}</p>
-                            <p>📱 ${s.phone} • Due: Day ${s.dueDay || 5}</p>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn btn-warning btn-small" onclick="openEditModal('${s.id}')">Edit ✏️</button>
-                            <button class="btn btn-danger btn-small" onclick="deleteStudent('${s.id}')">Delete</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+      conn.on('data', (payload) => {
+        if (payload.type === 'draw') {
+          renderStroke(payload.data);
+        } else if (payload.type === 'end') {
+          ctx.beginPath();
+        } else if (payload.type === 'clear') {
+          clearCanvas(false);
         }
-
-        window.filterStudentList = function() {
-            const term = document.getElementById('search-student-input').value.toLowerCase();
-            document.querySelectorAll('.student-card-item').forEach(el => {
-                const name = el.getAttribute('data-name');
-                el.style.display = name.includes(term) ? 'flex' : 'none';
-            });
-        };
-
-        function renderAttendanceList() {
-            const date = document.getElementById('attendance-date').value;
-            const container = document.getElementById('attendance-list-container');
-            const keys = Object.keys(students);
-
-            if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Add students first.</p>';
-                return;
-            }
-
-            const current = attendance[date] || {};
-            tempAttendanceState = { ...current };
-
-            container.innerHTML = keys.map(k => {
-                const s = students[k];
-                const status = tempAttendanceState[s.id] || 'Present';
-                tempAttendanceState[s.id] = status;
-                const isPresent = status === 'Present';
-
-                return `
-                    <div class="list-item">
-                        <div class="avatar">${getInitials(s.name)}</div>
-                        <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>Guardian: ${s.parentName || 'Parent'}</p>
-                        </div>
-                        <div class="tick-container" onclick="toggleTick('${s.id}')">
-                            <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted)">
-                                ${isPresent ? 'Present' : 'Absent'}
-                            </span>
-                            <div id="tick-${s.id}" class="tick-box ${isPresent ? 'checked' : 'absent-check'}">
-                                ${isPresent ? '✓' : '✕'}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.toggleTick = function(id) {
-            const next = tempAttendanceState[id] === 'Present' ? 'Absent' : 'Present';
-            tempAttendanceState[id] = next;
-
-            const box = document.getElementById(`tick-${id}`);
-            if (next === 'Present') {
-                box.className = "tick-box checked";
-                box.innerText = "✓";
-                box.previousElementSibling.innerText = "Present";
-            } else {
-                box.className = "tick-box absent-check";
-                box.innerText = "✕";
-                box.previousElementSibling.innerText = "Absent";
-            }
-        };
-
-        window.markAllPresent = function() {
-            Object.keys(students).forEach(id => { tempAttendanceState[id] = 'Present'; });
-            renderAttendanceList();
-            showToast("All marked Present!");
-        };
-
-        window.resetAttendanceSelection = function() {
-            Object.keys(students).forEach(id => { tempAttendanceState[id] = 'Absent'; });
-            renderAttendanceList();
-            showToast("Reset all to Absent!");
-        };
-
-        window.saveAttendance = function() {
-            const date = document.getElementById('attendance-date').value;
-            if (!date) return showToast("Select a date.");
-
-            set(ref(db, 'attendance/' + date), tempAttendanceState)
-                .then(() => showToast(`Attendance saved!`))
-                .catch(err => showToast("Error saving"));
-        };
-
-        document.getElementById('attendance-date').addEventListener('change', renderAttendanceList);
-
-        window.generateAIUpdate = async function() {
-            const studentId = document.getElementById('ai-student-select').value;
-            const textInput = document.getElementById('ai-input-text').value.trim();
-
-            if (!studentId) return showToast("Please select a student!");
-            if (!textInput) return showToast("Please enter or speak taught details!");
-
-            const student = students[studentId];
-            const btn = document.getElementById('generate-ai-btn');
-            btn.innerText = "⚡ Generating Message for Guardian...";
-            btn.disabled = true;
-
-            const prompt = `You are a tuition assistant for "Sanchi Tuition Classes". Draft an update message for the student's GUARDIAN.
-            Guardian Name: ${student.parentName || 'Parent'}
-            Student Name: ${student.name}
-            Class: ${student.classVal}
-            Teacher Notes: ${textInput}
-
-            RULES:
-            - Address the GUARDIAN directly using "Respected ${student.parentName || 'Parent'}" or "Dear ${student.parentName || 'Parent'}".
-            - NO emojis in the middle of text.
-            - Keep it concise, formal, and clear in professional Hinglish.
-            - DO NOT output markdown. Output plain message text only.`;
-
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${GROQ_API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        model: "llama-3.3-70b-versatile",
-                        messages: [{ role: "user", content: prompt }]
-                    })
-                });
-
-                const data = await res.json();
-                if (data.choices && data.choices[0]) {
-                    const aiMsg = data.choices[0].message.content.trim();
-                    document.getElementById('ai-output-text').value = aiMsg;
-                    document.getElementById('ai-result-card').style.display = 'block';
-                    showToast("Guardian Message Ready!");
-                }
-            } catch (e) {
-                showToast("Groq API Error: " + e.message);
-            } finally {
-                btn.innerText = "⚡ Generate Update for Guardian";
-                btn.disabled = false;
-            }
-        };
-
-        window.applyTemplate = function(type) {
-            const studentId = document.getElementById('ai-student-select').value;
-            const s = students[studentId] || { parentName: 'Parent', name: 'Student' };
-            const parent = s.parentName || 'Parent';
-
-            const templates = {
-                'test-tomorrow': `Respected ${parent}, please note that ${s.name} will have a weekly test tomorrow at Sanchi Tuition Classes. Kindly ensure proper revision. Thank you.`,
-                'fee-reminder': `Respected ${parent}, this is a gentle reminder regarding the monthly tuition fee for ${s.name}. Kindly clear the pending tuition fee at your earliest convenience. Thank you.`,
-                'holiday-notice': `Respected ${parent}, please note that Sanchi Tuition Classes will remain closed tomorrow. Regular classes will resume from the day after. Thank you.`
-            };
-            document.getElementById('ai-input-text').value = templates[type] || '';
-        };
-
-        window.copyAIText = function() {
-            const text = document.getElementById('ai-output-text').value;
-            navigator.clipboard.writeText(text);
-            showToast("Copied to clipboard!");
-        };
-
-        window.sendAIWhatsApp = function() {
-            const studentId = document.getElementById('ai-student-select').value;
-            const text = document.getElementById('ai-output-text').value;
-            if (!studentId || !students[studentId]) return showToast("Invalid student selected.");
-
-            const s = students[studentId];
-            const pName = s.parentName || 'Parent';
-
-            openMessageModal(s.phone, pName, {
-                en: text,
-                hi: `आदरणीय ${pName}, यह सांची ट्यूशन क्लासेस से ${s.name} के संबंध में एक अपडेट है: ${text}`,
-                custom: text
-            });
-        };
-
-        const micBtn = document.getElementById('mic-btn');
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'hi-IN';
-            recognition.continuous = false;
-
-            micBtn.addEventListener('click', () => {
-                if (micBtn.classList.contains('recording')) recognition.stop();
-                else recognition.start();
-            });
-
-            recognition.onstart = () => { micBtn.classList.add('recording'); showToast("Listening..."); };
-            recognition.onend = () => micBtn.classList.remove('recording');
-            recognition.onresult = (e) => {
-                const transcript = e.results[0][0].transcript;
-                const curr = document.getElementById('ai-input-text').value;
-                document.getElementById('ai-input-text').value = curr ? `${curr} ${transcript}` : transcript;
-            };
-        } else micBtn.style.display = 'none';
-
-        window.saveTestScore = function() {
-            const id = document.getElementById('test-student-select').value;
-            const name = document.getElementById('test-name').value;
-            const obt = document.getElementById('test-obtained').value;
-            const tot = document.getElementById('test-total').value;
-
-            if (!id || !obt || !tot) return showToast("Fill all test fields!");
-            const s = students[id];
-            const pName = s.parentName || 'Parent';
-
-            const msgEn = `Respected ${pName}, here is the test performance report for ${s.name} at Sanchi Tuition Classes.\nTest: ${name}\nMarks Obtained: ${obt}/${tot}\nThank you.`;
-            const msgHi = `आदरणीय ${pName}, सांची ट्यूशन क्लासेस में ${s.name} का टेस्ट रिपोर्ट:\nटेस्ट: ${name}\nप्राप्त अंक: ${obt}/${tot}\nधन्यवाद।`;
-
-            openMessageModal(s.phone, pName, {
-                en: msgEn,
-                hi: msgHi,
-                custom: msgEn
-            });
-        };
-
-        function checkFeeReminders() {
-            const today = new Date();
-            const currentDay = today.getDate();
-            const container = document.getElementById('dashboard-reminder-popups');
-            let upcomingRemindersHtml = '';
-
-            Object.values(students).forEach(s => {
-                if (!s.feePaid) {
-                    const dueDay = s.dueDay || 5;
-                    const daysRemaining = dueDay - currentDay;
-
-                    if (daysRemaining >= 0 && daysRemaining <= 3) {
-                        upcomingRemindersHtml += `
-                            <div class="card" style="border-left: 5px solid var(--warning);">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <div>
-                                        <h4 style="font-size:0.9rem;">⏰ Guardian Fee Alert</h4>
-                                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
-                                            <strong>${s.parentName || 'Parent'}</strong> (${s.name}) fee (₹${s.fee}) is due in <strong>${daysRemaining === 0 ? 'Today!' : daysRemaining + ' day(s)'}</strong>.
-                                        </p>
-                                    </div>
-                                    <button class="btn btn-whatsapp btn-small" onclick="sendFeeReminder('${s.id}')">Remind</button>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-            });
-
-            container.innerHTML = upcomingRemindersHtml;
-        }
-
-        window.sendFeeReminder = function(studentId) {
-            const s = students[studentId];
-            if (!s) return;
-            const pName = s.parentName || 'Parent';
-
-            const msgEn = `Respected ${pName}, this is a gentle reminder from Sanchi Tuition Classes regarding tuition fee for ${s.name}. Monthly Amount: ₹${s.fee}. Kindly clear it at your earliest convenience. Thank you.`;
-            const msgHi = `आदरणीय ${pName}, सांची ट्यूशन क्लासेस से ${s.name} की ट्यूशन फीस (₹${s.fee}) के संबंध में विनम्र रिमाइंडर है। कृपया समय पर भुगतान करें। धन्यवाद।`;
-
-            openMessageModal(s.phone, pName, {
-                en: msgEn,
-                hi: msgHi,
-                custom: msgEn
-            });
-        };
-
-        window.triggerMassBroadcastAll = function() {
-            const msg = document.getElementById('broadcast-msg').value.trim();
-            if (!msg) return showToast("Type broadcast text first!");
-
-            const keys = Object.keys(students);
-            if (keys.length === 0) return showToast("No guardians found!");
-
-            showToast(`Opening WhatsApp for ${keys.length} guardians...`);
-            
-            let delay = 0;
-            keys.forEach((k) => {
-                const s = students[k];
-                const pName = s.parentName || 'Parent';
-                const formattedText = `Dear ${pName}, Announcement from Sanchi Tuition Classes regarding ${s.name}:\n${msg}`;
-
-                setTimeout(() => {
-                    openWhatsAppNative(s.phone, formattedText);
-                }, delay);
-
-                delay += 3500;
-            });
-        };
-
-        window.sendBroadcastSingle = function(phone, pName, sName) {
-            const msg = document.getElementById('broadcast-msg').value.trim() || 'Tuition Announcement';
-            const msgEn = `Dear ${pName || 'Parent'}, Announcement from Sanchi Tuition Classes regarding ${sName}:\n${msg}`;
-            const msgHi = `आदरणीय ${pName || 'अभिभावक'}, सांची ट्यूशन क्लासेस से ${sName} के संबंध में सूचना:\n${msg}`;
-
-            openMessageModal(phone, pName, {
-                en: msgEn,
-                hi: msgHi,
-                custom: msgEn
-            });
-        };
-
-        window.exportJSONBackup = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ students, attendance }));
-            const anchor = document.createElement('a');
-            anchor.setAttribute("href", dataStr);
-            anchor.setAttribute("download", "Sanchi_Tuition_Guardians_Backup.json");
-            document.body.appendChild(anchor);
-            anchor.click();
-            anchor.remove();
-            showToast("Backup file downloaded!");
-        };
-
-        function populateDropdowns() {
-            const aiSelect = document.getElementById('ai-student-select');
-            const reportSelect = document.getElementById('report-student-select');
-            const testSelect = document.getElementById('test-student-select');
-            const keys = Object.keys(students);
-
-            const optionsHtml = '<option value="">-- Choose Student --</option>' + 
-                keys.map(k => `<option value="${students[k].id}">${students[k].name} (Guardian: ${students[k].parentName || 'Parent'})</option>`).join('');
-
-            aiSelect.innerHTML = optionsHtml;
-            reportSelect.innerHTML = optionsHtml;
-            testSelect.innerHTML = optionsHtml;
-        }
-
-        function renderFeeList() {
-            const container = document.getElementById('fee-list-container');
-            const keys = Object.keys(students);
-
-            if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No student records added.</p>';
-                return;
-            }
-
-            container.innerHTML = keys.map(k => {
-                const s = students[k];
-                return `
-                    <div class="list-item">
-                        <div class="avatar">${getInitials(s.name)}</div>
-                        <div class="student-info" style="flex: 1;">
-                            <h4>${s.name}</h4>
-                            <p>Guardian: ${s.parentName || 'Parent'} • Fee: ₹${s.fee}</p>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn btn-small" style="background:${s.feePaid ? 'var(--success)' : 'var(--warning)'}" onclick="toggleFee('${s.id}', ${!s.feePaid})">
-                                ${s.feePaid ? 'Paid ✓' : 'Mark Paid'}
-                            </button>
-                            ${!s.feePaid ? `<button class="btn btn-whatsapp btn-small" onclick="sendFeeReminder('${s.id}')">Reminder</button>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.toggleFee = function(id, status) {
-            update(ref(db, `students/${id}`), { feePaid: status })
-                .then(() => showToast("Status updated!"))
-                .catch(err => showToast("Error updating"));
-        };
-
-        function renderBroadcastList() {
-            const container = document.getElementById('broadcast-list-container');
-            const keys = Object.keys(students);
-
-            if (keys.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No records available.</p>';
-                return;
-            }
-
-            container.innerHTML = keys.map(k => {
-                const s = students[k];
-                return `
-                    <div class="list-item">
-                        <div class="avatar">${getInitials(s.name)}</div>
-                        <div class="student-info" style="flex: 1;">
-                            <h4>${s.parentName || 'Guardian'}</h4>
-                            <p>Student: ${s.name} • 📱 ${s.phone}</p>
-                        </div>
-                        <button class="btn btn-whatsapp btn-small" onclick="sendBroadcastSingle('${s.phone}', '${s.parentName}', '${s.name}')">Send 📲</button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.generateReport = function() {
-            const studentId = document.getElementById('report-student-select').value;
-            const container = document.getElementById('report-results-container');
-
-            if (!studentId) {
-                container.innerHTML = '<p style="font-size:0.85rem; color: var(--text-muted);">Select a student to view history.</p>';
-                return;
-            }
-
-            let total = 0, present = 0, html = '';
-
-            Object.keys(attendance).sort().reverse().forEach(date => {
-                const rec = attendance[date];
-                if (rec && rec[studentId]) {
-                    total++;
-                    const st = rec[studentId];
-                    if (st === 'Present') present++;
-
-                    html += `
-                        <div class="list-item" style="padding: 8px 0;">
-                            <span style="font-size: 0.85rem;">📅 ${date}</span>
-                            <span style="font-weight: bold; font-size: 0.85rem; color: ${st === 'Present' ? 'var(--success)' : 'var(--danger)'}">${st}</span>
-                        </div>
-                    `;
-                }
-            });
-
-            const pct = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
-
-            container.innerHTML = `
-                <div style="background: var(--bg); padding: 14px; border-radius: 16px; margin-bottom: 12px; text-align: center; box-shadow: var(--shadow-in);">
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">${pct}%</div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">${present} Present out of ${total} Total Classes</div>
-                </div>
-                <div style="max-height: 200px; overflow-y: auto;">
-                    ${html || '<p style="font-size:0.8rem; color:var(--text-muted)">No history found.</p>'}
-                </div>
-            `;
-        };
-
-        function updateDashboard() {
-            const total = Object.keys(students).length;
-            document.getElementById('stat-total-students').innerText = total;
-
-            const today = new Date().toISOString().split('T')[0];
-            const todayRecords = attendance[today] || {};
-            const present = Object.values(todayRecords).filter(v => v === 'Present').length;
-
-            document.getElementById('stat-today-attendance').innerText = `${present}/${total}`;
-
-            let collected = 0;
-            let pendingAmt = 0;
-            const pendingList = [];
-
-            Object.values(students).forEach(s => {
-                const feeVal = parseInt(s.fee) || 0;
-                if (s.feePaid) {
-                    collected += feeVal;
-                } else {
-                    pendingAmt += feeVal;
-                    pendingList.push(s);
-                }
-            });
-
-            document.getElementById('rev-collected').innerText = `₹${collected}`;
-            document.getElementById('rev-pending').innerText = `₹${pendingAmt}`;
-
-            const alerts = document.getElementById('dashboard-fee-alerts');
-            if (pendingList.length === 0) {
-                alerts.innerHTML = '<p style="color: var(--success); font-weight: 700; font-size: 0.85rem;">All fees are paid! 🎉</p>';
-            } else {
-                alerts.innerHTML = `<p style="color: var(--danger); font-weight: 700; font-size: 0.85rem;">${pendingList.length} guardian(s) have pending fees (₹${pendingAmt}).</p>`;
-            }
-        }
-
-        window.switchTab = function(tabId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-            const target = document.getElementById(`page-${tabId}`);
-            if (target) target.classList.add('active');
-
-            const indexMap = { 'dashboard': 0, 'students': 1, 'ai-assistant': 2, 'attendance': 3, 'reports': 4 };
-            if (indexMap[tabId] !== undefined) {
-                document.querySelectorAll('.nav-item')[indexMap[tabId]].classList.add('active');
-            }
-
-            const titles = {
-                'dashboard': 'Sanchi Tuition',
-                'students': 'Student Directory',
-                'ai-assistant': 'Groq Guardian Update AI',
-                'attendance': 'Mark Attendance',
-                'reports': 'Reports & Fees',
-                'tests': 'Test Scores Manager',
-                'broadcast': 'Mass Broadcast'
-            };
-            document.getElementById('header-title').innerText = titles[tabId] || 'Sanchi Tuition';
-        };
-    </script>
+      });
+
+      conn.on('close', () => {
+        updateStatus(false, 'Peer disconnected');
+      });
+    }
+
+    function updateStatus(isConnected, message) {
+      const statusElem = document.getElementById('peer-status');
+      statusElem.innerText = message;
+      statusElem.className = isConnected ? 'status-connected' : 'status-disconnected';
+    }
+  </script>
 </body>
 </html>
