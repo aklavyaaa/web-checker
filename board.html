@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Real-Time Collaborative Whiteboard</title>
+  <title>Aklavya's World - Real-Time Collaborative Canvas</title>
   
   <!-- Firebase App (Compat SDK) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -15,23 +15,23 @@
       --bg-color: #eef2f5;
       --board-bg: #ffffff;
       --board-border: #007bff;
-      --panel-bg: rgba(255, 255, 255, 0.95);
+      --panel-bg: rgba(255, 255, 255, 0.96);
       --text-color: #333333;
     }
 
     body.theme-dark {
-      --bg-color: #1a1a1a;
-      --board-bg: #2d2d2d;
+      --bg-color: #121212;
+      --board-bg: #1e1e1e;
       --board-border: #0d6efd;
-      --panel-bg: rgba(45, 45, 45, 0.95);
+      --panel-bg: rgba(30, 30, 30, 0.96);
       --text-color: #f1f1f1;
     }
 
     body.theme-blueprint {
-      --bg-color: #0d233a;
-      --board-bg: #133a63;
+      --bg-color: #0b1d33;
+      --board-bg: #10345e;
       --board-border: #64b5f6;
-      --panel-bg: rgba(19, 58, 99, 0.95);
+      --panel-bg: rgba(16, 52, 94, 0.96);
       --text-color: #e3f2fd;
     }
 
@@ -64,7 +64,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: #007bff;
+      background: linear-gradient(135deg, #007bff, #6610f2);
       color: white;
       display: flex;
       flex-direction: column;
@@ -75,17 +75,18 @@
     }
 
     #splash-screen h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
+      font-size: 32px;
+      margin-bottom: 8px;
+      font-weight: 800;
     }
 
     .spinner {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border: 4px solid rgba(255, 255, 255, 0.3);
       border-radius: 50%;
       border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
+      animation: spin 0.8s ease-in-out infinite;
       margin-top: 20px;
     }
 
@@ -100,8 +101,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(5px);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -111,26 +112,34 @@
     .card {
       background: var(--panel-bg);
       padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       text-align: center;
       width: 90%;
-      max-width: 340px;
+      max-width: 360px;
     }
 
     .card h2 {
-      margin-bottom: 15px;
-      font-size: 20px;
+      margin-bottom: 6px;
+      font-size: 22px;
+      color: #007bff;
+    }
+
+    .card p {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 16px;
     }
 
     .card input[type="text"] {
       width: 100%;
       padding: 12px;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 14px;
       text-align: center;
+      font-weight: bold;
     }
 
     .card button {
@@ -143,21 +152,69 @@
       font-size: 15px;
       font-weight: bold;
       cursor: pointer;
+      margin-bottom: 8px;
     }
 
-    /* Landscape Advisory Notice */
-    #orientation-notice {
-      display: none;
-      background: #ffc107;
-      color: #333;
+    .card .btn-alt {
+      background-color: #6c757d;
+    }
+
+    #room-msg {
+      font-size: 12px;
+      margin-top: 8px;
+      min-height: 16px;
+    }
+
+    /* Priority Top Action Bar */
+    #top-bar {
+      background: var(--panel-bg);
+      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 400;
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .top-actions button {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      background: #ffffff;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .top-actions button.active {
+      background: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+
+    .status-text {
       font-size: 11px;
       font-weight: bold;
-      text-align: center;
-      padding: 4px;
-      z-index: 800;
+      white-space: nowrap;
     }
 
-    /* Canvas Outer Area */
+    .status-connected { color: #28a745; }
+    .status-disconnected { color: #dc3545; }
+
+    /* Viewport & Responsive Board Frame */
     #app-viewport {
       flex: 1;
       display: flex;
@@ -165,20 +222,23 @@
       align-items: center;
       position: relative;
       padding: 10px;
+      box-sizing: border-box;
     }
 
-    /* Fixed Aspect Ratio Whiteboard Boundary */
     #board-frame {
       position: relative;
       background-color: var(--board-bg);
       border: 3px dashed var(--board-border);
       border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       overflow: hidden;
-      aspect-ratio: 16 / 9;
-      width: 100%;
-      max-width: 900px;
-      max-height: 100%;
+      
+      width: min(92vw, calc(78vh * (16 / 9)));
+      height: min(78vh, calc(92vw * (9 / 16)));
+      
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     canvas {
@@ -192,33 +252,33 @@
       position: fixed;
       bottom: 20px;
       right: 20px;
-      width: 52px;
-      height: 52px;
+      width: 54px;
+      height: 54px;
       border-radius: 50%;
       background: #007bff;
       color: white;
       border: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 22px;
+      font-size: 24px;
       cursor: pointer;
       z-index: 500;
       touch-action: none;
     }
 
-    /* Collapsible Tool Panel */
+    /* Main Menu Tray */
     #tool-panel {
       position: fixed;
-      bottom: 80px;
+      bottom: 84px;
       right: 20px;
-      width: 300px;
-      max-height: 80vh;
+      width: 320px;
+      max-height: 75vh;
       background: var(--panel-bg);
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-      padding: 15px;
+      border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      padding: 14px;
       display: none;
       flex-direction: column;
       gap: 12px;
@@ -227,46 +287,144 @@
       border: 1px solid rgba(0,0,0,0.1);
     }
 
-    .panel-section {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .panel-section label {
+    .category-title {
       font-size: 11px;
       font-weight: bold;
       text-transform: uppercase;
       opacity: 0.7;
+      margin-bottom: 4px;
     }
 
-    .btn-grid {
+    .menu-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 6px;
     }
 
-    .btn-grid button {
-      padding: 8px;
+    .menu-btn {
+      padding: 8px 6px;
       border: 1px solid #ccc;
       background: transparent;
       color: var(--text-color);
-      border-radius: 6px;
-      font-size: 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
     }
 
-    .btn-grid button.active {
+    .menu-btn.active {
       background: #007bff;
       color: white;
       border-color: #007bff;
     }
 
+    /* Custom Dialog Popups */
+    .custom-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--panel-bg);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      padding: 18px;
+      width: 90%;
+      max-width: 380px;
+      max-height: 80vh;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 850;
+      border: 1px solid rgba(0,0,0,0.1);
+      overflow-y: auto;
+    }
+
+    .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 8px;
+    }
+
+    .dialog-header h3 {
+      font-size: 16px;
+      color: #007bff;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
+    .shape-grid-30 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      padding: 4px 0;
+    }
+
+    .shape-btn {
+      aspect-ratio: 1;
+      border: 1px solid #ccc;
+      background: transparent;
+      color: var(--text-color);
+      border-radius: 6px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .shape-btn:hover, .shape-btn.active {
+      background: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+
+    /* Custom Text Modal Specifics */
+    #custom-text-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+      color: var(--text-color);
+      background: transparent;
+    }
+
+    .dialog-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .dialog-actions button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-confirm { background: #007bff; color: white; }
+    .btn-cancel { background: #6c757d; color: white; }
+
     /* 50 Colors Palette Grid */
     #color-grid {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
-      gap: 4px;
+      gap: 3px;
       max-height: 120px;
       overflow-y: auto;
       padding: 2px;
@@ -276,7 +434,7 @@
       width: 100%;
       aspect-ratio: 1;
       border-radius: 3px;
-      border: 1px solid rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(0, 0, 0, 0.15);
       cursor: pointer;
     }
 
@@ -284,117 +442,187 @@
       transform: scale(1.15);
       border: 2px solid #007bff;
     }
-
-    /* Status Bar */
-    #status-bar {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      background: var(--panel-bg);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: bold;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      z-index: 400;
-    }
-
-    .status-connected { color: #28a745; }
-    .status-disconnected { color: #dc3545; }
   </style>
 </head>
 <body>
 
   <!-- Splash Screen -->
   <div id="splash-screen">
-    <h1>Whiteboard App</h1>
-    <p>Preparing canvas environment...</p>
+    <h1>Aklavya's World</h1>
+    <p>Real-Time Canvas Studio</p>
     <div class="spinner"></div>
   </div>
 
   <!-- Room Join Overlay -->
   <div id="auth-screen" style="display: none;">
     <div class="card">
-      <h2>Join Room</h2>
-      <input type="text" id="roomCode" value="room123" placeholder="Enter Room Name">
-      <button onclick="joinRoom()">Join Canvas</button>
+      <h2>Aklavya's World</h2>
+      <p>Enter room code to start drawing together</p>
+      <input type="text" id="roomCode" value="" placeholder="e.g. world12">
+      <button onclick="checkAndJoinRoom()">Join / Create Room</button>
+      <button class="btn-alt" onclick="suggestNewRoom()">Suggest Room Code</button>
+      <div id="room-msg"></div>
     </div>
   </div>
 
-  <!-- Orientation Notice -->
-  <div id="orientation-notice">
-    Tip: Rotate your smartphone to Landscape mode for optimal whiteboard viewing.
+  <!-- Priority Top Action Bar -->
+  <div id="top-bar">
+    <div class="top-actions">
+      <button onclick="undoLastStroke()">↩️ Undo</button>
+      <button onclick="redoLastStroke()">↪️ Redo</button>
+      <button onclick="clearCanvas(true)">🗑️ Clear</button>
+      <button id="top-select-btn" onclick="setTool('select')">✋ Move</button>
+      <button id="top-pen-btn" class="active" onclick="setTool('pen')">✏️ Pen</button>
+    </div>
+    <div class="status-text">
+      <span id="peer-status" class="status-disconnected">Offline</span> | <span id="user-count">👥 1</span>
+    </div>
   </div>
 
-  <!-- Status Bar -->
-  <div id="status-bar">
-    Status: <span id="peer-status" class="status-disconnected">Offline</span>
-  </div>
-
-  <!-- Canvas App Area -->
+  <!-- Canvas Viewport Area -->
   <div id="app-viewport">
     <div id="board-frame">
       <canvas id="whiteboard"></canvas>
     </div>
   </div>
 
-  <!-- Floating Toggle Button -->
-  <button id="floating-toggle" onclick="toggleToolPanel()">🎨</button>
+  <!-- Draggable Floating Toggle Button -->
+  <button id="floating-toggle" onclick="toggleToolPanel()">🛠️</button>
 
-  <!-- Collapsible Tool Panel -->
+  <!-- Main Submenu Panel -->
   <div id="tool-panel">
-    <div class="panel-section">
-      <label>Drawing Tools</label>
-      <div class="btn-grid">
-        <button id="tool-pen" class="active" onclick="setTool('pen')">Pen</button>
-        <button id="tool-pencil" onclick="setTool('pencil')">Pencil</button>
-        <button id="tool-marker" onclick="setTool('marker')">Marker</button>
-        <button id="tool-eraser" onclick="setTool('eraser')">Eraser</button>
-      </div>
+    <div class="category-title">Tool Submenus</div>
+    <div class="menu-grid">
+      <button class="menu-btn" onclick="openDialog('shapes-dialog')">🔷 Shapes (30)</button>
+      <button class="menu-btn" onclick="openDialog('colors-dialog')">🎨 Colors (50)</button>
+      <button class="menu-btn" onclick="openDialog('tools-dialog')">✒️ Drawing Tools</button>
+      <button class="menu-btn" onclick="openDialog('stickers-dialog')">⭐ Stickers</button>
+      <button class="menu-btn" onclick="openDialog('themes-dialog')">🖼️ Themes & Grid</button>
+      <button class="menu-btn" onclick="downloadPNG()">💾 Save PNG</button>
     </div>
+  </div>
 
-    <div class="panel-section">
-      <label>Shapes</label>
-      <div class="btn-grid">
-        <button id="tool-rect" onclick="setTool('rect')">Rect</button>
-        <button id="tool-circle" onclick="setTool('circle')">Circle</button>
-        <button id="tool-line" onclick="setTool('line')">Line</button>
-      </div>
+  <!-- Submenu Dialog 1: 30 Custom Shapes Picker -->
+  <div id="shapes-dialog" class="custom-dialog">
+    <div class="dialog-header">
+      <h3>Select Shape (30 Choices)</h3>
+      <button class="close-btn" onclick="closeDialog('shapes-dialog')">✕</button>
     </div>
-
-    <div class="panel-section">
-      <label>Stroke Size & Custom Color</label>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <input type="range" id="lineWidth" min="1" max="40" value="5" style="flex:1;">
-        <input type="color" id="colorPicker" value="#000000" style="width:32px; height:32px; border:none; cursor:pointer;">
-      </div>
+    <div class="shape-grid-30">
+      <button class="shape-btn" onclick="selectShape('rect')">▭</button>
+      <button class="shape-btn" onclick="selectShape('rrect')">▢</button>
+      <button class="shape-btn" onclick="selectShape('circle')">◯</button>
+      <button class="shape-btn" onclick="selectShape('ellipse')">⬏</button>
+      <button class="shape-btn" onclick="selectShape('triangle')">△</button>
+      <button class="shape-btn" onclick="selectShape('rtriangle')">⊿</button>
+      <button class="shape-btn" onclick="selectShape('star')">⭐</button>
+      <button class="shape-btn" onclick="selectShape('diamond')">◇</button>
+      <button class="shape-btn" onclick="selectShape('heart')">❤️</button>
+      <button class="shape-btn" onclick="selectShape('shield')">🛡️</button>
+      <button class="shape-btn" onclick="selectShape('cloud')">☁️</button>
+      <button class="shape-btn" onclick="selectShape('lightning')">⚡</button>
+      <button class="shape-btn" onclick="selectShape('speech')">💬</button>
+      <button class="shape-btn" onclick="selectShape('line')">╱</button>
+      <button class="shape-btn" onclick="selectShape('arrow')">➔</button>
+      <button class="shape-btn" onclick="selectShape('darrow')">↔</button>
+      <button class="shape-btn" onclick="selectShape('curved')">↷</button>
+      <button class="shape-btn" onclick="selectShape('moon')">🌙</button>
+      <button class="shape-btn" onclick="selectShape('pentagon')">⬠</button>
+      <button class="shape-btn" onclick="selectShape('hexagon')">⬡</button>
+      <button class="shape-btn" onclick="selectShape('octagon')">🛑</button>
+      <button class="shape-btn" onclick="selectShape('cross')">➕</button>
+      <button class="shape-btn" onclick="selectShape('check')">✅</button>
+      <button class="shape-btn" onclick="selectShape('alert')">⚠️</button>
+      <button class="shape-btn" onclick="selectShape('sun')">☀️</button>
+      <button class="shape-btn" onclick="selectShape('flower')">🌸</button>
+      <button class="shape-btn" onclick="selectShape('gear')">⚙️</button>
+      <button class="shape-btn" onclick="selectShape('key')">🔑</button>
+      <button class="shape-btn" onclick="selectShape('pin')">📍</button>
+      <button class="shape-btn" onclick="selectShape('tag')">🏷️</button>
     </div>
+  </div>
 
-    <div class="panel-section">
-      <label>50 Presets Color Palette</label>
-      <div id="color-grid"></div>
+  <!-- Submenu Dialog 2: 50 Colors & Stroke Dial -->
+  <div id="colors-dialog" class="custom-dialog">
+    <div class="dialog-header">
+      <h3>Color & Pen Customization</h3>
+      <button class="close-btn" onclick="closeDialog('colors-dialog')">✕</button>
     </div>
-
-    <div class="panel-section">
-      <label>Theme</label>
-      <div class="btn-grid">
-        <button onclick="setTheme('light')">Light</button>
-        <button onclick="setTheme('dark')">Dark</button>
-        <button onclick="setTheme('blueprint')">Blue</button>
-      </div>
+    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+      <label style="font-size: 12px; font-weight: bold;">Thickness:</label>
+      <input type="range" id="lineWidth" min="1" max="50" value="5" style="flex:1;">
+      <input type="color" id="colorPicker" value="#000000" style="width:30px; height:30px; border:none; cursor:pointer;">
     </div>
+    <div class="category-title">50 Color Presets</div>
+    <div id="color-grid"></div>
+  </div>
 
-    <div class="panel-section">
-      <label>Actions</label>
-      <div class="btn-grid" style="grid-template-columns: 1fr 1fr;">
-        <button onclick="undoLastStroke()">Undo</button>
-        <button onclick="clearCanvas(true)">Clear All</button>
-      </div>
+  <!-- Submenu Dialog 3: Drawing Tools Picker -->
+  <div id="tools-dialog" class="custom-dialog">
+    <div class="dialog-header">
+      <h3>Drawing Tools</h3>
+      <button class="close-btn" onclick="closeDialog('tools-dialog')">✕</button>
+    </div>
+    <div class="menu-grid">
+      <button class="menu-btn" onclick="setTool('pen'); closeDialog('tools-dialog');">✏️ Pen</button>
+      <button class="menu-btn" onclick="setTool('pencil'); closeDialog('tools-dialog');">🖊️ Pencil</button>
+      <button class="menu-btn" onclick="setTool('marker'); closeDialog('tools-dialog');">🖍️ Highlighter</button>
+      <button class="menu-btn" onclick="setTool('eraser'); closeDialog('tools-dialog');">🧹 Eraser</button>
+      <button class="menu-btn" onclick="openTextPrompt()">🔤 Text Tool</button>
+      <button class="menu-btn" onclick="setTool('bucket'); closeDialog('tools-dialog');">🪣 Fill Canvas</button>
+    </div>
+  </div>
+
+  <!-- Custom Text Dialog Modal -->
+  <div id="text-modal-dialog" class="custom-dialog">
+    <div class="dialog-header">
+      <h3>Add Text</h3>
+      <button class="close-btn" onclick="closeDialog('text-modal-dialog')">✕</button>
+    </div>
+    <input type="text" id="custom-text-input" placeholder="Type text here..." value="Hello World!">
+    <div class="dialog-actions">
+      <button class="btn-cancel" onclick="closeDialog('text-modal-dialog')">Cancel</button>
+      <button class="btn-confirm" onclick="confirmTextEntry()">Add Text</button>
+    </div>
+  </div>
+
+  <!-- Submenu Dialog 4: Stickers Picker -->
+  <div id="stickers-dialog" class="custom-dialog">
+    <div class="dialog-header">
+      <h3>Stickers & Emojis</h3>
+      <button class="close-btn" onclick="closeDialog('stickers-dialog')">✕</button>
+    </div>
+    <div class="menu-grid">
+      <button class="menu-btn" onclick="addSticker('⭐')">⭐ Star</button>
+      <button class="menu-btn" onclick="addSticker('❤️')">❤️ Heart</button>
+      <button class="menu-btn" onclick="addSticker('🔥')">🔥 Fire</button>
+      <button class="menu-btn" onclick="addSticker('👍')">👍 Like</button>
+      <button class="menu-btn" onclick="addSticker('🎉')">🎉 Party</button>
+      <button class="menu-btn" onclick="addSticker('🎯')">🎯 Target</button>
+    </div>
+  </div>
+
+  <!-- Submenu Dialog 5: Themes & Background Grid -->
+  <div id="themes-dialog" class="custom-dialog">
+    <div class="dialog-header">
+      <h3>Themes & Grid Styles</h3>
+      <button class="close-btn" onclick="closeDialog('themes-dialog')">✕</button>
+    </div>
+    <div class="category-title">Themes</div>
+    <div class="menu-grid" style="margin-bottom: 10px;">
+      <button class="menu-btn" onclick="setTheme('light')">☀️ Light</button>
+      <button class="menu-btn" onclick="setTheme('dark')">🌙 Dark</button>
+      <button class="menu-btn" onclick="setTheme('blueprint')">📐 Blueprint</button>
+    </div>
+    <div class="category-title">Background Patterns</div>
+    <div class="menu-grid">
+      <button class="menu-btn" onclick="setGrid('none')">Blank</button>
+      <button class="menu-btn" onclick="setGrid('grid')">Grid</button>
+      <button class="menu-btn" onclick="setGrid('dots')">Dots</button>
     </div>
   </div>
 
   <script>
-    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyA9Bwx5nWDS5ZIDDiUFw9JYG3V-AVTbR9s",
       authDomain: "jewelbook-bb7b3.firebaseapp.com",
@@ -423,20 +651,30 @@
     let currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
 
     let activeTool = 'pen';
+    let currentGrid = 'grid'; // Grid set as default background
     let currentStrokePoints = [];
     let strokesData = {};
+    let redoStack = [];
 
-    // 50 Preset Colors Generation
+    let selectedKey = null;
+    let isDraggingItem = false;
+    let isResizingItem = false;
+    let dragStartPos = { xRatio: 0, yRatio: 0 };
+    let initialItemState = null;
+    let pendingTextValue = "";
+    let animFramePending = false;
+
     const presetColors = [
       "#000000", "#434343", "#666666", "#999999", "#b7b7b7", "#cccccc", "#d9d9d9", "#efefef", "#f3f3f3", "#ffffff",
       "#980000", "#ff0000", "#ff9900", "#ffff00", "#00ff00", "#00ffff", "#4a86e8", "#0000ff", "#9900ff", "#ff00ff",
       "#e6b8af", "#f4cccccc", "#fce5cd", "#fff2cc", "#d9ead3", "#d0e0e3", "#c9daf8", "#cfe2f3", "#d9d2e9", "#ead1dc",
       "#dd7e6b", "#ea9999", "#f9cb9c", "#ffe599", "#b6d7a8", "#a2c4c9", "#a4c2f4", "#9fc5e8", "#b4a7d6", "#d5a6bd",
-      "#cc4125", "#e06666", "#f6b26b", "#ffd966", "#93c47d", "#76a5af", "#6fa8dc", "#6fa8dc", "#8e7cc3", "#c27ba0"
+      "#cc4125", "#e06666", "#f6b26b", "#ffd966", "#93c47d", "#76a5af", "#6fa8dc", "#4285f4", "#8e7cc3", "#c27ba0"
     ];
 
     function initColorPalette() {
       const grid = document.getElementById('color-grid');
+      grid.innerHTML = '';
       presetColors.forEach((hex) => {
         const swatch = document.createElement('div');
         swatch.className = 'color-swatch';
@@ -450,10 +688,14 @@
       });
     }
 
-    // Direct Splash Screen transition fix (doesn't hang on window.load)
+    function generateDefaultRoomName() {
+      const randomNum = Math.floor(10 + Math.random() * 90);
+      return `world${randomNum}`;
+    }
+
     function initApp() {
+      document.getElementById('roomCode').value = generateDefaultRoomName();
       initColorPalette();
-      checkOrientation();
       
       setTimeout(() => {
         const splash = document.getElementById('splash-screen');
@@ -463,24 +705,55 @@
           document.getElementById('auth-screen').style.display = 'flex';
           resizeCanvas();
         }, 400);
-      }, 600);
+      }, 500);
     }
 
-    function checkOrientation() {
-      const notice = document.getElementById('orientation-notice');
-      if (window.innerHeight > window.innerWidth) {
-        notice.style.display = 'block';
-      } else {
-        notice.style.display = 'none';
-      }
+    function suggestNewRoom() {
+      const newRoom = generateDefaultRoomName();
+      document.getElementById('roomCode').value = newRoom;
+      document.getElementById('room-msg').style.color = '#28a745';
+      document.getElementById('room-msg').innerText = `Suggested room: ${newRoom}`;
     }
 
-    window.addEventListener('resize', () => {
-      checkOrientation();
+    function checkAndJoinRoom() {
+      const roomCode = document.getElementById('roomCode').value.trim() || generateDefaultRoomName();
+      const checkRef = db.ref('boards/' + roomCode);
+
+      checkRef.once('value', (snapshot) => {
+        if (snapshot.exists()) {
+          document.getElementById('room-msg').style.color = '#ffc107';
+          document.getElementById('room-msg').innerText = `Joining active room: ${roomCode}`;
+        } else {
+          document.getElementById('room-msg').style.color = '#28a745';
+          document.getElementById('room-msg').innerText = `Creating new room: ${roomCode}`;
+        }
+        setTimeout(() => joinRoom(roomCode), 300);
+      });
+    }
+
+    function joinRoom(roomCode) {
+      roomRef = db.ref('boards/' + roomCode);
+      strokesRef = roomRef.child('strokes');
+
+      strokesRef.on('value', (snapshot) => {
+        strokesData = snapshot.val() || {};
+        requestCanvasRedraw();
+      });
+
+      const userPresenceRef = roomRef.child('users/' + currentUserId);
+      userPresenceRef.set(true);
+      userPresenceRef.onDisconnect().remove();
+
+      roomRef.child('users').on('value', (snapshot) => {
+        const count = snapshot.numChildren() || 1;
+        document.getElementById('user-count').innerText = `👥 ${count}`;
+      });
+
+      document.getElementById('auth-screen').style.display = 'none';
+      updateStatus(true, `Connected (${roomCode})`);
       resizeCanvas();
-    });
+    }
 
-    // Fit canvas aspect ratio to board frame bounds
     function resizeCanvas() {
       const rect = boardFrame.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
@@ -489,21 +762,60 @@
       canvas.height = rect.height * dpr;
 
       ctx.scale(dpr, dpr);
-      redrawAllStrokes();
+      requestCanvasRedraw();
     }
+
+    window.addEventListener('resize', resizeCanvas);
 
     function toggleToolPanel() {
       const panel = document.getElementById('tool-panel');
       panel.style.display = (panel.style.display === 'flex') ? 'none' : 'flex';
     }
 
+    function openDialog(id) {
+      document.getElementById(id).style.display = 'flex';
+      document.getElementById('tool-panel').style.display = 'none';
+    }
+
+    function closeDialog(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function openTextPrompt() {
+      closeDialog('tools-dialog');
+      openDialog('text-modal-dialog');
+    }
+
+    function confirmTextEntry() {
+      const input = document.getElementById('custom-text-input');
+      pendingTextValue = input.value.trim() || "Hello World!";
+      closeDialog('text-modal-dialog');
+      setTool('text');
+    }
+
+    function selectShape(shapeType) {
+      setTool(shapeType);
+      closeDialog('shapes-dialog');
+    }
+
     function setTool(tool) {
       activeTool = tool;
-      document.querySelectorAll('.btn-grid button').forEach(b => {
-        if (b.id.startsWith('tool-')) b.classList.remove('active');
-      });
-      const activeBtn = document.getElementById(`tool-${tool}`);
-      if (activeBtn) activeBtn.classList.add('active');
+      document.getElementById('top-select-btn').className = tool === 'select' ? 'active' : '';
+      document.getElementById('top-pen-btn').className = tool === 'pen' ? 'active' : '';
+
+      if (tool === 'bucket') {
+        clearCanvas(true);
+      }
+      if (tool !== 'select') {
+        selectedKey = null;
+        requestCanvasRedraw();
+      }
+    }
+
+    function setGrid(type) {
+      currentGrid = type;
+      requestCanvasRedraw();
+      closeDialog('themes-dialog');
     }
 
     function setTheme(theme) {
@@ -511,7 +823,8 @@
       if (theme !== 'light') {
         document.body.classList.add(`theme-${theme}`);
       }
-      redrawAllStrokes();
+      requestCanvasRedraw();
+      closeDialog('themes-dialog');
     }
 
     function getPointerPos(e) {
@@ -532,69 +845,229 @@
       };
     }
 
+    function getItemBounds(stroke) {
+      const rect = boardFrame.getBoundingClientRect();
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+      if (!stroke.points || stroke.points.length === 0) return null;
+
+      stroke.points.forEach(p => {
+        const x = p.xRatio * rect.width;
+        const y = p.yRatio * rect.height;
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      });
+
+      if (stroke.tool === 'text') {
+        const textWidth = (stroke.text || '').length * ((stroke.size || 20) * 0.6);
+        maxX = Math.max(maxX, minX + textWidth);
+        maxY = Math.max(maxY, minY + (stroke.size || 20));
+      }
+
+      const padding = 10;
+      return {
+        x: minX - padding,
+        y: minY - padding,
+        w: Math.max(30, (maxX - minX) + padding * 2),
+        h: Math.max(30, (maxY - minY) + padding * 2)
+      };
+    }
+
     function startDrawing(e) {
       e.preventDefault();
-      isDrawing = true;
       const pos = getPointerPos(e);
+
+      if (activeTool === 'select') {
+        const rect = boardFrame.getBoundingClientRect();
+        const px = pos.xRatio * rect.width;
+        const py = pos.yRatio * rect.height;
+
+        if (selectedKey) {
+          const b = getItemBounds(strokesData[selectedKey]);
+          if (b) {
+            if (px >= b.x && px <= b.x + b.w && py >= b.y - 30 && py <= b.y) {
+              toggleLock(selectedKey);
+              return;
+            }
+            if (px >= b.x + b.w - 15 && px <= b.x + b.w + 15 && py >= b.y + b.h - 15 && py <= b.y + b.h + 15) {
+              if (strokesData[selectedKey].locked) {
+                alert("This element is locked!");
+                return;
+              }
+              isResizingItem = true;
+              dragStartPos = pos;
+              initialItemState = JSON.parse(JSON.stringify(strokesData[selectedKey]));
+              return;
+            }
+          }
+        }
+
+        let foundKey = null;
+        Object.keys(strokesData).reverse().forEach(key => {
+          if (!foundKey) {
+            const b = getItemBounds(strokesData[key]);
+            if (b && px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) {
+              foundKey = key;
+            }
+          }
+        });
+
+        if (foundKey) {
+          selectedKey = foundKey;
+          if (!strokesData[selectedKey].locked) {
+            isDraggingItem = true;
+            dragStartPos = pos;
+            initialItemState = JSON.parse(JSON.stringify(strokesData[selectedKey]));
+          }
+        } else {
+          selectedKey = null;
+        }
+        requestCanvasRedraw();
+        return;
+      }
+
+      if (activeTool === 'text') {
+        pushStrokeToFirebase({
+          userId: currentUserId,
+          tool: 'text',
+          text: pendingTextValue || "Hello World!",
+          points: [pos],
+          color: colorPicker.value,
+          size: parseInt(lineWidth.value) * 3,
+          locked: false
+        });
+        
+        // Auto-switch back to Pen tool immediately after text placement
+        setTool('pen');
+        return;
+      }
+
+      isDrawing = true;
       currentStrokePoints = [pos];
     }
 
     function draw(e) {
+      const pos = getPointerPos(e);
+
+      if (activeTool === 'select') {
+        if (!selectedKey || (!isDraggingItem && !isResizingItem)) return;
+        e.preventDefault();
+
+        const stroke = strokesData[selectedKey];
+        if (stroke.locked) return;
+
+        const dx = pos.xRatio - dragStartPos.xRatio;
+        const dy = pos.yRatio - dragStartPos.yRatio;
+
+        if (isDraggingItem) {
+          stroke.points = initialItemState.points.map(p => ({
+            xRatio: p.xRatio + dx,
+            yRatio: p.yRatio + dy
+          }));
+        } else if (isResizingItem) {
+          const scaleFactor = 1 + dx * 2;
+          stroke.size = Math.max(2, Math.round(initialItemState.size * scaleFactor));
+        }
+        requestCanvasRedraw();
+        return;
+      }
+
       if (!isDrawing) return;
       e.preventDefault();
 
-      const pos = getPointerPos(e);
-
-      if (['pen', 'pencil', 'marker', 'eraser'].includes(activeTool)) {
-        currentStrokePoints.push(pos);
-        redrawAllStrokes();
-        renderStrokeLocally({
-          tool: activeTool,
-          points: currentStrokePoints,
-          color: activeTool === 'eraser' ? getBoardBgColor() : colorPicker.value,
-          size: lineWidth.value
-        });
-      } else {
-        redrawAllStrokes();
-        renderStrokeLocally({
-          tool: activeTool,
-          points: [currentStrokePoints[0], pos],
-          color: colorPicker.value,
-          size: lineWidth.value
-        });
-      }
+      currentStrokePoints.push(pos);
+      requestCanvasRedraw();
     }
 
     function stopDrawing(e) {
+      if (activeTool === 'select') {
+        if ((isDraggingItem || isResizingItem) && selectedKey && strokesRef) {
+          strokesRef.child(selectedKey).update(strokesData[selectedKey]);
+        }
+        isDraggingItem = false;
+        isResizingItem = false;
+        return;
+      }
+
       if (!isDrawing) return;
       isDrawing = false;
 
-      if (['rect', 'circle', 'line'].includes(activeTool)) {
-        const pos = getPointerPos(e);
-        currentStrokePoints = [currentStrokePoints[0], pos];
-      }
-
       if (currentStrokePoints.length > 0 && strokesRef) {
-        const strokeObject = {
+        const isFreehand = ['pen', 'pencil', 'marker', 'eraser'].includes(activeTool);
+        const pointsToSave = isFreehand 
+          ? currentStrokePoints 
+          : [currentStrokePoints[0], currentStrokePoints[currentStrokePoints.length - 1]];
+
+        pushStrokeToFirebase({
           userId: currentUserId,
           tool: activeTool,
-          points: currentStrokePoints,
+          points: pointsToSave,
           color: activeTool === 'eraser' ? getBoardBgColor() : colorPicker.value,
           size: lineWidth.value,
+          locked: false,
           timestamp: firebase.database.ServerValue.TIMESTAMP
-        };
-        strokesRef.push(strokeObject);
+        });
       }
       currentStrokePoints = [];
     }
 
+    function pushStrokeToFirebase(strokeObj) {
+      strokesRef.push(strokeObj);
+      redoStack = [];
+    }
+
+    function toggleLock(key) {
+      if (!strokesRef || !strokesData[key]) return;
+      const newLockedState = !strokesData[key].locked;
+      strokesRef.child(key).update({ locked: newLockedState });
+    }
+
+    function addSticker(emoji) {
+      if (!strokesRef) return;
+      pushStrokeToFirebase({
+        userId: currentUserId,
+        tool: 'text',
+        text: emoji,
+        points: [{ xRatio: 0.5, yRatio: 0.5 }],
+        color: '#000000',
+        size: 36,
+        locked: false
+      });
+      closeDialog('stickers-dialog');
+    }
+
     function getBoardBgColor() {
-      if (document.body.classList.contains('theme-dark')) return '#2d2d2d';
-      if (document.body.classList.contains('theme-blueprint')) return '#133a63';
+      if (document.body.classList.contains('theme-dark')) return '#1e1e1e';
+      if (document.body.classList.contains('theme-blueprint')) return '#10345e';
       return '#ffffff';
     }
 
-    function renderStrokeLocally(stroke) {
+    function drawBackgroundGrid() {
+      const rect = boardFrame.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(0,0,0,0.08)";
+      ctx.fillStyle = "rgba(0,0,0,0.15)";
+      ctx.lineWidth = 1;
+
+      if (currentGrid === 'grid') {
+        for (let x = 0; x < w; x += 20) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+        for (let y = 0; y < h; y += 20) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      } else if (currentGrid === 'dots') {
+        for (let x = 10; x < w; x += 20) {
+          for (let y = 10; y < h; y += 20) {
+            ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    function renderStrokeLocally(stroke, isSelected = false) {
       if (!stroke.points || stroke.points.length === 0) return;
 
       const rect = boardFrame.getBoundingClientRect();
@@ -609,64 +1082,118 @@
 
       if (stroke.tool === 'pencil') ctx.globalAlpha = 0.5;
       else if (stroke.tool === 'marker') ctx.globalAlpha = 0.35;
-      else ctx.globalAlpha = 1.0;
 
-      if (['pen', 'pencil', 'marker', 'eraser'].includes(stroke.tool)) {
-        if (points.length === 1) {
-          ctx.beginPath();
-          ctx.arc(points[0].xRatio * rect.width, points[0].yRatio * rect.height, stroke.size / 2, 0, Math.PI * 2);
-          ctx.fill();
-        } else {
-          ctx.beginPath();
-          ctx.moveTo(points[0].xRatio * rect.width, points[0].yRatio * rect.height);
-          for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].xRatio * rect.width, points[i].yRatio * rect.height);
-          }
-          ctx.stroke();
+      const x1 = points[0].xRatio * rect.width;
+      const y1 = points[0].yRatio * rect.height;
+      const x2 = points.length > 1 ? points[points.length - 1].xRatio * rect.width : x1;
+      const y2 = points.length > 1 ? points[points.length - 1].yRatio * rect.height : y1;
+
+      if (stroke.tool === 'text') {
+        ctx.font = `${stroke.size || 20}px sans-serif`;
+        ctx.fillText(stroke.text || '', x1, y1);
+      } else if (['pen', 'pencil', 'marker', 'eraser'].includes(stroke.tool)) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].xRatio * rect.width, points[i].yRatio * rect.height);
         }
+        ctx.stroke();
       } else if (stroke.tool === 'line') {
-        ctx.beginPath();
-        ctx.moveTo(points[0].xRatio * rect.width, points[0].yRatio * rect.height);
-        ctx.lineTo(points[1].xRatio * rect.width, points[1].yRatio * rect.height);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
       } else if (stroke.tool === 'rect') {
-        const x1 = points[0].xRatio * rect.width;
-        const y1 = points[0].yRatio * rect.height;
-        const x2 = points[1].xRatio * rect.width;
-        const y2 = points[1].yRatio * rect.height;
         ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
-      } else if (stroke.tool === 'circle') {
-        const x1 = points[0].xRatio * rect.width;
-        const y1 = points[0].yRatio * rect.height;
-        const x2 = points[1].xRatio * rect.width;
-        const y2 = points[1].yRatio * rect.height;
+      } else if (stroke.tool === 'rrect') {
+        ctx.beginPath(); ctx.roundRect(x1, y1, x2 - x1, y2 - y1, 10); ctx.stroke();
+      } else if (stroke.tool === 'circle' || stroke.tool === 'ellipse') {
         const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        ctx.beginPath(); ctx.arc(x1, y1, radius, 0, Math.PI * 2); ctx.stroke();
+      } else if (stroke.tool === 'triangle') {
+        ctx.beginPath(); ctx.moveTo((x1 + x2) / 2, y1); ctx.lineTo(x1, y2); ctx.lineTo(x2, y2); ctx.closePath(); ctx.stroke();
+      } else if (stroke.tool === 'star') {
+        const r = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
         ctx.beginPath();
-        ctx.arc(x1, y1, radius, 0, Math.PI * 2);
-        ctx.stroke();
+        for (let i = 0; i < 5; i++) {
+          ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * r + x1, -Math.sin((18 + i * 72) * Math.PI / 180) * r + y1);
+          ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * (r/2) + x1, -Math.sin((54 + i * 72) * Math.PI / 180) * (r/2) + y1);
+        }
+        ctx.closePath(); ctx.stroke();
+      } else {
+        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
       }
 
       ctx.restore();
+
+      if (isSelected) {
+        const b = getItemBounds(stroke);
+        if (b) {
+          ctx.save();
+          ctx.strokeStyle = '#007bff';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          ctx.strokeRect(b.x, b.y, b.w, b.h);
+
+          ctx.setLineDash([]);
+          ctx.fillStyle = stroke.locked ? '#dc3545' : '#28a745';
+          ctx.fillRect(b.x, b.y - 28, 65, 24);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '11px sans-serif';
+          ctx.fillText(stroke.locked ? '🔒 Locked' : '🔓 Lock', b.x + 6, b.y - 12);
+
+          if (!stroke.locked) {
+            ctx.fillStyle = '#007bff';
+            ctx.fillRect(b.x + b.w - 8, b.y + b.h - 8, 16, 16);
+          }
+          ctx.restore();
+        }
+      }
+    }
+
+    function requestCanvasRedraw() {
+      if (!animFramePending) {
+        animFramePending = true;
+        requestAnimationFrame(() => {
+          redrawAllStrokes();
+          animFramePending = false;
+        });
+      }
     }
 
     function redrawAllStrokes() {
       const rect = boardFrame.getBoundingClientRect();
       ctx.clearRect(0, 0, rect.width, rect.height);
+      drawBackgroundGrid();
 
-      Object.values(strokesData).forEach(stroke => {
-        renderStrokeLocally(stroke);
+      Object.keys(strokesData).forEach(key => {
+        renderStrokeLocally(strokesData[key], key === selectedKey);
       });
+
+      if (isDrawing && currentStrokePoints.length > 0) {
+        renderStrokeLocally({
+          tool: activeTool,
+          points: currentStrokePoints,
+          color: activeTool === 'eraser' ? getBoardBgColor() : colorPicker.value,
+          size: lineWidth.value
+        });
+      }
     }
 
     function undoLastStroke() {
       if (!strokesRef) return;
       const userStrokeKeys = Object.keys(strokesData).filter(
-        key => strokesData[key].userId === currentUserId
+        key => strokesData[key].userId === currentUserId && !strokesData[key].locked
       );
 
       if (userStrokeKeys.length > 0) {
         const lastKey = userStrokeKeys[userStrokeKeys.length - 1];
+        redoStack.push(strokesData[lastKey]);
         strokesRef.child(lastKey).remove();
+      }
+    }
+
+    function redoLastStroke() {
+      if (redoStack.length > 0 && strokesRef) {
+        const strokeToRedo = redoStack.pop();
+        strokesRef.push(strokeToRedo);
       }
     }
 
@@ -674,11 +1201,21 @@
       const rect = boardFrame.getBoundingClientRect();
       ctx.clearRect(0, 0, rect.width, rect.height);
       if (broadcast && strokesRef) {
-        strokesRef.set(null);
+        Object.keys(strokesData).forEach(key => {
+          if (!strokesData[key].locked) {
+            strokesRef.child(key).remove();
+          }
+        });
       }
     }
 
-    // Canvas Mouse & Touch Events
+    function downloadPNG() {
+      const link = document.createElement('a');
+      link.download = 'aklavya-world-canvas.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDrawing);
@@ -688,54 +1225,12 @@
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', stopDrawing);
 
-    // Draggable Floating Button Logic
-    const toggleBtn = document.getElementById('floating-toggle');
-    let isDragging = false;
-    let dragOffsetX = 0, dragOffsetY = 0;
-
-    toggleBtn.addEventListener('touchstart', (e) => {
-      isDragging = true;
-      const touch = e.touches[0];
-      dragOffsetX = touch.clientX - toggleBtn.offsetLeft;
-      dragOffsetY = touch.clientY - toggleBtn.offsetTop;
-    });
-
-    toggleBtn.addEventListener('touchmove', (e) => {
-      if (!isDragging) return;
-      const touch = e.touches[0];
-      toggleBtn.style.left = `${touch.clientX - dragOffsetX}px`;
-      toggleBtn.style.top = `${touch.clientY - dragOffsetY}px`;
-      toggleBtn.style.bottom = 'auto';
-      toggleBtn.style.right = 'auto';
-    });
-
-    toggleBtn.addEventListener('touchend', () => { isDragging = false; });
-
-    // Join Room
-    function joinRoom() {
-      const roomCode = document.getElementById('roomCode').value.trim() || 'room123';
-      
-      roomRef = db.ref('boards/' + roomCode);
-      strokesRef = roomRef.child('strokes');
-
-      strokesRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        strokesData = data || {};
-        redrawAllStrokes();
-      });
-
-      document.getElementById('auth-screen').style.display = 'none';
-      updateStatus(true, `Connected (${roomCode})`);
-      resizeCanvas();
-    }
-
     function updateStatus(isConnected, message) {
       const statusElem = document.getElementById('peer-status');
       statusElem.innerText = message;
       statusElem.className = isConnected ? 'status-connected' : 'status-disconnected';
     }
 
-    // Execute startup directly
     initApp();
   </script>
 </body>
