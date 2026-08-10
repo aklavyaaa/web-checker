@@ -94,77 +94,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Auth Screen Overlay */
-    #auth-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(5px);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 900;
-    }
-
-    .card {
-      background: var(--panel-bg);
-      padding: 24px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      text-align: center;
-      width: 90%;
-      max-width: 360px;
-    }
-
-    .card h2 {
-      margin-bottom: 6px;
-      font-size: 22px;
-      color: #007bff;
-    }
-
-    .card p {
-      font-size: 12px;
-      opacity: 0.8;
-      margin-bottom: 16px;
-    }
-
-    .card input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .card button {
-      width: 100%;
-      padding: 12px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 8px;
-    }
-
-    .card .btn-alt {
-      background-color: #6c757d;
-    }
-
-    #room-msg {
-      font-size: 12px;
-      margin-top: 8px;
-      min-height: 16px;
-    }
-
     /* Priority Top Action Bar */
     #top-bar {
       background: var(--panel-bg);
@@ -449,20 +378,8 @@
   <!-- Splash Screen -->
   <div id="splash-screen">
     <h1>Aklavya's World</h1>
-    <p>Real-Time Canvas Studio</p>
+    <p>Loading Global Whiteboard...</p>
     <div class="spinner"></div>
-  </div>
-
-  <!-- Room Join Overlay -->
-  <div id="auth-screen" style="display: none;">
-    <div class="card">
-      <h2>Aklavya's World</h2>
-      <p>Enter room code to start drawing together</p>
-      <input type="text" id="roomCode" value="" placeholder="e.g. world12">
-      <button onclick="checkAndJoinRoom()">Join / Create Room</button>
-      <button class="btn-alt" onclick="suggestNewRoom()">Suggest Room Code</button>
-      <div id="room-msg"></div>
-    </div>
   </div>
 
   <!-- Priority Top Action Bar -->
@@ -475,7 +392,7 @@
       <button id="top-pen-btn" class="active" onclick="setTool('pen')">✏️ Pen</button>
     </div>
     <div class="status-text">
-      <span id="peer-status" class="status-disconnected">Offline</span> | <span id="user-count">👥 1</span>
+      <span id="peer-status" class="status-disconnected">Connecting...</span> | <span id="user-count">👥 1</span>
     </div>
   </div>
 
@@ -651,7 +568,7 @@
     let currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
 
     let activeTool = 'pen';
-    let currentGrid = 'grid'; // Grid set as default background
+    let currentGrid = 'grid'; // Grid background enabled by default
     let currentStrokePoints = [];
     let strokesData = {};
     let redoStack = [];
@@ -688,50 +605,14 @@
       });
     }
 
-    function generateDefaultRoomName() {
-      const randomNum = Math.floor(10 + Math.random() * 90);
-      return `world${randomNum}`;
-    }
-
     function initApp() {
-      document.getElementById('roomCode').value = generateDefaultRoomName();
       initColorPalette();
-      
-      setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        splash.style.opacity = '0';
-        setTimeout(() => {
-          splash.style.display = 'none';
-          document.getElementById('auth-screen').style.display = 'flex';
-          resizeCanvas();
-        }, 400);
-      }, 500);
+      // Directly join the single shared board without asking for room codes
+      joinGlobalBoard();
     }
 
-    function suggestNewRoom() {
-      const newRoom = generateDefaultRoomName();
-      document.getElementById('roomCode').value = newRoom;
-      document.getElementById('room-msg').style.color = '#28a745';
-      document.getElementById('room-msg').innerText = `Suggested room: ${newRoom}`;
-    }
-
-    function checkAndJoinRoom() {
-      const roomCode = document.getElementById('roomCode').value.trim() || generateDefaultRoomName();
-      const checkRef = db.ref('boards/' + roomCode);
-
-      checkRef.once('value', (snapshot) => {
-        if (snapshot.exists()) {
-          document.getElementById('room-msg').style.color = '#ffc107';
-          document.getElementById('room-msg').innerText = `Joining active room: ${roomCode}`;
-        } else {
-          document.getElementById('room-msg').style.color = '#28a745';
-          document.getElementById('room-msg').innerText = `Creating new room: ${roomCode}`;
-        }
-        setTimeout(() => joinRoom(roomCode), 300);
-      });
-    }
-
-    function joinRoom(roomCode) {
+    function joinGlobalBoard() {
+      const roomCode = 'world-global';
       roomRef = db.ref('boards/' + roomCode);
       strokesRef = roomRef.child('strokes');
 
@@ -749,9 +630,15 @@
         document.getElementById('user-count').innerText = `👥 ${count}`;
       });
 
-      document.getElementById('auth-screen').style.display = 'none';
-      updateStatus(true, `Connected (${roomCode})`);
+      updateStatus(true, `Connected (Global Board)`);
       resizeCanvas();
+
+      // Fade out splash screen once connected
+      setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        splash.style.opacity = '0';
+        setTimeout(() => splash.style.display = 'none', 400);
+      }, 500);
     }
 
     function resizeCanvas() {
