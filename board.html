@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Aklavya's World - Real-Time Collaborative Canvas</title>
   
-  <!-- Firebase App (Compat SDK) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <!-- Firebase Realtime Database (Compat SDK) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
   <style>
@@ -25,14 +23,6 @@
       --board-border: #0d6efd;
       --panel-bg: rgba(30, 30, 30, 0.96);
       --text-color: #f1f1f1;
-    }
-
-    body.theme-blueprint {
-      --bg-color: #0b1d33;
-      --board-bg: #10345e;
-      --board-border: #64b5f6;
-      --panel-bg: rgba(16, 52, 94, 0.96);
-      --text-color: #e3f2fd;
     }
 
     * {
@@ -54,10 +44,8 @@
       width: 100vw;
       overflow: hidden;
       touch-action: none;
-      transition: background-color 0.3s;
     }
 
-    /* Splash Screen Overlay */
     #splash-screen {
       position: fixed;
       top: 0;
@@ -74,315 +62,91 @@
       transition: opacity 0.4s ease;
     }
 
-    #splash-screen h1 {
-      font-size: 32px;
-      margin-bottom: 8px;
-      font-weight: 800;
-    }
-
+    #splash-screen h1 { font-size: 32px; margin-bottom: 8px; font-weight: 800; }
     .spinner {
-      width: 36px;
-      height: 36px;
+      width: 36px; height: 36px;
       border: 4px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 0.8s ease-in-out infinite;
-      margin-top: 20px;
+      border-radius: 50%; border-top-color: white;
+      animation: spin 0.8s ease-in-out infinite; margin-top: 20px;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Priority Top Action Bar */
     #top-bar {
-      background: var(--panel-bg);
-      padding: 6px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(0,0,0,0.1);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      z-index: 400;
-      gap: 8px;
-      overflow-x: auto;
+      background: var(--panel-bg); padding: 6px 12px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid rgba(0,0,0,0.1); box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 400; gap: 8px; overflow-x: auto;
     }
 
-    .top-actions {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-
+    .top-actions { display: flex; gap: 6px; align-items: center; }
     .top-actions button {
-      padding: 6px 10px;
-      border: 1px solid #ccc;
-      background: #ffffff;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
+      padding: 6px 10px; border: 1px solid #ccc; background: #ffffff;
+      border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;
     }
-
-    .top-actions button.active {
-      background: #007bff;
-      color: white;
-      border-color: #007bff;
-    }
-
-    .status-text {
-      font-size: 11px;
-      font-weight: bold;
-      white-space: nowrap;
-    }
-
+    .top-actions button.active { background: #007bff; color: white; border-color: #007bff; }
+    .status-text { font-size: 11px; font-weight: bold; white-space: nowrap; }
     .status-connected { color: #28a745; }
     .status-disconnected { color: #dc3545; }
 
-    /* Viewport & Responsive Board Frame */
     #app-viewport {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      padding: 10px;
-      box-sizing: border-box;
+      flex: 1; display: flex; justify-content: center; align-items: center;
+      position: relative; padding: 6px; box-sizing: border-box;
     }
 
     #board-frame {
-      position: relative;
-      background-color: var(--board-bg);
-      border: 3px dashed var(--board-border);
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      overflow: hidden;
-      
-      width: min(92vw, calc(78vh * (16 / 9)));
-      height: min(78vh, calc(92vw * (9 / 16)));
-      
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      position: relative; background-color: var(--board-bg);
+      border: 3px dashed var(--board-border); border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); overflow: hidden;
+      height: min(92vh, calc(96vw * (16 / 9)));
+      width: min(96vw, calc(92vh * (9 / 16)));
+      aspect-ratio: 9 / 16;
+      display: flex; justify-content: center; align-items: center;
     }
 
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
+    canvas { display: block; width: 100%; height: 100%; }
 
-    /* Floating Toggle Button */
     #floating-toggle {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      background: #007bff;
-      color: white;
-      border: none;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      cursor: pointer;
-      z-index: 500;
-      touch-action: none;
+      position: fixed; bottom: 20px; right: 20px; width: 54px; height: 54px;
+      border-radius: 50%; background: #007bff; color: white; border: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 24px; cursor: pointer; z-index: 500;
     }
 
-    /* Main Menu Tray */
     #tool-panel {
-      position: fixed;
-      bottom: 84px;
-      right: 20px;
-      width: 320px;
-      max-height: 75vh;
-      background: var(--panel-bg);
-      border-radius: 14px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-      padding: 14px;
-      display: none;
-      flex-direction: column;
-      gap: 12px;
-      overflow-y: auto;
-      z-index: 499;
-      border: 1px solid rgba(0,0,0,0.1);
+      position: fixed; bottom: 84px; right: 20px; width: 320px; max-height: 75vh;
+      background: var(--panel-bg); border-radius: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      padding: 14px; display: none; flex-direction: column; gap: 12px; overflow-y: auto; z-index: 499;
     }
 
-    .category-title {
-      font-size: 11px;
-      font-weight: bold;
-      text-transform: uppercase;
-      opacity: 0.7;
-      margin-bottom: 4px;
-    }
-
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-    }
-
+    .category-title { font-size: 11px; font-weight: bold; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px; }
+    .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
     .menu-btn {
-      padding: 8px 6px;
-      border: 1px solid #ccc;
-      background: transparent;
-      color: var(--text-color);
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
+      padding: 8px 6px; border: 1px solid #ccc; background: transparent;
+      color: var(--text-color); border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer;
     }
 
-    .menu-btn.active {
-      background: #007bff;
-      color: white;
-      border-color: #007bff;
-    }
-
-    /* Custom Dialog Popups */
     .custom-dialog {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: var(--panel-bg);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-      padding: 18px;
-      width: 90%;
-      max-width: 380px;
-      max-height: 80vh;
-      display: none;
-      flex-direction: column;
-      gap: 12px;
-      z-index: 850;
-      border: 1px solid rgba(0,0,0,0.1);
-      overflow-y: auto;
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: var(--panel-bg); border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      padding: 18px; width: 90%; max-width: 380px; max-height: 80vh; display: none;
+      flex-direction: column; gap: 12px; z-index: 850; overflow-y: auto;
     }
 
-    .dialog-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 8px;
-    }
-
-    .dialog-header h3 {
-      font-size: 16px;
-      color: #007bff;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      color: var(--text-color);
-    }
-
-    .shape-grid-30 {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 6px;
-      padding: 4px 0;
-    }
-
-    .shape-btn {
-      aspect-ratio: 1;
-      border: 1px solid #ccc;
-      background: transparent;
-      color: var(--text-color);
-      border-radius: 6px;
-      font-size: 18px;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .shape-btn:hover, .shape-btn.active {
-      background: #007bff;
-      color: white;
-      border-color: #007bff;
-    }
-
-    /* Custom Text Modal Specifics */
-    #custom-text-input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
-      outline: none;
-      color: var(--text-color);
-      background: transparent;
-    }
-
-    .dialog-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-
-    .dialog-actions button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .btn-confirm { background: #007bff; color: white; }
-    .btn-cancel { background: #6c757d; color: white; }
-
-    /* 50 Colors Palette Grid */
-    #color-grid {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 3px;
-      max-height: 120px;
-      overflow-y: auto;
-      padding: 2px;
-    }
-
-    .color-swatch {
-      width: 100%;
-      aspect-ratio: 1;
-      border-radius: 3px;
-      border: 1px solid rgba(0, 0, 0, 0.15);
-      cursor: pointer;
-    }
-
-    .color-swatch.selected {
-      transform: scale(1.15);
-      border: 2px solid #007bff;
-    }
+    .dialog-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
+    .dialog-header h3 { font-size: 16px; color: #007bff; }
+    .close-btn { background: none; border: none; font-size: 18px; font-weight: bold; cursor: pointer; }
+    
+    #color-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; max-height: 120px; overflow-y: auto; }
+    .color-swatch { width: 100%; aspect-ratio: 1; border-radius: 3px; border: 1px solid rgba(0, 0, 0, 0.15); cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <!-- Splash Screen -->
   <div id="splash-screen">
     <h1>Aklavya's World</h1>
-    <p>Loading Global Whiteboard...</p>
+    <p>Loading Global Portrait Canvas...</p>
     <div class="spinner"></div>
   </div>
 
-  <!-- Priority Top Action Bar -->
   <div id="top-bar">
     <div class="top-actions">
       <button onclick="undoLastStroke()">↩️ Undo</button>
@@ -396,73 +160,26 @@
     </div>
   </div>
 
-  <!-- Canvas Viewport Area -->
   <div id="app-viewport">
     <div id="board-frame">
       <canvas id="whiteboard"></canvas>
     </div>
   </div>
 
-  <!-- Draggable Floating Toggle Button -->
   <button id="floating-toggle" onclick="toggleToolPanel()">🛠️</button>
 
-  <!-- Main Submenu Panel -->
   <div id="tool-panel">
     <div class="category-title">Tool Submenus</div>
     <div class="menu-grid">
-      <button class="menu-btn" onclick="openDialog('shapes-dialog')">🔷 Shapes (30)</button>
       <button class="menu-btn" onclick="openDialog('colors-dialog')">🎨 Colors (50)</button>
       <button class="menu-btn" onclick="openDialog('tools-dialog')">✒️ Drawing Tools</button>
-      <button class="menu-btn" onclick="openDialog('stickers-dialog')">⭐ Stickers</button>
-      <button class="menu-btn" onclick="openDialog('themes-dialog')">🖼️ Themes & Grid</button>
       <button class="menu-btn" onclick="downloadPNG()">💾 Save PNG</button>
     </div>
   </div>
 
-  <!-- Submenu Dialog 1: 30 Custom Shapes Picker -->
-  <div id="shapes-dialog" class="custom-dialog">
-    <div class="dialog-header">
-      <h3>Select Shape (30 Choices)</h3>
-      <button class="close-btn" onclick="closeDialog('shapes-dialog')">✕</button>
-    </div>
-    <div class="shape-grid-30">
-      <button class="shape-btn" onclick="selectShape('rect')">▭</button>
-      <button class="shape-btn" onclick="selectShape('rrect')">▢</button>
-      <button class="shape-btn" onclick="selectShape('circle')">◯</button>
-      <button class="shape-btn" onclick="selectShape('ellipse')">⬏</button>
-      <button class="shape-btn" onclick="selectShape('triangle')">△</button>
-      <button class="shape-btn" onclick="selectShape('rtriangle')">⊿</button>
-      <button class="shape-btn" onclick="selectShape('star')">⭐</button>
-      <button class="shape-btn" onclick="selectShape('diamond')">◇</button>
-      <button class="shape-btn" onclick="selectShape('heart')">❤️</button>
-      <button class="shape-btn" onclick="selectShape('shield')">🛡️</button>
-      <button class="shape-btn" onclick="selectShape('cloud')">☁️</button>
-      <button class="shape-btn" onclick="selectShape('lightning')">⚡</button>
-      <button class="shape-btn" onclick="selectShape('speech')">💬</button>
-      <button class="shape-btn" onclick="selectShape('line')">╱</button>
-      <button class="shape-btn" onclick="selectShape('arrow')">➔</button>
-      <button class="shape-btn" onclick="selectShape('darrow')">↔</button>
-      <button class="shape-btn" onclick="selectShape('curved')">↷</button>
-      <button class="shape-btn" onclick="selectShape('moon')">🌙</button>
-      <button class="shape-btn" onclick="selectShape('pentagon')">⬠</button>
-      <button class="shape-btn" onclick="selectShape('hexagon')">⬡</button>
-      <button class="shape-btn" onclick="selectShape('octagon')">🛑</button>
-      <button class="shape-btn" onclick="selectShape('cross')">➕</button>
-      <button class="shape-btn" onclick="selectShape('check')">✅</button>
-      <button class="shape-btn" onclick="selectShape('alert')">⚠️</button>
-      <button class="shape-btn" onclick="selectShape('sun')">☀️</button>
-      <button class="shape-btn" onclick="selectShape('flower')">🌸</button>
-      <button class="shape-btn" onclick="selectShape('gear')">⚙️</button>
-      <button class="shape-btn" onclick="selectShape('key')">🔑</button>
-      <button class="shape-btn" onclick="selectShape('pin')">📍</button>
-      <button class="shape-btn" onclick="selectShape('tag')">🏷️</button>
-    </div>
-  </div>
-
-  <!-- Submenu Dialog 2: 50 Colors & Stroke Dial -->
   <div id="colors-dialog" class="custom-dialog">
     <div class="dialog-header">
-      <h3>Color & Pen Customization</h3>
+      <h3>Color Customization</h3>
       <button class="close-btn" onclick="closeDialog('colors-dialog')">✕</button>
     </div>
     <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
@@ -474,7 +191,6 @@
     <div id="color-grid"></div>
   </div>
 
-  <!-- Submenu Dialog 3: Drawing Tools Picker -->
   <div id="tools-dialog" class="custom-dialog">
     <div class="dialog-header">
       <h3>Drawing Tools</h3>
@@ -482,60 +198,7 @@
     </div>
     <div class="menu-grid">
       <button class="menu-btn" onclick="setTool('pen'); closeDialog('tools-dialog');">✏️ Pen</button>
-      <button class="menu-btn" onclick="setTool('pencil'); closeDialog('tools-dialog');">🖊️ Pencil</button>
-      <button class="menu-btn" onclick="setTool('marker'); closeDialog('tools-dialog');">🖍️ Highlighter</button>
       <button class="menu-btn" onclick="setTool('eraser'); closeDialog('tools-dialog');">🧹 Eraser</button>
-      <button class="menu-btn" onclick="openTextPrompt()">🔤 Text Tool</button>
-      <button class="menu-btn" onclick="setTool('bucket'); closeDialog('tools-dialog');">🪣 Fill Canvas</button>
-    </div>
-  </div>
-
-  <!-- Custom Text Dialog Modal -->
-  <div id="text-modal-dialog" class="custom-dialog">
-    <div class="dialog-header">
-      <h3>Add Text</h3>
-      <button class="close-btn" onclick="closeDialog('text-modal-dialog')">✕</button>
-    </div>
-    <input type="text" id="custom-text-input" placeholder="Type text here..." value="Hello World!">
-    <div class="dialog-actions">
-      <button class="btn-cancel" onclick="closeDialog('text-modal-dialog')">Cancel</button>
-      <button class="btn-confirm" onclick="confirmTextEntry()">Add Text</button>
-    </div>
-  </div>
-
-  <!-- Submenu Dialog 4: Stickers Picker -->
-  <div id="stickers-dialog" class="custom-dialog">
-    <div class="dialog-header">
-      <h3>Stickers & Emojis</h3>
-      <button class="close-btn" onclick="closeDialog('stickers-dialog')">✕</button>
-    </div>
-    <div class="menu-grid">
-      <button class="menu-btn" onclick="addSticker('⭐')">⭐ Star</button>
-      <button class="menu-btn" onclick="addSticker('❤️')">❤️ Heart</button>
-      <button class="menu-btn" onclick="addSticker('🔥')">🔥 Fire</button>
-      <button class="menu-btn" onclick="addSticker('👍')">👍 Like</button>
-      <button class="menu-btn" onclick="addSticker('🎉')">🎉 Party</button>
-      <button class="menu-btn" onclick="addSticker('🎯')">🎯 Target</button>
-    </div>
-  </div>
-
-  <!-- Submenu Dialog 5: Themes & Background Grid -->
-  <div id="themes-dialog" class="custom-dialog">
-    <div class="dialog-header">
-      <h3>Themes & Grid Styles</h3>
-      <button class="close-btn" onclick="closeDialog('themes-dialog')">✕</button>
-    </div>
-    <div class="category-title">Themes</div>
-    <div class="menu-grid" style="margin-bottom: 10px;">
-      <button class="menu-btn" onclick="setTheme('light')">☀️ Light</button>
-      <button class="menu-btn" onclick="setTheme('dark')">🌙 Dark</button>
-      <button class="menu-btn" onclick="setTheme('blueprint')">📐 Blueprint</button>
-    </div>
-    <div class="category-title">Background Patterns</div>
-    <div class="menu-grid">
-      <button class="menu-btn" onclick="setGrid('none')">Blank</button>
-      <button class="menu-btn" onclick="setGrid('grid')">Grid</button>
-      <button class="menu-btn" onclick="setGrid('dots')">Dots</button>
     </div>
   </div>
 
@@ -551,9 +214,7 @@
       measurementId: "G-J84BK5F87Q"
     };
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.database();
 
     const canvas = document.getElementById('whiteboard');
@@ -563,30 +224,14 @@
     const lineWidth = document.getElementById('lineWidth');
 
     let isDrawing = false;
-    let roomRef = null;
-    let strokesRef = null;
+    let roomRef = null, strokesRef = null;
     let currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
-
-    let activeTool = 'pen';
-    let currentGrid = 'grid'; // Grid background enabled by default
-    let currentStrokePoints = [];
-    let strokesData = {};
-    let redoStack = [];
-
-    let selectedKey = null;
-    let isDraggingItem = false;
-    let isResizingItem = false;
-    let dragStartPos = { xRatio: 0, yRatio: 0 };
-    let initialItemState = null;
-    let pendingTextValue = "";
-    let animFramePending = false;
+    let activeTool = 'pen', currentGrid = 'grid';
+    let currentStrokePoints = [], strokesData = {}, redoStack = [];
 
     const presetColors = [
       "#000000", "#434343", "#666666", "#999999", "#b7b7b7", "#cccccc", "#d9d9d9", "#efefef", "#f3f3f3", "#ffffff",
-      "#980000", "#ff0000", "#ff9900", "#ffff00", "#00ff00", "#00ffff", "#4a86e8", "#0000ff", "#9900ff", "#ff00ff",
-      "#e6b8af", "#f4cccccc", "#fce5cd", "#fff2cc", "#d9ead3", "#d0e0e3", "#c9daf8", "#cfe2f3", "#d9d2e9", "#ead1dc",
-      "#dd7e6b", "#ea9999", "#f9cb9c", "#ffe599", "#b6d7a8", "#a2c4c9", "#a4c2f4", "#9fc5e8", "#b4a7d6", "#d5a6bd",
-      "#cc4125", "#e06666", "#f6b26b", "#ffd966", "#93c47d", "#76a5af", "#6fa8dc", "#4285f4", "#8e7cc3", "#c27ba0"
+      "#980000", "#ff0000", "#ff9900", "#ffff00", "#00ff00", "#00ffff", "#4a86e8", "#0000ff", "#9900ff", "#ff00ff"
     ];
 
     function initColorPalette() {
@@ -596,60 +241,51 @@
         const swatch = document.createElement('div');
         swatch.className = 'color-swatch';
         swatch.style.backgroundColor = hex;
-        swatch.onclick = () => {
-          colorPicker.value = hex;
-          document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-          swatch.classList.add('selected');
-        };
+        swatch.onclick = () => { colorPicker.value = hex; };
         grid.appendChild(swatch);
       });
     }
 
     function initApp() {
       initColorPalette();
-      // Directly join the single shared board without asking for room codes
       joinGlobalBoard();
     }
 
     function joinGlobalBoard() {
-      const roomCode = 'world-global';
-      roomRef = db.ref('boards/' + roomCode);
+      roomRef = db.ref('boards/world-global');
       strokesRef = roomRef.child('strokes');
 
       strokesRef.on('value', (snapshot) => {
         strokesData = snapshot.val() || {};
-        requestCanvasRedraw();
+        redrawAllStrokes();
+        notifyAndroidWidget();
       });
 
-      const userPresenceRef = roomRef.child('users/' + currentUserId);
-      userPresenceRef.set(true);
-      userPresenceRef.onDisconnect().remove();
-
-      roomRef.child('users').on('value', (snapshot) => {
-        const count = snapshot.numChildren() || 1;
-        document.getElementById('user-count').innerText = `👥 ${count}`;
-      });
-
-      updateStatus(true, `Connected (Global Board)`);
+      updateStatus(true, `Connected (Portrait Board)`);
       resizeCanvas();
 
-      // Fade out splash screen once connected
       setTimeout(() => {
         const splash = document.getElementById('splash-screen');
-        splash.style.opacity = '0';
-        setTimeout(() => splash.style.display = 'none', 400);
+        if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.style.display = 'none', 400); }
       }, 500);
+    }
+
+    function notifyAndroidWidget() {
+      if (window.AndroidInterface && window.AndroidInterface.updateWidgetImage) {
+        try {
+          const dataUrl = canvas.toDataURL('image/png');
+          window.AndroidInterface.updateWidgetImage(dataUrl);
+        } catch (e) { console.error(e); }
+      }
     }
 
     function resizeCanvas() {
       const rect = boardFrame.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
-
       ctx.scale(dpr, dpr);
-      requestCanvasRedraw();
+      redrawAllStrokes();
     }
 
     window.addEventListener('resize', resizeCanvas);
@@ -664,385 +300,71 @@
       document.getElementById('tool-panel').style.display = 'none';
     }
 
-    function closeDialog(id) {
-      document.getElementById(id).style.display = 'none';
-    }
-
-    function openTextPrompt() {
-      closeDialog('tools-dialog');
-      openDialog('text-modal-dialog');
-    }
-
-    function confirmTextEntry() {
-      const input = document.getElementById('custom-text-input');
-      pendingTextValue = input.value.trim() || "Hello World!";
-      closeDialog('text-modal-dialog');
-      setTool('text');
-    }
-
-    function selectShape(shapeType) {
-      setTool(shapeType);
-      closeDialog('shapes-dialog');
-    }
+    function closeDialog(id) { document.getElementById(id).style.display = 'none'; }
 
     function setTool(tool) {
       activeTool = tool;
       document.getElementById('top-select-btn').className = tool === 'select' ? 'active' : '';
       document.getElementById('top-pen-btn').className = tool === 'pen' ? 'active' : '';
-
-      if (tool === 'bucket') {
-        clearCanvas(true);
-      }
-      if (tool !== 'select') {
-        selectedKey = null;
-        requestCanvasRedraw();
-      }
-    }
-
-    function setGrid(type) {
-      currentGrid = type;
-      requestCanvasRedraw();
-      closeDialog('themes-dialog');
-    }
-
-    function setTheme(theme) {
-      document.body.className = '';
-      if (theme !== 'light') {
-        document.body.classList.add(`theme-${theme}`);
-      }
-      requestCanvasRedraw();
-      closeDialog('themes-dialog');
     }
 
     function getPointerPos(e) {
       const rect = boardFrame.getBoundingClientRect();
-      let clientX, clientY;
-
-      if (e.touches && e.touches.length > 0) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-      } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
-      }
-
-      return {
-        xRatio: (clientX - rect.left) / rect.width,
-        yRatio: (clientY - rect.top) / rect.height
-      };
-    }
-
-    function getItemBounds(stroke) {
-      const rect = boardFrame.getBoundingClientRect();
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-
-      if (!stroke.points || stroke.points.length === 0) return null;
-
-      stroke.points.forEach(p => {
-        const x = p.xRatio * rect.width;
-        const y = p.yRatio * rect.height;
-        if (x < minX) minX = x;
-        if (y < minY) minY = y;
-        if (x > maxX) maxX = x;
-        if (y > maxY) maxY = y;
-      });
-
-      if (stroke.tool === 'text') {
-        const textWidth = (stroke.text || '').length * ((stroke.size || 20) * 0.6);
-        maxX = Math.max(maxX, minX + textWidth);
-        maxY = Math.max(maxY, minY + (stroke.size || 20));
-      }
-
-      const padding = 10;
-      return {
-        x: minX - padding,
-        y: minY - padding,
-        w: Math.max(30, (maxX - minX) + padding * 2),
-        h: Math.max(30, (maxY - minY) + padding * 2)
-      };
+      let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { xRatio: (clientX - rect.left) / rect.width, yRatio: (clientY - rect.top) / rect.height };
     }
 
     function startDrawing(e) {
       e.preventDefault();
-      const pos = getPointerPos(e);
-
-      if (activeTool === 'select') {
-        const rect = boardFrame.getBoundingClientRect();
-        const px = pos.xRatio * rect.width;
-        const py = pos.yRatio * rect.height;
-
-        if (selectedKey) {
-          const b = getItemBounds(strokesData[selectedKey]);
-          if (b) {
-            if (px >= b.x && px <= b.x + b.w && py >= b.y - 30 && py <= b.y) {
-              toggleLock(selectedKey);
-              return;
-            }
-            if (px >= b.x + b.w - 15 && px <= b.x + b.w + 15 && py >= b.y + b.h - 15 && py <= b.y + b.h + 15) {
-              if (strokesData[selectedKey].locked) {
-                alert("This element is locked!");
-                return;
-              }
-              isResizingItem = true;
-              dragStartPos = pos;
-              initialItemState = JSON.parse(JSON.stringify(strokesData[selectedKey]));
-              return;
-            }
-          }
-        }
-
-        let foundKey = null;
-        Object.keys(strokesData).reverse().forEach(key => {
-          if (!foundKey) {
-            const b = getItemBounds(strokesData[key]);
-            if (b && px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) {
-              foundKey = key;
-            }
-          }
-        });
-
-        if (foundKey) {
-          selectedKey = foundKey;
-          if (!strokesData[selectedKey].locked) {
-            isDraggingItem = true;
-            dragStartPos = pos;
-            initialItemState = JSON.parse(JSON.stringify(strokesData[selectedKey]));
-          }
-        } else {
-          selectedKey = null;
-        }
-        requestCanvasRedraw();
-        return;
-      }
-
-      if (activeTool === 'text') {
-        pushStrokeToFirebase({
-          userId: currentUserId,
-          tool: 'text',
-          text: pendingTextValue || "Hello World!",
-          points: [pos],
-          color: colorPicker.value,
-          size: parseInt(lineWidth.value) * 3,
-          locked: false
-        });
-        
-        // Auto-switch back to Pen tool immediately after text placement
-        setTool('pen');
-        return;
-      }
-
       isDrawing = true;
-      currentStrokePoints = [pos];
+      currentStrokePoints = [getPointerPos(e)];
     }
 
     function draw(e) {
-      const pos = getPointerPos(e);
-
-      if (activeTool === 'select') {
-        if (!selectedKey || (!isDraggingItem && !isResizingItem)) return;
-        e.preventDefault();
-
-        const stroke = strokesData[selectedKey];
-        if (stroke.locked) return;
-
-        const dx = pos.xRatio - dragStartPos.xRatio;
-        const dy = pos.yRatio - dragStartPos.yRatio;
-
-        if (isDraggingItem) {
-          stroke.points = initialItemState.points.map(p => ({
-            xRatio: p.xRatio + dx,
-            yRatio: p.yRatio + dy
-          }));
-        } else if (isResizingItem) {
-          const scaleFactor = 1 + dx * 2;
-          stroke.size = Math.max(2, Math.round(initialItemState.size * scaleFactor));
-        }
-        requestCanvasRedraw();
-        return;
-      }
-
       if (!isDrawing) return;
       e.preventDefault();
-
-      currentStrokePoints.push(pos);
-      requestCanvasRedraw();
+      currentStrokePoints.push(getPointerPos(e));
+      redrawAllStrokes();
     }
 
     function stopDrawing(e) {
-      if (activeTool === 'select') {
-        if ((isDraggingItem || isResizingItem) && selectedKey && strokesRef) {
-          strokesRef.child(selectedKey).update(strokesData[selectedKey]);
-        }
-        isDraggingItem = false;
-        isResizingItem = false;
-        return;
-      }
-
       if (!isDrawing) return;
       isDrawing = false;
-
       if (currentStrokePoints.length > 0 && strokesRef) {
-        const isFreehand = ['pen', 'pencil', 'marker', 'eraser'].includes(activeTool);
-        const pointsToSave = isFreehand 
-          ? currentStrokePoints 
-          : [currentStrokePoints[0], currentStrokePoints[currentStrokePoints.length - 1]];
-
-        pushStrokeToFirebase({
-          userId: currentUserId,
-          tool: activeTool,
-          points: pointsToSave,
-          color: activeTool === 'eraser' ? getBoardBgColor() : colorPicker.value,
-          size: lineWidth.value,
-          locked: false,
-          timestamp: firebase.database.ServerValue.TIMESTAMP
+        strokesRef.push({
+          userId: currentUserId, tool: activeTool, points: currentStrokePoints,
+          color: activeTool === 'eraser' ? '#ffffff' : colorPicker.value, size: lineWidth.value
         });
       }
       currentStrokePoints = [];
     }
 
-    function pushStrokeToFirebase(strokeObj) {
-      strokesRef.push(strokeObj);
-      redoStack = [];
-    }
-
-    function toggleLock(key) {
-      if (!strokesRef || !strokesData[key]) return;
-      const newLockedState = !strokesData[key].locked;
-      strokesRef.child(key).update({ locked: newLockedState });
-    }
-
-    function addSticker(emoji) {
-      if (!strokesRef) return;
-      pushStrokeToFirebase({
-        userId: currentUserId,
-        tool: 'text',
-        text: emoji,
-        points: [{ xRatio: 0.5, yRatio: 0.5 }],
-        color: '#000000',
-        size: 36,
-        locked: false
-      });
-      closeDialog('stickers-dialog');
-    }
-
-    function getBoardBgColor() {
-      if (document.body.classList.contains('theme-dark')) return '#1e1e1e';
-      if (document.body.classList.contains('theme-blueprint')) return '#10345e';
-      return '#ffffff';
-    }
-
     function drawBackgroundGrid() {
       const rect = boardFrame.getBoundingClientRect();
-      const w = rect.width;
-      const h = rect.height;
-
       ctx.save();
       ctx.strokeStyle = "rgba(0,0,0,0.08)";
-      ctx.fillStyle = "rgba(0,0,0,0.15)";
-      ctx.lineWidth = 1;
-
-      if (currentGrid === 'grid') {
-        for (let x = 0; x < w; x += 20) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-        for (let y = 0; y < h; y += 20) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-      } else if (currentGrid === 'dots') {
-        for (let x = 10; x < w; x += 20) {
-          for (let y = 10; y < h; y += 20) {
-            ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
-          }
-        }
-      }
+      for (let x = 0; x < rect.width; x += 20) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, rect.height); ctx.stroke(); }
+      for (let y = 0; y < rect.height; y += 20) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(rect.width, y); ctx.stroke(); }
       ctx.restore();
     }
 
-    function renderStrokeLocally(stroke, isSelected = false) {
+    function renderStrokeLocally(stroke) {
       if (!stroke.points || stroke.points.length === 0) return;
-
       const rect = boardFrame.getBoundingClientRect();
-      const points = stroke.points;
-
       ctx.save();
       ctx.lineWidth = stroke.size;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.strokeStyle = stroke.color;
-      ctx.fillStyle = stroke.color;
 
-      if (stroke.tool === 'pencil') ctx.globalAlpha = 0.5;
-      else if (stroke.tool === 'marker') ctx.globalAlpha = 0.35;
-
-      const x1 = points[0].xRatio * rect.width;
-      const y1 = points[0].yRatio * rect.height;
-      const x2 = points.length > 1 ? points[points.length - 1].xRatio * rect.width : x1;
-      const y2 = points.length > 1 ? points[points.length - 1].yRatio * rect.height : y1;
-
-      if (stroke.tool === 'text') {
-        ctx.font = `${stroke.size || 20}px sans-serif`;
-        ctx.fillText(stroke.text || '', x1, y1);
-      } else if (['pen', 'pencil', 'marker', 'eraser'].includes(stroke.tool)) {
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        for (let i = 1; i < points.length; i++) {
-          ctx.lineTo(points[i].xRatio * rect.width, points[i].yRatio * rect.height);
-        }
-        ctx.stroke();
-      } else if (stroke.tool === 'line') {
-        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-      } else if (stroke.tool === 'rect') {
-        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
-      } else if (stroke.tool === 'rrect') {
-        ctx.beginPath(); ctx.roundRect(x1, y1, x2 - x1, y2 - y1, 10); ctx.stroke();
-      } else if (stroke.tool === 'circle' || stroke.tool === 'ellipse') {
-        const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        ctx.beginPath(); ctx.arc(x1, y1, radius, 0, Math.PI * 2); ctx.stroke();
-      } else if (stroke.tool === 'triangle') {
-        ctx.beginPath(); ctx.moveTo((x1 + x2) / 2, y1); ctx.lineTo(x1, y2); ctx.lineTo(x2, y2); ctx.closePath(); ctx.stroke();
-      } else if (stroke.tool === 'star') {
-        const r = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        ctx.beginPath();
-        for (let i = 0; i < 5; i++) {
-          ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * r + x1, -Math.sin((18 + i * 72) * Math.PI / 180) * r + y1);
-          ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * (r/2) + x1, -Math.sin((54 + i * 72) * Math.PI / 180) * (r/2) + y1);
-        }
-        ctx.closePath(); ctx.stroke();
-      } else {
-        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+      ctx.beginPath();
+      ctx.moveTo(stroke.points[0].xRatio * rect.width, stroke.points[0].yRatio * rect.height);
+      for (let i = 1; i < stroke.points.length; i++) {
+        ctx.lineTo(stroke.points[i].xRatio * rect.width, stroke.points[i].yRatio * rect.height);
       }
-
+      ctx.stroke();
       ctx.restore();
-
-      if (isSelected) {
-        const b = getItemBounds(stroke);
-        if (b) {
-          ctx.save();
-          ctx.strokeStyle = '#007bff';
-          ctx.lineWidth = 2;
-          ctx.setLineDash([5, 5]);
-          ctx.strokeRect(b.x, b.y, b.w, b.h);
-
-          ctx.setLineDash([]);
-          ctx.fillStyle = stroke.locked ? '#dc3545' : '#28a745';
-          ctx.fillRect(b.x, b.y - 28, 65, 24);
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '11px sans-serif';
-          ctx.fillText(stroke.locked ? '🔒 Locked' : '🔓 Lock', b.x + 6, b.y - 12);
-
-          if (!stroke.locked) {
-            ctx.fillStyle = '#007bff';
-            ctx.fillRect(b.x + b.w - 8, b.y + b.h - 8, 16, 16);
-          }
-          ctx.restore();
-        }
-      }
-    }
-
-    function requestCanvasRedraw() {
-      if (!animFramePending) {
-        animFramePending = true;
-        requestAnimationFrame(() => {
-          redrawAllStrokes();
-          animFramePending = false;
-        });
-      }
     }
 
     function redrawAllStrokes() {
@@ -1050,72 +372,33 @@
       ctx.clearRect(0, 0, rect.width, rect.height);
       drawBackgroundGrid();
 
-      Object.keys(strokesData).forEach(key => {
-        renderStrokeLocally(strokesData[key], key === selectedKey);
-      });
+      Object.keys(strokesData).forEach(key => { renderStrokeLocally(strokesData[key]); });
 
       if (isDrawing && currentStrokePoints.length > 0) {
-        renderStrokeLocally({
-          tool: activeTool,
-          points: currentStrokePoints,
-          color: activeTool === 'eraser' ? getBoardBgColor() : colorPicker.value,
-          size: lineWidth.value
-        });
+        renderStrokeLocally({ tool: activeTool, points: currentStrokePoints, color: activeTool === 'eraser' ? '#ffffff' : colorPicker.value, size: lineWidth.value });
       }
     }
 
     function undoLastStroke() {
       if (!strokesRef) return;
-      const userStrokeKeys = Object.keys(strokesData).filter(
-        key => strokesData[key].userId === currentUserId && !strokesData[key].locked
-      );
-
-      if (userStrokeKeys.length > 0) {
-        const lastKey = userStrokeKeys[userStrokeKeys.length - 1];
-        redoStack.push(strokesData[lastKey]);
-        strokesRef.child(lastKey).remove();
-      }
+      const keys = Object.keys(strokesData);
+      if (keys.length > 0) { strokesRef.child(keys[keys.length - 1]).remove(); }
     }
 
-    function redoLastStroke() {
-      if (redoStack.length > 0 && strokesRef) {
-        const strokeToRedo = redoStack.pop();
-        strokesRef.push(strokeToRedo);
-      }
-    }
-
-    function clearCanvas(broadcast = false) {
-      const rect = boardFrame.getBoundingClientRect();
-      ctx.clearRect(0, 0, rect.width, rect.height);
-      if (broadcast && strokesRef) {
-        Object.keys(strokesData).forEach(key => {
-          if (!strokesData[key].locked) {
-            strokesRef.child(key).remove();
-          }
-        });
-      }
-    }
-
-    function downloadPNG() {
-      const link = document.createElement('a');
-      link.download = 'aklavya-world-canvas.png';
-      link.href = canvas.toDataURL();
-      link.click();
+    function clearCanvas(broadcast) {
+      if (broadcast && strokesRef) { strokesRef.set(null); }
     }
 
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseleave', stopDrawing);
-
     canvas.addEventListener('touchstart', startDrawing, { passive: false });
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', stopDrawing);
 
     function updateStatus(isConnected, message) {
       const statusElem = document.getElementById('peer-status');
-      statusElem.innerText = message;
-      statusElem.className = isConnected ? 'status-connected' : 'status-disconnected';
+      if (statusElem) { statusElem.innerText = message; }
     }
 
     initApp();
