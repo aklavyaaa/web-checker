@@ -412,6 +412,9 @@
       strokesRef.on('value', (snapshot) => {
         strokesData = snapshot.val() || {};
         redrawAllStrokes();
+
+        // Send canvas snapshot to Android Widget Bridge
+        notifyAndroidWidget();
       });
 
       updateStatus(true, `Connected (Portrait Board)`);
@@ -424,6 +427,18 @@
           setTimeout(() => splash.style.display = 'none', 400);
         }
       }, 500);
+    }
+
+    function notifyAndroidWidget() {
+      if (window.AndroidInterface && window.AndroidInterface.updateWidgetImage) {
+        try {
+          // Export high quality canvas snapshot to native Java
+          const dataUrl = canvas.toDataURL('image/png', 1.0);
+          window.AndroidInterface.updateWidgetImage(dataUrl);
+        } catch (e) {
+          console.error("Widget bridge error:", e);
+        }
+      }
     }
 
     function resizeCanvas() {
