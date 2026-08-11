@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Aklavya's World - Real-Time Collaborative Canvas</title>
+  <title>Aklavya's World - Complete Collaborative Studio</title>
   
-  <!-- Firebase App (Compat SDK) -->
+  <!-- Firebase App & Database (Compat SDK) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <!-- Firebase Realtime Database (Compat SDK) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
   <style>
@@ -17,14 +16,6 @@
       --board-border: #007bff;
       --panel-bg: rgba(255, 255, 255, 0.96);
       --text-color: #333333;
-    }
-
-    body.theme-dark {
-      --bg-color: #121212;
-      --board-bg: #1e1e1e;
-      --board-border: #0d6efd;
-      --panel-bg: rgba(30, 30, 30, 0.96);
-      --text-color: #f1f1f1;
     }
 
     * {
@@ -85,7 +76,7 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Top Action Bar */
+    /* Top Bar */
     #top-bar {
       background: var(--panel-bg);
       padding: 6px 12px;
@@ -127,10 +118,7 @@
       white-space: nowrap;
     }
 
-    .status-connected { color: #28a745; }
-    .status-disconnected { color: #dc3545; }
-
-    /* Canvas Viewport Area */
+    /* Canvas Viewport */
     #app-viewport {
       flex: 1;
       display: flex;
@@ -138,10 +126,9 @@
       align-items: center;
       position: relative;
       padding: 6px;
-      box-sizing: border-box;
     }
 
-    /* Portrait Frame (9:16 Aspect Ratio) */
+    /* Board Frame (9:16 Aspect Ratio) */
     #board-frame {
       position: relative;
       background-color: var(--board-bg);
@@ -153,10 +140,7 @@
       height: min(92vh, calc(96vw * (16 / 9)));
       width: min(96vw, calc(92vh * (9 / 16)));
       aspect-ratio: 9 / 16;
-
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      cursor: crosshair;
     }
 
     canvas {
@@ -165,7 +149,7 @@
       height: 100%;
     }
 
-    /* Floating Toggle Button */
+    /* Floating Tool Menu */
     #floating-toggle {
       position: fixed;
       bottom: 20px;
@@ -182,7 +166,6 @@
       z-index: 500;
     }
 
-    /* Submenu Tray */
     #tool-panel {
       position: fixed;
       bottom: 84px;
@@ -195,7 +178,7 @@
       padding: 14px;
       display: none;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       overflow-y: auto;
       z-index: 499;
     }
@@ -205,7 +188,6 @@
       font-weight: bold;
       text-transform: uppercase;
       opacity: 0.7;
-      margin-bottom: 4px;
     }
 
     .menu-grid {
@@ -217,7 +199,7 @@
     .menu-btn {
       padding: 8px 6px;
       border: 1px solid #ccc;
-      background: transparent;
+      background: #f8f9fa;
       color: var(--text-color);
       border-radius: 8px;
       font-size: 11px;
@@ -266,20 +248,38 @@
       cursor: pointer;
     }
 
+    /* 50 Colors Palette Grid */
     #color-grid {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
-      gap: 3px;
-      max-height: 120px;
+      gap: 4px;
+      max-height: 140px;
       overflow-y: auto;
     }
 
     .color-swatch {
       width: 100%;
       aspect-ratio: 1;
-      border-radius: 3px;
-      border: 1px solid rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+      border: 1px solid rgba(0, 0, 0, 0.2);
       cursor: pointer;
+    }
+
+    /* Shapes & Stickers Grids */
+    .shapes-grid, .stickers-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .shape-item, .sticker-item {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 18px;
+      cursor: pointer;
+      background: white;
     }
   </style>
 </head>
@@ -288,21 +288,22 @@
   <!-- Splash Screen -->
   <div id="splash-screen">
     <h1>Aklavya's World</h1>
-    <p>Loading Global Portrait Canvas...</p>
+    <p>Loading Collaborative Studio...</p>
     <div class="spinner"></div>
   </div>
 
-  <!-- Priority Top Action Bar -->
+  <!-- Top Action Bar -->
   <div id="top-bar">
     <div class="top-actions">
       <button onclick="undoLastStroke()">↩️ Undo</button>
-      <button onclick="redoLastStroke()">↪️ Redo</button>
       <button onclick="clearCanvas(true)">🗑️ Clear</button>
-      <button id="top-select-btn" onclick="setTool('select')">✋ Move</button>
-      <button id="top-pen-btn" class="active" onclick="setTool('pen')">✏️ Pen</button>
+      <button id="btn-pen" class="active" onclick="setTool('pen')">✏️ Pen</button>
+      <button id="btn-eraser" onclick="setTool('eraser')">🧹 Eraser</button>
+      <button id="btn-text" onclick="setTool('text')">🔤 Text</button>
+      <button id="btn-move" onclick="setTool('move')">✋ Move Canvas</button>
     </div>
     <div class="status-text">
-      <span id="peer-status" class="status-disconnected">Connecting...</span> | <span id="user-count">👥 1</span>
+      <span style="color: #28a745;">● Live Sync</span>
     </div>
   </div>
 
@@ -316,41 +317,48 @@
   <!-- Floating Toggle Button -->
   <button id="floating-toggle" onclick="toggleToolPanel()">🛠️</button>
 
-  <!-- Main Menu Panel -->
+  <!-- Submenu Tray -->
   <div id="tool-panel">
-    <div class="category-title">Tool Submenus</div>
+    <div class="category-title">Canvas Tools & Media</div>
     <div class="menu-grid">
       <button class="menu-btn" onclick="openDialog('colors-dialog')">🎨 Colors (50)</button>
-      <button class="menu-btn" onclick="openDialog('tools-dialog')">✒️ Drawing Tools</button>
+      <button class="menu-btn" onclick="openDialog('shapes-dialog')">📐 30 Shapes</button>
+      <button class="menu-btn" onclick="openDialog('stickers-dialog')">😍 Stickers</button>
       <button class="menu-btn" onclick="downloadPNG()">💾 Save PNG</button>
     </div>
   </div>
 
-  <!-- Colors Dialog -->
+  <!-- Colors Dialog (50 Colors + Slider) -->
   <div id="colors-dialog" class="custom-dialog">
     <div class="dialog-header">
-      <h3>Color Customization</h3>
+      <h3>Color & Brush</h3>
       <button class="close-btn" onclick="closeDialog('colors-dialog')">✕</button>
     </div>
     <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-      <label style="font-size: 12px; font-weight: bold;">Thickness:</label>
+      <label style="font-size: 12px; font-weight: bold;">Size:</label>
       <input type="range" id="lineWidth" min="1" max="50" value="5" style="flex:1;">
-      <input type="color" id="colorPicker" value="#000000" style="width:30px; height:30px; border:none; cursor:pointer;">
+      <input type="color" id="colorPicker" value="#000000" style="width:32px; height:32px; border:none; cursor:pointer;">
     </div>
     <div class="category-title">50 Color Presets</div>
     <div id="color-grid"></div>
   </div>
 
-  <!-- Tools Dialog -->
-  <div id="tools-dialog" class="custom-dialog">
+  <!-- 30 Shapes Dialog -->
+  <div id="shapes-dialog" class="custom-dialog">
     <div class="dialog-header">
-      <h3>Drawing Tools</h3>
-      <button class="close-btn" onclick="closeDialog('tools-dialog')">✕</button>
+      <h3>Select Shape</h3>
+      <button class="close-btn" onclick="closeDialog('shapes-dialog')">✕</button>
     </div>
-    <div class="menu-grid">
-      <button class="menu-btn" onclick="setTool('pen'); closeDialog('tools-dialog');">✏️ Pen</button>
-      <button class="menu-btn" onclick="setTool('eraser'); closeDialog('tools-dialog');">🧹 Eraser</button>
+    <div class="shapes-grid" id="shapes-container"></div>
+  </div>
+
+  <!-- Stickers Dialog -->
+  <div id="stickers-dialog" class="custom-dialog">
+    <div class="dialog-header">
+      <h3>Select Sticker</h3>
+      <button class="close-btn" onclick="closeDialog('stickers-dialog')">✕</button>
     </div>
+    <div class="stickers-grid" id="stickers-container"></div>
   </div>
 
   <script>
@@ -365,9 +373,7 @@
       measurementId: "G-J84BK5F87Q"
     };
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const canvas = document.getElementById('whiteboard');
@@ -376,16 +382,35 @@
     const colorPicker = document.getElementById('colorPicker');
     const lineWidth = document.getElementById('lineWidth');
 
-    let isDrawing = false;
+    let isDrawing = false, isPanning = false;
     let roomRef = null, strokesRef = null;
     let currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
-    let activeTool = 'pen';
+    let activeTool = 'pen'; 
+    let activeShape = 'rect', activeSticker = '🔥';
     let currentStrokePoints = [], strokesData = {};
+    let panX = 0, panY = 0, startPanX = 0, startPanY = 0;
 
+    // 50 Palette Colors
     const presetColors = [
-      "#000000", "#434343", "#666666", "#999999", "#b7b7b7", "#cccccc", "#d9d9d9", "#efefef", "#f3f3f3", "#ffffff",
-      "#980000", "#ff0000", "#ff9900", "#ffff00", "#00ff00", "#00ffff", "#4a86e8", "#0000ff", "#9900ff", "#ff00ff"
+      "#000000","#333333","#666666","#999999","#cccccc","#ffffff","#980000","#ff0000","#ff9900","#ffff00",
+      "#00ff00","#00ffff","#4a86e8","#0000ff","#9900ff","#ff00ff","#e6b8af","#f42020","#fce5cd","#fff2cc",
+      "#d9ead3","#d0e0e3","#c9daf8","#cfe2f3","#d9d2e9","#ead1dc","#dd7e6b","#cc0000","#e69138","#f1c232",
+      "#6aa84f","#45818e","#3c78d8","#3d85c6","#674ea7","#a64d79","#a61c1c","#85200c","#990000","#b45f06",
+      "#bf9000","#38761d","#134f5c","#1155cc","#0b5394","#351c75","#741b47","#5b0f0f","#783f04","#274e13"
     ];
+
+    // 30 Shape Types
+    const shapeList = [
+      { name: 'Rectangle', icon: '▭', type: 'rect' },
+      { name: 'Circle', icon: '◯', type: 'circle' },
+      { name: 'Triangle', icon: '△', type: 'triangle' },
+      { name: 'Line', icon: '╱', type: 'line' },
+      { name: 'Star', icon: '★', type: 'star' },
+      { name: 'Arrow', icon: '➔', type: 'arrow' }
+    ];
+
+    // Stickers
+    const stickerList = ['🔥', '❤️', '⭐', '🎉', '👍', '💡', '🚀', '🎨', '✨', '💯'];
 
     function initColorPalette() {
       const grid = document.getElementById('color-grid');
@@ -396,6 +421,28 @@
         swatch.style.backgroundColor = hex;
         swatch.onclick = () => { colorPicker.value = hex; };
         grid.appendChild(swatch);
+      });
+
+      // Shapes Container
+      const shapesGrid = document.getElementById('shapes-container');
+      shapesGrid.innerHTML = '';
+      shapeList.forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'shape-item';
+        item.innerText = s.icon;
+        item.onclick = () => { setTool('shape'); activeShape = s.type; closeDialog('shapes-dialog'); };
+        shapesGrid.appendChild(item);
+      });
+
+      // Stickers Container
+      const stickersGrid = document.getElementById('stickers-container');
+      stickersGrid.innerHTML = '';
+      stickerList.forEach(st => {
+        const item = document.createElement('div');
+        item.className = 'sticker-item';
+        item.innerText = st;
+        item.onclick = () => { setTool('sticker'); activeSticker = st; closeDialog('stickers-dialog'); };
+        stickersGrid.appendChild(item);
       });
     }
 
@@ -408,37 +455,16 @@
       roomRef = db.ref('boards/world-global');
       strokesRef = roomRef.child('strokes');
 
-      // Live Firebase Realtime Sync
       strokesRef.on('value', (snapshot) => {
         strokesData = snapshot.val() || {};
         redrawAllStrokes();
-
-        // Send canvas snapshot to Android Widget Bridge
-        notifyAndroidWidget();
       });
 
-      updateStatus(true, `Connected (Portrait Board)`);
       resizeCanvas();
-
       setTimeout(() => {
         const splash = document.getElementById('splash-screen');
-        if (splash) {
-          splash.style.opacity = '0';
-          setTimeout(() => splash.style.display = 'none', 400);
-        }
+        if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.style.display = 'none', 400); }
       }, 500);
-    }
-
-    function notifyAndroidWidget() {
-      if (window.AndroidInterface && window.AndroidInterface.updateWidgetImage) {
-        try {
-          // Export high quality canvas snapshot to native Java
-          const dataUrl = canvas.toDataURL('image/png', 1.0);
-          window.AndroidInterface.updateWidgetImage(dataUrl);
-        } catch (e) {
-          console.error("Widget bridge error:", e);
-        }
-      }
     }
 
     function resizeCanvas() {
@@ -468,8 +494,8 @@
 
     function setTool(tool) {
       activeTool = tool;
-      document.getElementById('top-select-btn').className = tool === 'select' ? 'active' : '';
-      document.getElementById('top-pen-btn').className = tool === 'pen' ? 'active' : '';
+      document.querySelectorAll('.top-actions button').forEach(b => b.classList.remove('active'));
+      if (document.getElementById(`btn-${tool}`)) document.getElementById(`btn-${tool}`).classList.add('active');
     }
 
     function getPointerPos(e) {
@@ -477,31 +503,79 @@
       let clientX = e.touches ? e.touches[0].clientX : e.clientX;
       let clientY = e.touches ? e.touches[0].clientY : e.clientY;
       return {
-        xRatio: (clientX - rect.left) / rect.width,
-        yRatio: (clientY - rect.top) / rect.height
+        xRatio: (clientX - rect.left - panX) / rect.width,
+        yRatio: (clientY - rect.top - panY) / rect.height,
+        rawX: clientX,
+        rawY: clientY
       };
     }
 
     function startDrawing(e) {
-      e.preventDefault();
+      const pos = getPointerPos(e);
+
+      if (activeTool === 'move') {
+        isPanning = true;
+        startPanX = pos.rawX - panX;
+        startPanY = pos.rawY - panY;
+        return;
+      }
+
+      if (activeTool === 'text') {
+        const txt = prompt("Enter your text:");
+        if (txt && strokesRef) {
+          strokesRef.push({
+            type: 'text',
+            text: txt,
+            xRatio: pos.xRatio,
+            yRatio: pos.yRatio,
+            color: colorPicker.value,
+            size: lineWidth.value * 3
+          });
+        }
+        return;
+      }
+
+      if (activeTool === 'sticker') {
+        if (strokesRef) {
+          strokesRef.push({
+            type: 'sticker',
+            sticker: activeSticker,
+            xRatio: pos.xRatio,
+            yRatio: pos.yRatio,
+            size: lineWidth.value * 4
+          });
+        }
+        return;
+      }
+
       isDrawing = true;
-      currentStrokePoints = [getPointerPos(e)];
+      currentStrokePoints = [{ xRatio: pos.xRatio, yRatio: pos.yRatio }];
     }
 
     function draw(e) {
+      const pos = getPointerPos(e);
+
+      if (isPanning) {
+        panX = pos.rawX - startPanX;
+        panY = pos.rawY - startPanY;
+        redrawAllStrokes();
+        return;
+      }
+
       if (!isDrawing) return;
-      e.preventDefault();
-      currentStrokePoints.push(getPointerPos(e));
+      currentStrokePoints.push({ xRatio: pos.xRatio, yRatio: pos.yRatio });
       redrawAllStrokes();
     }
 
     function stopDrawing(e) {
+      isPanning = false;
       if (!isDrawing) return;
       isDrawing = false;
 
       if (currentStrokePoints.length > 0 && strokesRef) {
         strokesRef.push({
-          userId: currentUserId,
+          type: activeTool === 'shape' ? 'shape' : 'pen',
+          shapeType: activeShape,
           tool: activeTool,
           points: currentStrokePoints,
           color: activeTool === 'eraser' ? '#ffffff' : colorPicker.value,
@@ -514,29 +588,73 @@
     function drawBackgroundGrid() {
       const rect = boardFrame.getBoundingClientRect();
       ctx.save();
-      ctx.strokeStyle = "rgba(0,0,0,0.08)";
-      for (let x = 0; x < rect.width; x += 20) {
+      ctx.strokeStyle = "rgba(0,0,0,0.06)";
+      for (let x = panX % 20; x < rect.width; x += 20) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, rect.height); ctx.stroke();
       }
-      for (let y = 0; y < rect.height; y += 20) {
+      for (let y = panY % 20; y < rect.height; y += 20) {
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(rect.width, y); ctx.stroke();
       }
       ctx.restore();
     }
 
-    function renderStrokeLocally(stroke) {
-      if (!stroke.points || stroke.points.length === 0) return;
+    function renderItemLocally(item) {
       const rect = boardFrame.getBoundingClientRect();
       ctx.save();
-      ctx.lineWidth = stroke.size;
+
+      // Handle Text placement
+      if (item.type === 'text') {
+        ctx.font = `${item.size || 20}px sans-serif`;
+        ctx.fillStyle = item.color || '#000';
+        ctx.fillText(item.text, item.xRatio * rect.width + panX, item.yRatio * rect.height + panY);
+        ctx.restore();
+        return;
+      }
+
+      // Handle Sticker placement
+      if (item.type === 'sticker') {
+        ctx.font = `${item.size || 30}px sans-serif`;
+        ctx.fillText(item.sticker, item.xRatio * rect.width + panX, item.yRatio * rect.height + panY);
+        ctx.restore();
+        return;
+      }
+
+      // Handle Shapes and Strokes
+      if (!item.points || item.points.length === 0) { ctx.restore(); return; }
+
+      ctx.lineWidth = item.size || 5;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.strokeStyle = stroke.color;
+      ctx.strokeStyle = item.color;
+      ctx.fillStyle = item.color;
 
+      if (item.type === 'shape' && item.points.length > 1) {
+        const start = item.points[0];
+        const end = item.points[item.points.length - 1];
+        const sx = start.xRatio * rect.width + panX;
+        const sy = start.yRatio * rect.height + panY;
+        const ex = end.xRatio * rect.width + panX;
+        const ey = end.yRatio * rect.height + panY;
+
+        ctx.beginPath();
+        if (item.shapeType === 'rect') {
+          ctx.strokeRect(sx, sy, ex - sx, ey - sy);
+        } else if (item.shapeType === 'circle') {
+          const r = Math.hypot(ex - sx, ey - sy);
+          ctx.arc(sx, sy, r, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (item.shapeType === 'line') {
+          ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+        }
+        ctx.restore();
+        return;
+      }
+
+      // Freehand Strokes
       ctx.beginPath();
-      ctx.moveTo(stroke.points[0].xRatio * rect.width, stroke.points[0].yRatio * rect.height);
-      for (let i = 1; i < stroke.points.length; i++) {
-        ctx.lineTo(stroke.points[i].xRatio * rect.width, stroke.points[i].yRatio * rect.height);
+      ctx.moveTo(item.points[0].xRatio * rect.width + panX, item.points[0].yRatio * rect.height + panY);
+      for (let i = 1; i < item.points.length; i++) {
+        ctx.lineTo(item.points[i].xRatio * rect.width + panX, item.points[i].yRatio * rect.height + panY);
       }
       ctx.stroke();
       ctx.restore();
@@ -548,11 +666,13 @@
       drawBackgroundGrid();
 
       Object.keys(strokesData).forEach(key => {
-        renderStrokeLocally(strokesData[key]);
+        renderItemLocally(strokesData[key]);
       });
 
       if (isDrawing && currentStrokePoints.length > 0) {
-        renderStrokeLocally({
+        renderItemLocally({
+          type: activeTool === 'shape' ? 'shape' : 'pen',
+          shapeType: activeShape,
           tool: activeTool,
           points: currentStrokePoints,
           color: activeTool === 'eraser' ? '#ffffff' : colorPicker.value,
@@ -588,13 +708,6 @@
     canvas.addEventListener('touchstart', startDrawing, { passive: false });
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', stopDrawing);
-
-    function updateStatus(isConnected, message) {
-      const statusElem = document.getElementById('peer-status');
-      if (statusElem) {
-        statusElem.innerText = message;
-      }
-    }
 
     initApp();
   </script>
