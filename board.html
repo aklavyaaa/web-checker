@@ -410,16 +410,8 @@
 
       // Live Firebase Realtime Sync
       strokesRef.on('value', (snapshot) => {
-        // Trigger widget mini loading spinner before processing drawing
-        if (window.AndroidInterface && window.AndroidInterface.onSyncStarted) {
-          window.AndroidInterface.onSyncStarted();
-        }
-
         strokesData = snapshot.val() || {};
         redrawAllStrokes();
-
-        // Push new high-res drawing snapshot to widget
-        notifyAndroidWidget();
       });
 
       updateStatus(true, `Connected (Portrait Board)`);
@@ -432,18 +424,6 @@
           setTimeout(() => splash.style.display = 'none', 400);
         }
       }, 500);
-    }
-
-    function notifyAndroidWidget() {
-      if (window.AndroidInterface && window.AndroidInterface.updateWidgetImage) {
-        try {
-          // Export high quality canvas snapshot
-          const dataUrl = canvas.toDataURL('image/png', 1.0);
-          window.AndroidInterface.updateWidgetImage(dataUrl);
-        } catch (e) {
-          console.error(e);
-        }
-      }
     }
 
     function resizeCanvas() {
