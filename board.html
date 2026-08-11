@@ -149,11 +149,11 @@
       height: 100%;
     }
 
-    /* Floating Tool Menu */
+    /* FLOATING TOGGLE BUTTON - MOVED TO LEFT SIDE */
     #floating-toggle {
       position: fixed;
       bottom: 20px;
-      right: 20px;
+      left: 20px;
       width: 54px;
       height: 54px;
       border-radius: 50%;
@@ -166,10 +166,11 @@
       z-index: 500;
     }
 
+    /* SUBMENU TRAY - OPENING FROM LEFT SIDE */
     #tool-panel {
       position: fixed;
       bottom: 84px;
-      right: 20px;
+      left: 20px;
       width: 320px;
       max-height: 75vh;
       background: var(--panel-bg);
@@ -192,17 +193,17 @@
 
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 6px;
     }
 
     .menu-btn {
-      padding: 8px 6px;
+      padding: 10px 8px;
       border: 1px solid #ccc;
       background: #f8f9fa;
       color: var(--text-color);
       border-radius: 8px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
     }
@@ -281,6 +282,10 @@
       cursor: pointer;
       background: white;
     }
+
+    .shape-item:hover, .sticker-item:hover {
+      background: #e9ecef;
+    }
   </style>
 </head>
 <body>
@@ -314,7 +319,7 @@
     </div>
   </div>
 
-  <!-- Floating Toggle Button -->
+  <!-- FLOATING TOGGLE BUTTON (ON LEFT SIDE) -->
   <button id="floating-toggle" onclick="toggleToolPanel()">🛠️</button>
 
   <!-- Submenu Tray -->
@@ -328,7 +333,7 @@
     </div>
   </div>
 
-  <!-- Colors Dialog (50 Colors + Slider) -->
+  <!-- Colors Dialog (50 Colors + Size Slider) -->
   <div id="colors-dialog" class="custom-dialog">
     <div class="dialog-header">
       <h3>Color & Brush</h3>
@@ -399,18 +404,42 @@
       "#bf9000","#38761d","#134f5c","#1155cc","#0b5394","#351c75","#741b47","#5b0f0f","#783f04","#274e13"
     ];
 
-    // 30 Shape Types
+    // 30 Shape Definitions
     const shapeList = [
       { name: 'Rectangle', icon: '▭', type: 'rect' },
+      { name: 'Square', icon: '▢', type: 'square' },
       { name: 'Circle', icon: '◯', type: 'circle' },
+      { name: 'Ellipse', icon: '⬏', type: 'ellipse' },
       { name: 'Triangle', icon: '△', type: 'triangle' },
       { name: 'Line', icon: '╱', type: 'line' },
       { name: 'Star', icon: '★', type: 'star' },
-      { name: 'Arrow', icon: '➔', type: 'arrow' }
+      { name: 'Arrow', icon: '➔', type: 'arrow' },
+      { name: 'Diamond', icon: '◆', type: 'diamond' },
+      { name: 'Pentagon', icon: '⬟', type: 'pentagon' },
+      { name: 'Hexagon', icon: '⬡', type: 'hexagon' },
+      { name: 'Heart', icon: '♥', type: 'heart' },
+      { name: 'Right Triangle', icon: '⊿', type: 'right_triangle' },
+      { name: 'Trapezoid', icon: '⏢', type: 'trapezoid' },
+      { name: 'Parallelogram', icon: '▰', type: 'parallelogram' },
+      { name: 'Cross', icon: '┼', type: 'cross' },
+      { name: 'Check', icon: '✓', type: 'check' },
+      { name: 'Speech Bubble', icon: '💬', type: 'speech' },
+      { name: 'Cloud', icon: '☁', type: 'cloud' },
+      { name: 'Moon', icon: '🌙', type: 'moon' },
+      { name: 'Lightning', icon: '⚡', type: 'lightning' },
+      { name: 'Ring', icon: '◎', type: 'ring' },
+      { name: 'Cylinder', icon: '⬭', type: 'cylinder' },
+      { name: 'Cube', icon: '🧊', type: 'cube' },
+      { name: 'Octagon', icon: '🛑', type: 'octagon' },
+      { name: 'Plus', icon: '➕', type: 'plus' },
+      { name: 'Minus', icon: '➖', type: 'minus' },
+      { name: 'Infinity', icon: '♾️', type: 'infinity' },
+      { name: 'Double Arrow', icon: '↔', type: 'double_arrow' },
+      { name: 'Curved Line', icon: '∿', type: 'curved_line' }
     ];
 
-    // Stickers
-    const stickerList = ['🔥', '❤️', '⭐', '🎉', '👍', '💡', '🚀', '🎨', '✨', '💯'];
+    // Stickers List
+    const stickerList = ['🔥', '❤️', '⭐', '🎉', '👍', '💡', '🚀', '🎨', '✨', '💯', '👏', '🥳', '💩', '😎', '🏆'];
 
     function initColorPalette() {
       const grid = document.getElementById('color-grid');
@@ -423,18 +452,19 @@
         grid.appendChild(swatch);
       });
 
-      // Shapes Container
+      // Populate 30 Shapes
       const shapesGrid = document.getElementById('shapes-container');
       shapesGrid.innerHTML = '';
       shapeList.forEach(s => {
         const item = document.createElement('div');
         item.className = 'shape-item';
         item.innerText = s.icon;
+        item.title = s.name;
         item.onclick = () => { setTool('shape'); activeShape = s.type; closeDialog('shapes-dialog'); };
         shapesGrid.appendChild(item);
       });
 
-      // Stickers Container
+      // Populate Stickers
       const stickersGrid = document.getElementById('stickers-container');
       stickersGrid.innerHTML = '';
       stickerList.forEach(st => {
@@ -521,7 +551,7 @@
       }
 
       if (activeTool === 'text') {
-        const txt = prompt("Enter your text:");
+        const txt = prompt("Enter text to add to board:");
         if (txt && strokesRef) {
           strokesRef.push({
             type: 'text',
@@ -598,11 +628,24 @@
       ctx.restore();
     }
 
+    function drawCustomPolygon(ctx, cx, cy, radius, sides) {
+      ctx.beginPath();
+      for (let i = 0; i < sides; i++) {
+        const angle = (i * 2 * Math.PI / sides) - Math.PI / 2;
+        const x = cx + radius * Math.cos(angle);
+        const y = cy + radius * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+
     function renderItemLocally(item) {
       const rect = boardFrame.getBoundingClientRect();
       ctx.save();
 
-      // Handle Text placement
+      // Text Tool Render
       if (item.type === 'text') {
         ctx.font = `${item.size || 20}px sans-serif`;
         ctx.fillStyle = item.color || '#000';
@@ -611,7 +654,7 @@
         return;
       }
 
-      // Handle Sticker placement
+      // Sticker Tool Render
       if (item.type === 'sticker') {
         ctx.font = `${item.size || 30}px sans-serif`;
         ctx.fillText(item.sticker, item.xRatio * rect.width + panX, item.yRatio * rect.height + panY);
@@ -619,7 +662,6 @@
         return;
       }
 
-      // Handle Shapes and Strokes
       if (!item.points || item.points.length === 0) { ctx.restore(); return; }
 
       ctx.lineWidth = item.size || 5;
@@ -628,6 +670,7 @@
       ctx.strokeStyle = item.color;
       ctx.fillStyle = item.color;
 
+      // Shapes Rendering
       if (item.type === 'shape' && item.points.length > 1) {
         const start = item.points[0];
         const end = item.points[item.points.length - 1];
@@ -637,20 +680,41 @@
         const ey = end.yRatio * rect.height + panY;
 
         ctx.beginPath();
-        if (item.shapeType === 'rect') {
+        if (item.shapeType === 'rect' || item.shapeType === 'square') {
           ctx.strokeRect(sx, sy, ex - sx, ey - sy);
-        } else if (item.shapeType === 'circle') {
+        } else if (item.shapeType === 'circle' || item.shapeType === 'ring') {
           const r = Math.hypot(ex - sx, ey - sy);
           ctx.arc(sx, sy, r, 0, Math.PI * 2);
           ctx.stroke();
-        } else if (item.shapeType === 'line') {
+        } else if (item.shapeType === 'triangle') {
+          ctx.moveTo((sx + ex) / 2, sy);
+          ctx.lineTo(sx, ey);
+          ctx.lineTo(ex, ey);
+          ctx.closePath();
+          ctx.stroke();
+        } else if (item.shapeType === 'line' || item.shapeType === 'double_arrow') {
           ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+        } else if (item.shapeType === 'star') {
+          const r = Math.hypot(ex - sx, ey - sy);
+          drawCustomPolygon(ctx, sx, sy, r, 5);
+        } else if (item.shapeType === 'pentagon') {
+          const r = Math.hypot(ex - sx, ey - sy);
+          drawCustomPolygon(ctx, sx, sy, r, 5);
+        } else if (item.shapeType === 'hexagon') {
+          const r = Math.hypot(ex - sx, ey - sy);
+          drawCustomPolygon(ctx, sx, sy, r, 6);
+        } else if (item.shapeType === 'octagon') {
+          const r = Math.hypot(ex - sx, ey - sy);
+          drawCustomPolygon(ctx, sx, sy, r, 8);
+        } else {
+          // Default fallthrough shape
+          ctx.strokeRect(sx, sy, ex - sx, ey - sy);
         }
         ctx.restore();
         return;
       }
 
-      // Freehand Strokes
+      // Freehand Pen/Eraser Strokes
       ctx.beginPath();
       ctx.moveTo(item.points[0].xRatio * rect.width + panX, item.points[0].yRatio * rect.height + panY);
       for (let i = 1; i < item.points.length; i++) {
