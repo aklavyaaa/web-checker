@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#eef0f4">
+<title>Making Charges Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  :root{
+    --bg:#eef0f4;
+    --card:#ffffff;
+    --card-shadow: 0 1px 3px rgba(20,20,43,0.06), 0 16px 40px -12px rgba(20,20,43,0.12);
+    --heading:#c2410c;
+    --subtitle:#64748b;
+    --label:#1e293b;
+    --input-border:#dde2ea;
+    --input-focus:#f0923a;
+    --input-text:#0f172a;
+    --input-placeholder:#c3c9d4;
+    --currency:#94a3b8;
+    --divider:#e7eaf0;
+    --r-label:#64748b;
+    --r-value:#0f172a;
+    --hi-bg:#fdf3d9;
+    --hi-border:#f5e3ab;
+    --hi-label:#c2410c;
+    --hi-value:#c2410c;
+    --hi-amt:#b8752f;
+    --footer:#94a3b8;
+    --toggle-bg:#e2e6ec;
+    --toggle-fg:#475569;
+  }
+
+  html[data-theme="dark"]{
+    --bg:#0f1115;
+    --card:#191b21;
+    --card-shadow: 0 1px 0 rgba(255,255,255,0.03), 0 20px 44px -14px rgba(0,0,0,0.65);
+    --heading:#f0923a;
+    --subtitle:#8b93a3;
+    --label:#e6e9ef;
+    --input-border:#2c303a;
+    --input-focus:#f0923a;
+    --input-text:#f2f4f7;
+    --input-placeholder:#535a68;
+    --currency:#697180;
+    --divider:#2a2d35;
+    --r-label:#8b93a3;
+    --r-value:#f2f4f7;
+    --hi-bg:#2b2210;
+    --hi-border:#4a3a13;
+    --hi-label:#f0a856;
+    --hi-value:#f0a856;
+    --hi-amt:#caa15f;
+    --footer:#6b7280;
+    --toggle-bg:#262a33;
+    --toggle-fg:#c7ccd6;
+  }
+
+  html, body{ height:100%; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:var(--bg);
+    font-family:'Inter', sans-serif;
+    padding:20px 16px calc(20px + env(safe-area-inset-bottom));
+    transition:background .2s ease;
+  }
+
+  .card{
+    width:100%;
+    max-width:420px;
+    background:var(--card);
+    border-radius:16px;
+    box-shadow:var(--card-shadow);
+    padding:28px 26px 24px;
+    transition:background .2s ease, box-shadow .2s ease;
+  }
+
+  .top-row{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:6px;
+  }
+
+  h1{
+    margin:0 0 6px;
+    font-size:22px;
+    font-weight:800;
+    color:var(--heading);
+    letter-spacing:-0.01em;
+    line-height:1.25;
+  }
+
+  .theme-toggle{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:2px;
+    background:var(--toggle-bg);
+    border-radius:999px;
+    padding:3px;
+    margin-top:2px;
+  }
+  .theme-toggle button{
+    border:none;
+    background:transparent;
+    width:32px;
+    height:32px;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    color:var(--toggle-fg);
+    font-size:15px;
+    -webkit-appearance:none;
+    padding:0;
+  }
+  .theme-toggle button.active{
+    background:var(--card);
+    box-shadow:0 1px 2px rgba(0,0,0,0.12);
+    color:var(--heading);
+  }
+
+  .subtitle{
+    margin:0 0 24px;
+    font-size:14px;
+    color:var(--subtitle);
+  }
+
+  .field{ margin-bottom:16px; }
+  .field label{
+    display:block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.04em;
+    color:var(--label);
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+
+  .pct-chips{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .chip{
+    flex:1;
+    border:1.5px solid var(--input-border);
+    background:transparent;
+    color:var(--r-label);
+    font-family:'Inter', sans-serif;
+    font-size:12.5px;
+    font-weight:700;
+    padding:8px 4px;
+    border-radius:8px;
+    cursor:pointer;
+    -webkit-appearance:none;
+    transition:border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .chip.active{
+    border-color:var(--input-focus);
+    background:rgba(240,146,58,0.14);
+    color:var(--hi-label);
+  }
+  .input-wrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+    border:1.5px solid var(--input-border);
+    border-radius:10px;
+    background:transparent;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .input-wrap:focus-within{
+    border-color:var(--input-focus);
+    box-shadow:0 0 0 3px rgba(240,146,58,0.18);
+  }
+  .currency{
+    padding:0 4px 0 15px;
+    font-size:16px;
+    color:var(--currency);
+    font-weight:500;
+    user-select:none;
+  }
+  .input-wrap input{
+    flex:1;
+    min-width:0;
+    border:none;
+    outline:none;
+    background:transparent;
+    padding:13px 14px 13px 4px;
+    font-size:16px;
+    font-weight:600;
+    color:var(--input-text);
+    font-family:'Inter', sans-serif;
+    -webkit-appearance:none;
+  }
+  .input-wrap input::placeholder{ color:var(--input-placeholder); font-weight:500; }
+
+  .divider{
+    border:none;
+    border-top:1px solid var(--divider);
+    margin:20px 0 16px;
+  }
+
+  .results{ display:flex; flex-direction:column; gap:11px; margin-bottom:16px; }
+  .result-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-size:14px;
+  }
+  .result-row .r-label{ color:var(--r-label); }
+  .result-row .r-value{
+    font-weight:700;
+    color:var(--r-value);
+    font-variant-numeric: tabular-nums;
+    text-align:right;
+  }
+
+  .highlight{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background:var(--hi-bg);
+    border:1px solid var(--hi-border);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-top:4px;
+  }
+  .highlight .r-label{
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--hi-label);
+  }
+  .highlight .r-value{
+    font-size:18px;
+    font-weight:800;
+    color:var(--hi-value);
+    font-variant-numeric: tabular-nums;
+    text-align:right;
+    line-height:1.3;
+  }
+  .highlight .r-amt{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--hi-amt);
+  }
+
+  .credit{
+    text-align:center;
+    margin-top:16px;
+    font-size:12px;
+    color:var(--footer);
+    letter-spacing:.01em;
+  }
+  .credit strong{ color:var(--r-label); font-weight:600; }
+
+  @media (max-width:400px){
+    .card{ padding:22px 18px 20px; border-radius:14px; }
+    h1{ font-size:19px; }
+    .subtitle{ font-size:13px; margin-bottom:20px; }
+    .input-wrap input{ font-size:16px; } /* keep >=16px to stop iOS/Android zoom-on-focus */
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="top-row">
+    <div>
+      <h1>Making Charges<br>Calculator</h1>
+    </div>
+    <div class="theme-toggle" role="group" aria-label="Theme">
+      <button type="button" id="btnLight" aria-label="Light mode">☀</button>
+      <button type="button" id="btnDark" aria-label="Dark mode">☾</button>
+    </div>
+  </div>
+  <p class="subtitle">Enter amounts below to calculate rates and discounts</p>
+
+  <div class="field">
+    <label for="metal">Metal Amount (Taxable)</label>
+    <div class="input-wrap">
+      <span class="currency">₹</span>
+      <input id="metal" type="number" inputmode="decimal" step="any" placeholder="0" value="235162">
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="making">Making Amount</label>
+    <div class="pct-chips" role="group" aria-label="Making %">
+      <button type="button" class="chip" data-pct="12">12%</button>
+      <button type="button" class="chip" data-pct="15">15%</button>
+      <button type="button" class="chip" data-pct="18">18%</button>
+      <button type="button" class="chip" data-pct="custom">Custom</button>
+    </div>
+    <div class="input-wrap">
+      <span class="currency">₹</span>
+      <input id="making" type="number" inputmode="decimal" step="any" placeholder="0" value="35275">
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="discount">Discount Amount</label>
+    <div class="input-wrap">
+      <span class="currency">₹</span>
+      <input id="discount" type="number" inputmode="decimal" step="any" placeholder="0" value="9271">
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="results">
+    <div class="result-row">
+      <span class="r-label">Original Making %:</span>
+      <span class="r-value" id="origPct">—</span>
+    </div>
+    <div class="result-row">
+      <span class="r-label">Discount on Making %:</span>
+      <span class="r-value" id="discPct">—</span>
+    </div>
+    <div class="result-row">
+      <span class="r-label">Actual Making Amount:</span>
+      <span class="r-value" id="actualAmt">—</span>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <span class="r-label">Actual Making:</span>
+    <span class="r-value" id="actualPct">—<span class="r-amt" id="actualAmtHi"></span></span>
+  </div>
+
+  <div class="credit">Designed by <strong>aklavyaaa</strong></div>
+</div>
+
+<script>
+  /* ---------- Theme ---------- */
+  const root = document.documentElement;
+  const btnLight = document.getElementById('btnLight');
+  const btnDark = document.getElementById('btnDark');
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+
+  function applyTheme(theme){
+    root.setAttribute('data-theme', theme);
+    btnLight.classList.toggle('active', theme === 'light');
+    btnDark.classList.toggle('active', theme === 'dark');
+    metaTheme.setAttribute('content', theme === 'dark' ? '#0f1115' : '#eef0f4');
+    try { localStorage.setItem('mc-theme', theme); } catch(e){}
+  }
+
+  let saved = null;
+  try { saved = localStorage.getItem('mc-theme'); } catch(e){}
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+
+  btnLight.addEventListener('click', () => applyTheme('light'));
+  btnDark.addEventListener('click', () => applyTheme('dark'));
+
+  /* ---------- Calculator ---------- */
+  const metalEl = document.getElementById('metal');
+  const makingEl = document.getElementById('making');
+  const discountEl = document.getElementById('discount');
+  const chips = Array.from(document.querySelectorAll('.chip'));
+  let activePct = null; // 12 | 15 | 18 | null (custom)
+
+  function setActiveChip(pct){
+    activePct = pct;
+    chips.forEach(c => c.classList.toggle('active', c.dataset.pct == (pct ?? 'custom')));
+  }
+
+  function applyPctToMaking(){
+    if (activePct == null) return;
+    const a = parseFloat(metalEl.value) || 0;
+    const amount = a * (activePct / 100);
+    makingEl.value = amount ? Number(amount.toFixed(2)) : '';
+  }
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (chip.dataset.pct === 'custom'){
+        setActiveChip(null);
+        makingEl.focus();
+        return;
+      }
+      setActiveChip(Number(chip.dataset.pct));
+      applyPctToMaking();
+      recalc();
+    });
+  });
+
+  // typing in Making Amount by hand switches to Custom
+  makingEl.addEventListener('input', () => setActiveChip(null));
+
+
+
+  const origPctEl = document.getElementById('origPct');
+  const discPctEl = document.getElementById('discPct');
+  const actualAmtEl = document.getElementById('actualAmt');
+  const actualPctEl = document.getElementById('actualPct');
+  const actualAmtHiEl = document.getElementById('actualAmtHi');
+
+  function fmtMoney(n){
+    if (!isFinite(n)) return '—';
+    return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  }
+  function fmtPct(n){
+    if (!isFinite(n)) return '—';
+    return n.toFixed(2) + '%';
+  }
+
+  function recalc(){
+    const a = parseFloat(metalEl.value) || 0;
+    const b = parseFloat(makingEl.value) || 0;
+    const c = parseFloat(discountEl.value) || 0;
+
+    const origPct = a !== 0 ? (b / a) * 100 : NaN;
+    const discPct = b !== 0 ? (c / b) * 100 : NaN;
+    const actualAmt = b - c;
+    const actualPct = a !== 0 ? (actualAmt / a) * 100 : NaN;
+
+    origPctEl.textContent = fmtPct(origPct);
+    discPctEl.textContent = fmtPct(discPct);
+    actualAmtEl.textContent = fmtMoney(actualAmt);
+    actualPctEl.firstChild.textContent = fmtPct(actualPct);
+    actualAmtHiEl.textContent = fmtMoney(actualAmt);
+  }
+
+  metalEl.addEventListener('input', () => { applyPctToMaking(); recalc(); });
+  [makingEl, discountEl].forEach(el => el.addEventListener('input', recalc));
+  setActiveChip(null);
+  recalc();
+</script>
+</body>
+</html>
