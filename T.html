@@ -331,10 +331,75 @@
   .tx-amt.income { color: var(--income); }
   .tx-amt.expense { color: var(--expense); }
   .tx-amt.transfer { color: var(--transfer); }
-  .tx-del { opacity: 0.35; padding: 6px; color: var(--expense); font-size: 18px; line-height: 1; }
-  .tx-del:hover { opacity: 1; transform: scale(1.2); }
+  .tx-actions { display: flex; align-items: center; gap: 4px; }
+  .tx-del, .tx-edit { opacity: 0.35; padding: 6px; font-size: 17px; line-height: 1; }
+  .tx-del { color: var(--expense); }
+  .tx-edit { color: var(--transfer); }
+  .tx-del:hover, .tx-edit:hover { opacity: 1; transform: scale(1.2) rotate(-6deg); }
+  .tx-row.has-receipt .tx-main .cat::after {
+    content: '📎'; font-size: 11px; margin-left: 6px; opacity: 0.7;
+  }
+  .tx-row { cursor: pointer; }
   .empty-state { padding: 36px; text-align: center; color: var(--muted); font-size: 14px; }
   .empty-state .avatar { margin: 0 auto 12px; }
+
+  /* ===== RECEIPT UPLOAD ===== */
+  .receipt-upload-wrap {
+    border: 2px dashed var(--line); border-radius: 16px; padding: 16px; text-align: center;
+    cursor: pointer; position: relative; overflow: hidden; background: var(--inset-grad-a);
+    transition: border-color 0.25s ease, transform 0.2s ease;
+  }
+  .receipt-upload-wrap:hover { border-color: var(--purple); transform: translateY(-1px); }
+  .receipt-upload-wrap.has-image { padding: 0; border-style: solid; }
+  .receipt-upload-wrap .ru-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted); font-size: 12.5px; font-weight: 600; }
+  .receipt-upload-wrap .ru-placeholder .ru-icon { font-size: 26px; animation: webSwing 3s ease-in-out infinite; }
+  .receipt-upload-wrap img.ru-preview { width: 100%; max-height: 180px; object-fit: cover; display: block; border-radius: 14px; }
+  .receipt-upload-wrap .ru-remove {
+    position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.55); color: #fff;
+    width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; z-index: 2;
+  }
+  .receipt-upload-wrap .ru-remove:hover { background: var(--expense); transform: scale(1.1); }
+  .receipt-upload-wrap .ru-uploading {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;
+    background: rgba(0,0,0,0.45); color: #fff; font-size: 12px; font-weight: 700; z-index: 3;
+  }
+  .ru-spinner {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.35); border-top-color: #fff;
+    animation: spinWeb 0.8s linear infinite;
+  }
+  @keyframes spinWeb { to { transform: rotate(360deg); } }
+  @keyframes webSwing {
+    0%, 100% { transform: rotate(-8deg); }
+    50% { transform: rotate(8deg); }
+  }
+
+  .tx-receipt-thumb {
+    width: 34px; height: 34px; border-radius: 9px; object-fit: cover; flex-shrink: 0; cursor: zoom-in;
+    border: 1.5px solid var(--line); transition: transform 0.2s ease;
+  }
+  .tx-receipt-thumb:hover { transform: scale(1.08); }
+
+  .lightbox-overlay {
+    position: fixed; inset: 0; background: rgba(2,5,14,0.86); backdrop-filter: blur(6px);
+    display: none; align-items: center; justify-content: center; z-index: 400; padding: 24px;
+    animation: fadeIn 0.2s ease;
+  }
+  .lightbox-overlay.active { display: flex; }
+  .lightbox-overlay img { max-width: min(92vw, 640px); max-height: 84vh; border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .lightbox-close { position: fixed; top: 22px; right: 24px; color: #fff; font-size: 26px; z-index: 401; opacity: 0.8; }
+  .lightbox-close:hover { opacity: 1; transform: scale(1.15); }
+
+  /* ===== date-range filter mode toggle in Statements ===== */
+  .date-mode-toggle { display: flex; gap: 6px; }
+  .date-mode-toggle button {
+    padding: 10px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 700;
+    border: 1px solid var(--line); color: var(--muted); background: var(--card-grad-a);
+  }
+  .date-mode-toggle button.active { border-color: var(--purple); color: var(--purple); background: rgba(230,36,41,0.08); }
+  .single-date-field, .range-date-fields { display: none; gap: 12px; }
+  .single-date-field.active, .range-date-fields.active { display: flex; }
 
   .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
   .filters select, .filters input[type="text"], .filters input[type="date"] {
@@ -368,7 +433,12 @@
 
   .overlay { position: fixed; inset: 0; background: rgba(6,11,26,0.45); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fadeIn 0.2s ease; }
   .overlay.active { display: flex; }
-  .modal { border-radius: 24px; width: 100%; max-width: 460px; overflow: hidden; max-height: 90vh; overflow-y: auto; animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .modal { border-radius: 24px; width: 100%; max-width: 460px; overflow: hidden; max-height: 90vh; overflow-y: auto; animation: webSlingIn 0.45s cubic-bezier(0.22, 1.4, 0.36, 1) both; }
+  @keyframes webSlingIn {
+    0% { transform: translateY(-40px) rotate(-3deg) scale(0.9); opacity: 0; }
+    60% { transform: translateY(6px) rotate(1deg) scale(1.02); opacity: 1; }
+    100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  }
   .modal-head { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
   .modal-head h2 { font-size: 19px; color: var(--purple-deep); }
   .modal-body { padding: 24px; }
@@ -754,9 +824,19 @@
         <div class="filters">
           <select id="sheetMethodSelect"></select>
           <input type="text" id="sheetSearchPerson" placeholder="Filter by target person name...">
-          <input type="date" id="sheetStartDate">
-          <input type="date" id="sheetEndDate">
+          <div class="date-mode-toggle">
+            <button type="button" data-mode="all" class="active">All Time</button>
+            <button type="button" data-mode="single">Single Day</button>
+            <button type="button" data-mode="range">Date Range</button>
+          </div>
           <button class="btn btn-ghost" id="printStatementBtn" style="flex-shrink:0;">🖨️ Export</button>
+        </div>
+        <div class="filters single-date-field" id="singleDateFieldWrap">
+          <input type="date" id="sheetSingleDate">
+        </div>
+        <div class="filters range-date-fields" id="rangeDateFieldsWrap">
+          <input type="date" id="sheetStartDate" placeholder="From">
+          <input type="date" id="sheetEndDate" placeholder="To">
         </div>
 
         <div class="card clay" style="margin-bottom: 18px; padding: 16px 20px;">
@@ -847,6 +927,7 @@
 
     <div class="modal-body">
       <form id="txForm" style="display:none;">
+        <input type="hidden" id="txEditId" value="">
         <div class="field">
           <label>Type</label>
           <div class="toggle-group" id="txTypeToggle">
@@ -878,7 +959,20 @@
           <div class="field"><label>Date</label><input type="date" id="txDate" required></div>
         </div>
         <div class="field"><label>Note / Description</label><input type="text" id="txNote" placeholder="What was this for?"></div>
-        <button type="submit" class="btn modal-submit">Save Entry</button>
+
+        <div class="field">
+          <label>Receipt / Screenshot <span style="text-transform:none; font-weight:500; color:var(--muted);">(optional)</span></label>
+          <div class="receipt-upload-wrap" id="receiptUploadWrap">
+            <input type="file" id="receiptFileInput" accept="image/*" style="display:none;">
+            <div class="ru-placeholder" id="ruPlaceholder">
+              <span class="ru-icon">🕸️</span>
+              <span>Tap to attach a photo of cash / UPI receipt</span>
+            </div>
+          </div>
+          <input type="hidden" id="txReceiptUrl" value="">
+        </div>
+
+        <button type="submit" class="btn modal-submit" id="txSubmitBtn">Save Entry</button>
       </form>
 
       <div class="ai-interface-container" id="aiInterfaceNode" style="display:block;">
@@ -894,6 +988,23 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- ENTRY DETAIL MODAL (view + quick actions, shows receipt image) -->
+<div class="overlay" id="txDetailOverlay">
+  <div class="modal clay">
+    <div class="modal-head">
+      <h2>Entry Details</h2>
+      <button id="closeTxDetailModal">✕</button>
+    </div>
+    <div class="modal-body" id="txDetailBody"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX for receipt image -->
+<div class="lightbox-overlay" id="lightboxOverlay">
+  <button class="lightbox-close" id="lightboxClose">✕</button>
+  <img id="lightboxImg" src="" alt="Receipt">
 </div>
 
 <!-- LOAN MODAL -->
@@ -950,11 +1061,30 @@ const db = getDatabase(app);
 
 const OPENROUTER_SECRET_KEY = "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";
 
+/* ===== CLOUDINARY (receipt image uploads) ===== */
+const CLOUDINARY_CLOUD_NAME = "dl1ishrkv";
+const CLOUDINARY_UPLOAD_PRESET = "the_image_data_unsigned"; // unsigned upload preset scoped to the_image_data folder
+const CLOUDINARY_FOLDER = "the_image_data";
+const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+async function uploadReceiptImage(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  formData.append("folder", CLOUDINARY_FOLDER);
+  const res = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: formData });
+  if (!res.ok) throw new Error("Image upload failed.");
+  const data = await res.json();
+  return data.secure_url;
+}
+
 let currentSessionUser = null;
 let databaseStreamPath = "";
 let transactions = [];
 let credits = [];
 let paymentModes = ["Cash", "UPI"];
+let pendingReceiptUrl = "";
+let sheetDateMode = "all";
 
 let CATEGORIES_EXPENSE = ["Food","Transport","Rent","Shopping","Bills","Health","Entertainment","Education","Other"];
 let CATEGORIES_INCOME = ["Salary","Freelance","Gift","Interest","Refund","Other"];
