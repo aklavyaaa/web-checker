@@ -321,7 +321,7 @@
 
   .panel { border-radius: 22px; overflow: hidden; }
 
-  .tx-row { display: grid; grid-template-columns: 40px 1fr auto auto; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid var(--line); }
+  .tx-row { display: grid; grid-template-columns: 40px 1fr auto auto; align-items: center; gap: 10px; padding: 14px 22px; border-bottom: 1px solid var(--line); }
   .tx-row { animation: fadeUp 0.4s ease both; }
   .tx-row:hover { background: rgba(230,36,41,0.05); }
   .tx-row:last-child { border-bottom: none; }
@@ -1061,20 +1061,43 @@ const db = getDatabase(app);
 
 const OPENROUTER_SECRET_KEY = "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";
 
-/* ===== CLOUDINARY (receipt image uploads) ===== */
+/* ===== CLOUDINARY (receipt image uploads — signed upload, NO preset required) ===== */
 const CLOUDINARY_CLOUD_NAME = "dl1ishrkv";
-const CLOUDINARY_UPLOAD_PRESET = "the_image_data_unsigned"; // unsigned upload preset scoped to the_image_data folder
+const CLOUDINARY_API_KEY = "433163499287729";
+const CLOUDINARY_API_SECRET = "2rP00sgy0FGPVsKYDEG0GH-k5mo";
 const CLOUDINARY_FOLDER = "the_image_data";
 const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
+async function sha1Hex(str) {
+  const enc = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', enc);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function uploadReceiptImage(file) {
+  if (!CLOUDINARY_API_KEY || CLOUDINARY_API_KEY.startsWith("PUT_YOUR")) {
+    throw new Error("Cloudinary API Key not set yet — add it to CLOUDINARY_API_KEY in the code.");
+  }
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  // Signature = SHA1(alphabetically-sorted signed params + api_secret)
+  const paramsToSign = `folder=${CLOUDINARY_FOLDER}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
+  const signature = await sha1Hex(paramsToSign);
+
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  formData.append("api_key", CLOUDINARY_API_KEY);
+  formData.append("timestamp", String(timestamp));
+  formData.append("signature", signature);
   formData.append("folder", CLOUDINARY_FOLDER);
+
   const res = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: formData });
-  if (!res.ok) throw new Error("Image upload failed.");
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = (data && data.error && data.error.message) ? data.error.message : `Upload failed (HTTP ${res.status}).`;
+    console.error("Cloudinary upload failed:", data);
+    throw new Error(msg);
+  }
   return data.secure_url;
 }
 
@@ -1489,7 +1512,10 @@ document.querySelectorAll('.mainNavBind button').forEach(b => { if(b.dataset.vie
 document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
 const txOverlay = document.getElementById('txOverlay');
+const txDetailOverlay = document.getElementById('txDetailOverlay');
+const lightboxOverlay = document.getElementById('lightboxOverlay');
 let txType = 'expense';
+let editingTxId = null;
 
 document.getElementById('inputInterfaceTabToggle').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if(!b) return;
@@ -1530,9 +1556,83 @@ document.getElementById('txTypeToggle').addEventListener('click', (e) => {
   setTxTypeUI();
 });
 
-document.getElementById('openTxModal').addEventListener('click', () => {
+/* ===== RECEIPT UPLOAD WIRING ===== */
+function resetReceiptUploadUI() {
+  pendingReceiptUrl = "";
+  document.getElementById('txReceiptUrl').value = "";
+  const wrap = document.getElementById('receiptUploadWrap');
+  wrap.classList.remove('has-image');
+  wrap.innerHTML = `
+    <input type="file" id="receiptFileInput" accept="image/*" style="display:none;">
+    <div class="ru-placeholder" id="ruPlaceholder">
+      <span class="ru-icon">🕸️</span>
+      <span>Tap to attach a photo of cash / UPI receipt</span>
+    </div>
+  `;
+  bindReceiptUploadWrap();
+}
+
+function renderReceiptPreview(url) {
+  pendingReceiptUrl = url;
+  document.getElementById('txReceiptUrl').value = url || "";
+  const wrap = document.getElementById('receiptUploadWrap');
+  if (url) {
+    wrap.classList.add('has-image');
+    wrap.innerHTML = `
+      <input type="file" id="receiptFileInput" accept="image/*" style="display:none;">
+      <img class="ru-preview" src="${escapeHTML(url)}" alt="Receipt preview">
+      <button type="button" class="ru-remove" id="ruRemoveBtn">✕</button>
+    `;
+  } else {
+    resetReceiptUploadUI();
+    return;
+  }
+  bindReceiptUploadWrap();
+}
+
+function bindReceiptUploadWrap() {
+  const wrap = document.getElementById('receiptUploadWrap');
+  const fileInput = document.getElementById('receiptFileInput');
+  const removeBtn = document.getElementById('ruRemoveBtn');
+
+  wrap.onclick = (e) => {
+    if (e.target.closest('.ru-remove')) return;
+    fileInput.click();
+  };
+  fileInput.onchange = async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return showToast("Please choose an image file.");
+    if (file.size > 8 * 1024 * 1024) return showToast("Image too large (max 8MB).");
+
+    wrap.classList.add('has-image');
+    wrap.innerHTML = `<div class="ru-uploading"><div class="ru-spinner"></div><span>Uploading to web...</span></div>`;
+    try {
+      const url = await uploadReceiptImage(file);
+      renderReceiptPreview(url);
+      showToast("Receipt attached!");
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Upload failed. Check your Cloudinary preset.");
+      resetReceiptUploadUI();
+    }
+  };
+  if (removeBtn) {
+    removeBtn.onclick = (e) => {
+      e.stopPropagation();
+      resetReceiptUploadUI();
+    };
+  }
+}
+bindReceiptUploadWrap();
+
+function openTxModalForCreate() {
+  editingTxId = null;
   document.getElementById('txForm').reset();
+  document.getElementById('txEditId').value = "";
   document.getElementById('txDate').value = todayISO();
+  document.getElementById('txSubmitBtn').textContent = "Save Entry";
+  resetReceiptUploadUI();
   txType = 'expense';
   setTxTypeUI();
   document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
@@ -1541,7 +1641,38 @@ document.getElementById('openTxModal').addEventListener('click', () => {
   document.getElementById('aiInterfaceNode').style.display = 'block';
   resetAIInterfaceUI();
   txOverlay.classList.add('active');
-});
+}
+
+function openTxModalForEdit(tx) {
+  editingTxId = tx.id;
+  document.getElementById('txForm').reset();
+  document.getElementById('txEditId').value = tx.id;
+  document.getElementById('txSubmitBtn').textContent = "Update Entry";
+  txType = tx.type;
+  setTxTypeUI();
+
+  document.getElementById('txAmount').value = tx.amount;
+  document.getElementById('txDate').value = tx.date;
+  document.getElementById('txNote').value = tx.note || '';
+
+  if (tx.type === 'transfer') {
+    document.getElementById('txFromMethod').value = tx.fromMethod;
+    document.getElementById('txToMethod').value = tx.toMethod;
+  } else {
+    document.getElementById('txMethod').value = tx.method;
+    document.getElementById('txCategory').value = tx.category;
+  }
+
+  if (tx.receiptUrl) renderReceiptPreview(tx.receiptUrl); else resetReceiptUploadUI();
+
+  document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
+  document.querySelector('#inputInterfaceTabToggle button[data-tab="manual"]').classList.add('sel-income');
+  document.getElementById('txForm').style.display = 'block';
+  document.getElementById('aiInterfaceNode').style.display = 'none';
+  txOverlay.classList.add('active');
+}
+
+document.getElementById('openTxModal').addEventListener('click', openTxModalForCreate);
 document.getElementById('closeTxModal').addEventListener('click', () => {
   stopVoiceAudioRecording();
   txOverlay.classList.remove('active');
@@ -1556,7 +1687,7 @@ document.getElementById('txForm').addEventListener('submit', async (e) => {
     type: txType, amount,
     date: document.getElementById('txDate').value,
     note: document.getElementById('txNote').value.trim(),
-    createdAtMs: Date.now()
+    receiptUrl: pendingReceiptUrl || null
   };
 
   if(txType === 'transfer') {
@@ -1568,16 +1699,78 @@ document.getElementById('txForm').addEventListener('submit', async (e) => {
     payload.category = document.getElementById('txCategory').value;
   }
 
-  await push(ref(db, `${databaseStreamPath}/transactions`), payload);
+  const editId = document.getElementById('txEditId').value;
+  if (editId) {
+    await update(ref(db, `${databaseStreamPath}/transactions/${editId}`), payload);
+    showToast("Entry updated.");
+  } else {
+    payload.createdAtMs = Date.now();
+    await push(ref(db, `${databaseStreamPath}/transactions`), payload);
+    showToast("Saved successfully.");
+  }
   txOverlay.classList.remove('active');
-  showToast("Saved successfully.");
 });
 
 window.deleteTx = async (id) => {
   if(!confirm("Delete this entry permanently?")) return;
   await remove(ref(db, `${databaseStreamPath}/transactions/${id}`));
   showToast("Deleted.");
+  txDetailOverlay.classList.remove('active');
 };
+
+window.editTx = (id) => {
+  const tx = transactions.find(t => t.id === id);
+  if (!tx) return;
+  txDetailOverlay.classList.remove('active');
+  openTxModalForEdit(tx);
+};
+
+/* ===== ENTRY DETAIL MODAL ===== */
+window.openTxDetail = (id) => {
+  const tx = transactions.find(t => t.id === id);
+  if (!tx) return;
+  const body = document.getElementById('txDetailBody');
+  const isTransfer = tx.type === 'transfer';
+  const amtColor = isTransfer ? 'var(--transfer)' : (tx.type === 'income' ? 'var(--income)' : 'var(--expense)');
+  const amtSign = isTransfer ? '' : (tx.type === 'income' ? '+' : '-');
+
+  body.innerHTML = `
+    <div style="text-align:center; margin-bottom:18px;">
+      <div class="avatar avatar-lg ${isTransfer ? 'avatar-transfer' : (tx.type === 'income' ? 'avatar-income' : 'avatar-expense')}" style="margin:0 auto 10px;">
+        ${isTransfer ? '⇄' : categoryEmoji(tx.category)}
+      </div>
+      <div class="value num" style="font-size:26px; color:${amtColor};">${amtSign}${fmt(tx.amount)}</div>
+      <div style="font-size:13px; color:var(--muted); margin-top:4px; font-weight:600;">${formatDate(tx.date)}</div>
+    </div>
+    <div class="clay-inset" style="padding:14px 16px; border-radius:14px; margin-bottom:16px; font-size:13.5px; line-height:1.9;">
+      ${isTransfer
+        ? `<div><b>From:</b> ${escapeHTML(tx.fromMethod)}</div><div><b>To:</b> ${escapeHTML(tx.toMethod)}</div>`
+        : `<div><b>Category:</b> ${escapeHTML(tx.category)}</div><div><b>Paid via:</b> ${escapeHTML(tx.method)}</div>`
+      }
+      ${tx.note ? `<div><b>Note:</b> ${escapeHTML(tx.note)}</div>` : ''}
+    </div>
+    ${tx.receiptUrl ? `
+      <div class="field">
+        <label>Attached Receipt</label>
+        <img src="${escapeHTML(tx.receiptUrl)}" alt="Receipt" style="width:100%; border-radius:14px; cursor:zoom-in; border:1px solid var(--line);" onclick="openLightbox('${escapeHTML(tx.receiptUrl)}')">
+      </div>
+    ` : ''}
+    <div class="credit-actions" style="margin-top:10px;">
+      <button type="button" class="mini-btn settle" style="flex:1; text-align:center;" onclick="editTx('${tx.id}')">✏️ Edit Entry</button>
+      <button type="button" class="mini-btn del" style="flex:1; text-align:center;" onclick="deleteTx('${tx.id}')">🗑️ Delete</button>
+    </div>
+  `;
+  txDetailOverlay.classList.add('active');
+};
+document.getElementById('closeTxDetailModal').addEventListener('click', () => txDetailOverlay.classList.remove('active'));
+txDetailOverlay.addEventListener('click', (e) => { if(e.target === txDetailOverlay) txDetailOverlay.classList.remove('active'); });
+
+window.openLightbox = (url) => {
+  document.getElementById('lightboxImg').src = url;
+  lightboxOverlay.classList.add('active');
+};
+document.getElementById('lightboxClose').addEventListener('click', () => lightboxOverlay.classList.remove('active'));
+lightboxOverlay.addEventListener('click', (e) => { if(e.target === lightboxOverlay) lightboxOverlay.classList.remove('active'); });
 
 document.getElementById("addModeForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1770,6 +1963,7 @@ async function triggerMainAIStreamPipeline() {
     if(aiParsedActionResponse.action === 'save_entry') {
       aiParsedActionResponse.date = todayISO();
       aiParsedActionResponse.createdAtMs = Date.now();
+      aiParsedActionResponse.receiptUrl = null;
       await push(ref(db, `${databaseStreamPath}/transactions`), aiParsedActionResponse);
       appendMessageToBubble('assistant', `Understood! Logged entry of ₹${aiParsedActionResponse.amount} under ${aiParsedActionResponse.category || 'Transfer'} successfully.`);
       statusNode.textContent = 'Committed to Firebase!';
@@ -1810,15 +2004,29 @@ function appendMessageToBubble(sender, text) {
 }
 
 /* ===== BALANCE SHEET LEDGER ===== */
+function getSheetDateRange() {
+  if (sheetDateMode === 'single') {
+    const d = document.getElementById('sheetSingleDate').value;
+    return { startDate: d || null, endDate: d || null };
+  }
+  if (sheetDateMode === 'range') {
+    return {
+      startDate: document.getElementById('sheetStartDate').value || null,
+      endDate: document.getElementById('sheetEndDate').value || null
+    };
+  }
+  return { startDate: null, endDate: null };
+}
+
 function generateAccountBalanceSheet() {
   const activeMethod = document.getElementById('sheetMethodSelect').value;
   const personFilter = document.getElementById('sheetSearchPerson').value.toLowerCase().trim();
-  const startDate = document.getElementById('sheetStartDate').value;
-  const endDate = document.getElementById('sheetEndDate').value;
+  const { startDate, endDate } = getSheetDateRange();
 
   document.getElementById('sheetAccountLabel').textContent = `Statement for: ${activeMethod}`;
   let labelText = "All-Time Running Ledger";
-  if(startDate || endDate) labelText = `History: ${startDate || 'Onset'} to ${endDate || 'Present'}`;
+  if (sheetDateMode === 'single' && startDate) labelText = `History for: ${formatDate(startDate)}`;
+  else if (sheetDateMode === 'range' && (startDate || endDate)) labelText = `History: ${startDate ? formatDate(startDate) : 'Onset'} to ${endDate ? formatDate(endDate) : 'Present'}`;
   document.getElementById('sheetDateFilterLabel').textContent = labelText;
 
   const tBody = document.getElementById('ledgerBalanceSheetBody');
@@ -1853,9 +2061,11 @@ function generateAccountBalanceSheet() {
     }
 
     matchesRowsCollected.push({
+      id: t.id,
       date: t.date,
       type: t.type === 'transfer' ? 'Transfer' : t.category,
       desc: t.type === 'transfer' ? `Transfer: ${t.fromMethod} ➔ ${t.toMethod} ${t.note ? '('+t.note+')' : ''}` : (t.note || 'Ledger entry'),
+      hasReceipt: !!t.receiptUrl,
       out: flowDirection === -1 ? fmt(amt) : '-',
       in: flowDirection === 1 ? fmt(amt) : '-',
       bal: fmt(runningBalanceVal)
@@ -1871,10 +2081,12 @@ function generateAccountBalanceSheet() {
 
   matchesRowsCollected.reverse().forEach(row => {
     const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.onclick = () => openTxDetail(row.id);
     tr.innerHTML = `
       <td>${formatDate(row.date)}</td>
       <td><span class="label" style="color:var(--purple); border: 1px solid rgba(230,36,41,0.25); padding: 2px 8px; border-radius:8px; font-size:11px;">${escapeHTML(row.type)}</span></td>
-      <td>${escapeHTML(row.desc)}</td>
+      <td>${escapeHTML(row.desc)} ${row.hasReceipt ? '<span style="opacity:0.6; font-size:11px;">📎</span>' : ''}</td>
       <td class="num" style="color:var(--expense); font-weight:700;">${row.out}</td>
       <td class="num" style="color:var(--income); font-weight:700;">${row.in}</td>
       <td class="num" style="font-weight:700; color:var(--purple);">${row.bal}</td>
@@ -1883,7 +2095,17 @@ function generateAccountBalanceSheet() {
   });
 }
 
-['sheetMethodSelect', 'sheetStartDate', 'sheetEndDate'].forEach(id => document.getElementById(id).addEventListener('change', generateAccountBalanceSheet));
+document.querySelectorAll('.date-mode-toggle button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    sheetDateMode = btn.dataset.mode;
+    document.querySelectorAll('.date-mode-toggle button').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('singleDateFieldWrap').classList.toggle('active', sheetDateMode === 'single');
+    document.getElementById('rangeDateFieldsWrap').classList.toggle('active', sheetDateMode === 'range');
+    generateAccountBalanceSheet();
+  });
+});
+
+['sheetMethodSelect', 'sheetStartDate', 'sheetEndDate', 'sheetSingleDate'].forEach(id => document.getElementById(id).addEventListener('change', generateAccountBalanceSheet));
 document.getElementById('sheetSearchPerson').addEventListener('input', generateAccountBalanceSheet);
 document.getElementById('printStatementBtn').addEventListener('click', () => window.print());
 
@@ -1979,26 +2201,37 @@ function txListHTML(list) {
   if(!list.length) return `<div class="empty-state"><div class="avatar avatar-p0 avatar-lg" style="margin:0 auto 12px;">📭</div>No entries logged yet.</div>`;
   return list.map((t, idx) => {
     const customDelay = `style="animation-delay: ${idx * 0.04}s"`;
+    const hasReceiptClass = t.receiptUrl ? 'has-receipt' : '';
+    const receiptThumb = t.receiptUrl
+      ? `<img class="tx-receipt-thumb" src="${escapeHTML(t.receiptUrl)}" alt="receipt" onclick="event.stopPropagation(); openLightbox('${escapeHTML(t.receiptUrl)}')">`
+      : '';
+    const actionButtons = `
+      <div class="tx-actions">
+        ${receiptThumb}
+        <button class="tx-edit" onclick="event.stopPropagation(); editTx('${t.id}')" title="Edit">✏️</button>
+        <button class="tx-del" onclick="event.stopPropagation(); deleteTx('${t.id}')" title="Delete">✕</button>
+      </div>`;
+
     if(t.type === 'transfer') {
-      return `<div class="tx-row" ${customDelay}>
+      return `<div class="tx-row ${hasReceiptClass}" ${customDelay} onclick="openTxDetail('${t.id}')">
         <div class="avatar avatar-transfer">⇄</div>
         <div class="tx-main">
           <div class="cat" style="font-weight:700;">Transfer: ${escapeHTML(t.fromMethod)} ➔ ${escapeHTML(t.toMethod)}</div>
           <div class="meta">${formatDate(t.date)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
         </div>
         <div class="tx-amt transfer">${fmt(t.amount)}</div>
-        <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
+        ${actionButtons}
       </div>`;
     }
     const emo = categoryEmoji(t.category);
-    return `<div class="tx-row" ${customDelay}>
+    return `<div class="tx-row ${hasReceiptClass}" ${customDelay} onclick="openTxDetail('${t.id}')">
       <div class="avatar ${t.type === 'income' ? 'avatar-income' : 'avatar-expense'}">${emo}</div>
       <div class="tx-main">
         <div class="cat" style="font-weight:700;">${escapeHTML(t.category)}</div>
         <div class="meta">${formatDate(t.date)} • via ${escapeHTML(t.method)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
       </div>
       <div class="tx-amt ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</div>
-      <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
+      ${actionButtons}
     </div>`;
   }).join('');
 }
