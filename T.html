@@ -16,6 +16,7 @@
     Glassmorphism preserved throughout (frosted panels, blur, translucent borders)
   */
   :root, body.theme-light {
+    color-scheme: light;
     --spidey-red: #E62429;
     --spidey-red-deep: #A30E12;
     --spidey-blue: #1D4ED8;
@@ -58,6 +59,7 @@
   }
 
   body.theme-dark {
+    color-scheme: dark;
     --spidey-red: #FF3B3F;
     --spidey-red-deep: #C4141A;
     --spidey-blue: #4C8DFF;
@@ -295,7 +297,7 @@
     background: linear-gradient(150deg, var(--spidey-blue) 0%, var(--spidey-blue-deep) 100%);
     color: #fff; box-shadow: 5px 5px 14px rgba(29,78,216,0.35), -3px -3px 8px rgba(255,255,255,0.5);
   }
-  .btn-ghost { background: rgba(255,255,255,0.5); color: var(--purple-deep); border: 1px solid var(--line); }
+  .btn-ghost { background: var(--glass-bg); color: var(--purple-deep); border: 1px solid var(--line); }
   .btn-ghost:hover { background: rgba(230,36,41,0.08); border-color: var(--purple-soft); }
 
   .content { padding: 24px 36px 40px; flex: 1; position: relative; z-index: 1; }
@@ -970,6 +972,7 @@
             </div>
           </div>
           <input type="hidden" id="txReceiptUrl" value="">
+          <input type="hidden" id="txReceiptPublicId" value="">
         </div>
 
         <button type="submit" class="btn modal-submit" id="txSubmitBtn">Save Entry</button>
@@ -1067,6 +1070,7 @@ const CLOUDINARY_API_KEY = "433163499287729";
 const CLOUDINARY_API_SECRET = "2rP00sgy0FGPVsKYDEG0GH-k5mo";
 const CLOUDINARY_FOLDER = "the_image_data";
 const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+const CLOUDINARY_DESTROY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/destroy`;
 
 async function sha1Hex(str) {
   const enc = new TextEncoder().encode(str);
@@ -1098,7 +1102,44 @@ async function uploadReceiptImage(file) {
     console.error("Cloudinary upload failed:", data);
     throw new Error(msg);
   }
-  return data.secure_url;
+  return { url: data.secure_url, publicId: data.public_id };
+}
+
+// Fallback for entries saved before we stored public_id: derive it from the secure_url.
+// e.g. https://res.cloudinary.com/<cloud>/image/upload/v169.../the_image_data/abc123.jpg
+//   -> the_image_data/abc123
+function extractPublicIdFromUrl(url) {
+  if (!url) return null;
+  try {
+    const afterUpload = url.split('/upload/')[1];
+    if (!afterUpload) return null;
+    let path = afterUpload.replace(/^v\d+\//, '');   // strip version segment
+    path = path.replace(/\.[a-zA-Z0-9]+$/, '');       // strip file extension
+    return path || null;
+  } catch { return null; }
+}
+
+async function deleteCloudinaryImage(publicId) {
+  if (!publicId) return;
+  try {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const paramsToSign = `public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
+    const signature = await sha1Hex(paramsToSign);
+
+    const formData = new FormData();
+    formData.append("public_id", publicId);
+    formData.append("api_key", CLOUDINARY_API_KEY);
+    formData.append("timestamp", String(timestamp));
+    formData.append("signature", signature);
+
+    const res = await fetch(CLOUDINARY_DESTROY_URL, { method: "POST", body: formData });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.result !== 'ok') {
+      console.warn("Cloudinary delete did not confirm removal:", data);
+    }
+  } catch (err) {
+    console.error("Cloudinary delete failed:", err);
+  }
 }
 
 let currentSessionUser = null;
@@ -1107,6 +1148,7 @@ let transactions = [];
 let credits = [];
 let paymentModes = ["Cash", "UPI"];
 let pendingReceiptUrl = "";
+let pendingReceiptPublicId = "";
 let sheetDateMode = "all";
 
 let CATEGORIES_EXPENSE = ["Food","Transport","Rent","Shopping","Bills","Health","Entertainment","Education","Other"];
@@ -1152,8 +1194,12 @@ window.addEventListener("DOMContentLoaded", () => {
   }, 1500);
 });
 
-/* ===== THEME TOGGLE ===== */
-document.body.classList.add('theme-light');
+/* ===== THEME TOGGLE (persisted across reloads) ===== */
+const THEME_STORAGE_KEY = 'amanager-theme';
+const savedTheme = (() => {
+  try { return localStorage.getItem(THEME_STORAGE_KEY); } catch { return null; }
+})();
+document.body.classList.add(savedTheme === 'dark' ? 'theme-dark' : 'theme-light');
 
 function applyThemeToggleUI() {
   const isDark = document.body.classList.contains('theme-dark');
@@ -1166,6 +1212,7 @@ document.getElementById('themeToggleBtn').addEventListener('click', () => {
   const isDark = document.body.classList.contains('theme-dark');
   document.body.classList.toggle('theme-dark', !isDark);
   document.body.classList.toggle('theme-light', isDark);
+  try { localStorage.setItem(THEME_STORAGE_KEY, !isDark ? 'dark' : 'light'); } catch {}
   applyThemeToggleUI();
   if (typeof window.renderAll === 'function' && currentSessionUser) window.renderAll();
 });
@@ -1460,6 +1507,7 @@ function startSyncListeners() {
     credits = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
     credits.sort((a,b) => b.createdAtMs - a.createdAtMs);
     renderCredits();
+    renderAll(); // credits affect the Cash balance card too
   });
 }
 
@@ -1558,8 +1606,11 @@ document.getElementById('txTypeToggle').addEventListener('click', (e) => {
 
 /* ===== RECEIPT UPLOAD WIRING ===== */
 function resetReceiptUploadUI() {
+  // Pure UI/state reset — does NOT delete anything from Cloudinary.
   pendingReceiptUrl = "";
+  pendingReceiptPublicId = "";
   document.getElementById('txReceiptUrl').value = "";
+  document.getElementById('txReceiptPublicId').value = "";
   const wrap = document.getElementById('receiptUploadWrap');
   wrap.classList.remove('has-image');
   wrap.innerHTML = `
@@ -1572,9 +1623,11 @@ function resetReceiptUploadUI() {
   bindReceiptUploadWrap();
 }
 
-function renderReceiptPreview(url) {
+function renderReceiptPreview(url, publicId) {
   pendingReceiptUrl = url;
+  pendingReceiptPublicId = publicId || "";
   document.getElementById('txReceiptUrl').value = url || "";
+  document.getElementById('txReceiptPublicId').value = publicId || "";
   const wrap = document.getElementById('receiptUploadWrap');
   if (url) {
     wrap.classList.add('has-image');
@@ -1605,22 +1658,32 @@ function bindReceiptUploadWrap() {
     if (!file.type.startsWith('image/')) return showToast("Please choose an image file.");
     if (file.size > 8 * 1024 * 1024) return showToast("Image too large (max 8MB).");
 
+    // If replacing an existing attached image, delete the old one from Cloudinary first.
+    const oldPublicId = pendingReceiptPublicId;
+
     wrap.classList.add('has-image');
     wrap.innerHTML = `<div class="ru-uploading"><div class="ru-spinner"></div><span>Uploading to web...</span></div>`;
     try {
-      const url = await uploadReceiptImage(file);
-      renderReceiptPreview(url);
+      const { url, publicId } = await uploadReceiptImage(file);
+      renderReceiptPreview(url, publicId);
       showToast("Receipt attached!");
+      if (oldPublicId && oldPublicId !== publicId) deleteCloudinaryImage(oldPublicId);
     } catch (err) {
       console.error(err);
-      showToast(err.message || "Upload failed. Check your Cloudinary preset.");
+      showToast(err.message || "Upload failed. Check your Cloudinary keys.");
       resetReceiptUploadUI();
     }
   };
   if (removeBtn) {
-    removeBtn.onclick = (e) => {
+    removeBtn.onclick = async (e) => {
       e.stopPropagation();
+      const publicIdToDelete = pendingReceiptPublicId || extractPublicIdFromUrl(pendingReceiptUrl);
       resetReceiptUploadUI();
+      if (publicIdToDelete) {
+        showToast("Removing receipt...");
+        await deleteCloudinaryImage(publicIdToDelete);
+        showToast("Receipt removed permanently.");
+      }
     };
   }
 }
@@ -1632,6 +1695,7 @@ function openTxModalForCreate() {
   document.getElementById('txEditId').value = "";
   document.getElementById('txDate').value = todayISO();
   document.getElementById('txSubmitBtn').textContent = "Save Entry";
+  document.getElementById('txSubmitBtn').disabled = false;
   resetReceiptUploadUI();
   txType = 'expense';
   setTxTypeUI();
@@ -1648,6 +1712,7 @@ function openTxModalForEdit(tx) {
   document.getElementById('txForm').reset();
   document.getElementById('txEditId').value = tx.id;
   document.getElementById('txSubmitBtn').textContent = "Update Entry";
+  document.getElementById('txSubmitBtn').disabled = false;
   txType = tx.type;
   setTxTypeUI();
 
@@ -1663,7 +1728,7 @@ function openTxModalForEdit(tx) {
     document.getElementById('txCategory').value = tx.category;
   }
 
-  if (tx.receiptUrl) renderReceiptPreview(tx.receiptUrl); else resetReceiptUploadUI();
+  if (tx.receiptUrl) renderReceiptPreview(tx.receiptUrl, tx.receiptPublicId || extractPublicIdFromUrl(tx.receiptUrl)); else resetReceiptUploadUI();
 
   document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
   document.querySelector('#inputInterfaceTabToggle button[data-tab="manual"]').classList.add('sel-income');
@@ -1680,6 +1745,8 @@ document.getElementById('closeTxModal').addEventListener('click', () => {
 
 document.getElementById('txForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const submitBtn = document.getElementById('txSubmitBtn');
+  if (submitBtn.disabled) return; // guard against double-submit creating duplicate entries
   const amount = parseFloat(document.getElementById('txAmount').value);
   if(!amount || amount <= 0) return showToast("Enter a valid amount.");
 
@@ -1687,7 +1754,8 @@ document.getElementById('txForm').addEventListener('submit', async (e) => {
     type: txType, amount,
     date: document.getElementById('txDate').value,
     note: document.getElementById('txNote').value.trim(),
-    receiptUrl: pendingReceiptUrl || null
+    receiptUrl: pendingReceiptUrl || null,
+    receiptPublicId: pendingReceiptPublicId || null
   };
 
   if(txType === 'transfer') {
@@ -1699,21 +1767,45 @@ document.getElementById('txForm').addEventListener('submit', async (e) => {
     payload.category = document.getElementById('txCategory').value;
   }
 
+  submitBtn.disabled = true;
   const editId = document.getElementById('txEditId').value;
-  if (editId) {
-    await update(ref(db, `${databaseStreamPath}/transactions/${editId}`), payload);
-    showToast("Entry updated.");
-  } else {
-    payload.createdAtMs = Date.now();
-    await push(ref(db, `${databaseStreamPath}/transactions`), payload);
-    showToast("Saved successfully.");
+  try {
+    if (editId) {
+      // Optimistic local update — don't wait on the Firebase listener round-trip to refresh the UI.
+      const idx = transactions.findIndex(t => t.id === editId);
+      if (idx !== -1) transactions[idx] = { ...transactions[idx], ...payload };
+      transactions.sort((a,b) => b.date.localeCompare(a.date) || (b.createdAtMs||0) - (a.createdAtMs||0));
+      renderAll();
+      await update(ref(db, `${databaseStreamPath}/transactions/${editId}`), payload);
+      showToast("Entry updated.");
+    } else {
+      payload.createdAtMs = Date.now();
+      const newRef = push(ref(db, `${databaseStreamPath}/transactions`));
+      const newId = newRef.key;
+      // Optimistic local insert so the dashboard reflects it immediately.
+      transactions.unshift({ id: newId, ...payload });
+      transactions.sort((a,b) => b.date.localeCompare(a.date) || (b.createdAtMs||0) - (a.createdAtMs||0));
+      renderAll();
+      await set(newRef, payload);
+      showToast("Saved successfully.");
+    }
+  } finally {
+    submitBtn.disabled = false;
   }
   txOverlay.classList.remove('active');
 });
 
 window.deleteTx = async (id) => {
   if(!confirm("Delete this entry permanently?")) return;
+  const tx = transactions.find(t => t.id === id);
+  // Optimistic local removal.
+  transactions = transactions.filter(t => t.id !== id);
+  renderAll();
   await remove(ref(db, `${databaseStreamPath}/transactions/${id}`));
+  if (tx && tx.receiptUrl) {
+    const publicId = tx.receiptPublicId || extractPublicIdFromUrl(tx.receiptUrl);
+    deleteCloudinaryImage(publicId); // best-effort, don't block on this
+  }
   showToast("Deleted.");
   txDetailOverlay.classList.remove('active');
 };
@@ -1834,13 +1926,33 @@ document.getElementById('creditForm').addEventListener('submit', async (e) => {
     status: 'pending',
     createdAtMs: Date.now()
   };
-  await push(ref(db, `${databaseStreamPath}/credits`), payload);
+  const newRef = push(ref(db, `${databaseStreamPath}/credits`));
+  // Optimistic local insert.
+  credits.unshift({ id: newRef.key, ...payload });
+  credits.sort((a,b) => b.createdAtMs - a.createdAtMs);
+  renderCredits();
+  renderAll();
+  await set(newRef, payload);
   creditOverlay.classList.remove('active');
   showToast("Loan logged successfully.");
 });
 
-window.settleCredit = async (id) => { await update(ref(db, `${databaseStreamPath}/credits/${id}`), { status: 'paid' }); showToast("Marked as paid."); };
-window.deleteCredit = async (id) => { if(!confirm("Delete this loan record?")) return; await remove(ref(db, `${databaseStreamPath}/credits/${id}`)); showToast("Removed."); };
+window.settleCredit = async (id) => {
+  const idx = credits.findIndex(c => c.id === id);
+  if (idx !== -1) credits[idx] = { ...credits[idx], status: 'paid' };
+  renderCredits();
+  renderAll();
+  await update(ref(db, `${databaseStreamPath}/credits/${id}`), { status: 'paid' });
+  showToast("Marked as paid.");
+};
+window.deleteCredit = async (id) => {
+  if(!confirm("Delete this loan record?")) return;
+  credits = credits.filter(c => c.id !== id);
+  renderCredits();
+  renderAll();
+  await remove(ref(db, `${databaseStreamPath}/credits/${id}`));
+  showToast("Removed.");
+};
 
 /* ===== AI ASSISTANT ===== */
 let isVoiceRecordingActive = false;
@@ -1964,6 +2076,7 @@ async function triggerMainAIStreamPipeline() {
       aiParsedActionResponse.date = todayISO();
       aiParsedActionResponse.createdAtMs = Date.now();
       aiParsedActionResponse.receiptUrl = null;
+      aiParsedActionResponse.receiptPublicId = null;
       await push(ref(db, `${databaseStreamPath}/transactions`), aiParsedActionResponse);
       appendMessageToBubble('assistant', `Understood! Logged entry of ₹${aiParsedActionResponse.amount} under ${aiParsedActionResponse.category || 'Transfer'} successfully.`);
       statusNode.textContent = 'Committed to Firebase!';
@@ -2141,27 +2254,11 @@ function computeStats() {
     else if (t.type === 'expense' && isCurrentMonth) { expenseTotal += amt; if (t.date === todayStringISO) todaySpentTotal += amt; }
   });
 
-  // Add loan impacts to payment method balances
-  credits.forEach(c => {
-    const cDate = new Date(c.takenDate || c.createdAtMs);
-    const cMonth = cDate.getMonth();
-    const cYear = cDate.getFullYear();
-    const isCurrentMonth = cMonth === currentMonth && cYear === currentYear;
-    
-    if (c.status === 'pending' && isCurrentMonth) {
-      const amt = Number(c.amount) || 0;
-      // Default to Cash if no method specified, or distribute to Cash
-      if (!modeBalances['Cash']) modeBalances['Cash'] = 0;
-      
-      if (c.type === 'lent') {
-        // Money going out from Cash
-        modeBalances['Cash'] -= amt;
-      } else if (c.type === 'borrowed') {
-        // Money coming in to Cash
-        modeBalances['Cash'] += amt;
-      }
-    }
-  });
+  // NOTE: Loan/credit records are intentionally NOT folded into any payment-mode
+  // balance (e.g. Cash). Loans have no associated payment method in this app, and
+  // silently injecting them into "Cash" made the Cash card drift away from what
+  // transactions alone would show. Loan totals are surfaced separately on the
+  // Loans tab (People Owe You / You Owe People).
 
   let grandTotal = Object.values(modeBalances).reduce((a,b) => a + b, 0);
   return { total: grandTotal, incomeTotal, expenseTotal, todaySpentTotal, modeBalances };
