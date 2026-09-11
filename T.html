@@ -16,7 +16,6 @@
     Glassmorphism preserved throughout (frosted panels, blur, translucent borders)
   */
   :root, body.theme-light {
-    color-scheme: light;
     --spidey-red: #E62429;
     --spidey-red-deep: #A30E12;
     --spidey-blue: #1D4ED8;
@@ -59,7 +58,6 @@
   }
 
   body.theme-dark {
-    color-scheme: dark;
     --spidey-red: #FF3B3F;
     --spidey-red-deep: #C4141A;
     --spidey-blue: #4C8DFF;
@@ -297,7 +295,7 @@
     background: linear-gradient(150deg, var(--spidey-blue) 0%, var(--spidey-blue-deep) 100%);
     color: #fff; box-shadow: 5px 5px 14px rgba(29,78,216,0.35), -3px -3px 8px rgba(255,255,255,0.5);
   }
-  .btn-ghost { background: var(--glass-bg); color: var(--purple-deep); border: 1px solid var(--line); }
+  .btn-ghost { background: rgba(255,255,255,0.5); color: var(--purple-deep); border: 1px solid var(--line); }
   .btn-ghost:hover { background: rgba(230,36,41,0.08); border-color: var(--purple-soft); }
 
   .content { padding: 24px 36px 40px; flex: 1; position: relative; z-index: 1; }
@@ -323,7 +321,7 @@
 
   .panel { border-radius: 22px; overflow: hidden; }
 
-  .tx-row { display: grid; grid-template-columns: 40px 1fr auto auto; align-items: center; gap: 10px; padding: 14px 22px; border-bottom: 1px solid var(--line); }
+  .tx-row { display: grid; grid-template-columns: 40px 1fr auto auto; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid var(--line); }
   .tx-row { animation: fadeUp 0.4s ease both; }
   .tx-row:hover { background: rgba(230,36,41,0.05); }
   .tx-row:last-child { border-bottom: none; }
@@ -972,7 +970,6 @@
             </div>
           </div>
           <input type="hidden" id="txReceiptUrl" value="">
-          <input type="hidden" id="txReceiptPublicId" value="">
         </div>
 
         <button type="submit" class="btn modal-submit" id="txSubmitBtn">Save Entry</button>
@@ -1062,84 +1059,29 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const OPENROUTER_SECRET_KEY = "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";
+// OpenRouter key is no longer hardcoded — it's synced live from Firebase (config/openRouterApiKey)
+// via the listener set up right after `db` is created below. Rotating the key means updating
+// that one Firebase field; this file never needs to change again for a key rotation.
+let currentOpenRouterKey = "";
+onValue(ref(db, "config/openRouterApiKey"), (snap) => {
+  currentOpenRouterKey = snap.val() || "";
+});
 
-/* ===== CLOUDINARY (receipt image uploads — signed upload, NO preset required) ===== */
+/* ===== CLOUDINARY (receipt image uploads) ===== */
 const CLOUDINARY_CLOUD_NAME = "dl1ishrkv";
-const CLOUDINARY_API_KEY = "433163499287729";
-const CLOUDINARY_API_SECRET = "2rP00sgy0FGPVsKYDEG0GH-k5mo";
+const CLOUDINARY_UPLOAD_PRESET = "the_image_data_unsigned"; // unsigned upload preset scoped to the_image_data folder
 const CLOUDINARY_FOLDER = "the_image_data";
 const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-const CLOUDINARY_DESTROY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/destroy`;
-
-async function sha1Hex(str) {
-  const enc = new TextEncoder().encode(str);
-  const hashBuffer = await crypto.subtle.digest('SHA-1', enc);
-  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
 
 async function uploadReceiptImage(file) {
-  if (!CLOUDINARY_API_KEY || CLOUDINARY_API_KEY.startsWith("PUT_YOUR")) {
-    throw new Error("Cloudinary API Key not set yet — add it to CLOUDINARY_API_KEY in the code.");
-  }
-
-  const timestamp = Math.floor(Date.now() / 1000);
-  // Signature = SHA1(alphabetically-sorted signed params + api_secret)
-  const paramsToSign = `folder=${CLOUDINARY_FOLDER}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
-  const signature = await sha1Hex(paramsToSign);
-
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("api_key", CLOUDINARY_API_KEY);
-  formData.append("timestamp", String(timestamp));
-  formData.append("signature", signature);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
   formData.append("folder", CLOUDINARY_FOLDER);
-
   const res = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: formData });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const msg = (data && data.error && data.error.message) ? data.error.message : `Upload failed (HTTP ${res.status}).`;
-    console.error("Cloudinary upload failed:", data);
-    throw new Error(msg);
-  }
-  return { url: data.secure_url, publicId: data.public_id };
-}
-
-// Fallback for entries saved before we stored public_id: derive it from the secure_url.
-// e.g. https://res.cloudinary.com/<cloud>/image/upload/v169.../the_image_data/abc123.jpg
-//   -> the_image_data/abc123
-function extractPublicIdFromUrl(url) {
-  if (!url) return null;
-  try {
-    const afterUpload = url.split('/upload/')[1];
-    if (!afterUpload) return null;
-    let path = afterUpload.replace(/^v\d+\//, '');   // strip version segment
-    path = path.replace(/\.[a-zA-Z0-9]+$/, '');       // strip file extension
-    return path || null;
-  } catch { return null; }
-}
-
-async function deleteCloudinaryImage(publicId) {
-  if (!publicId) return;
-  try {
-    const timestamp = Math.floor(Date.now() / 1000);
-    const paramsToSign = `public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
-    const signature = await sha1Hex(paramsToSign);
-
-    const formData = new FormData();
-    formData.append("public_id", publicId);
-    formData.append("api_key", CLOUDINARY_API_KEY);
-    formData.append("timestamp", String(timestamp));
-    formData.append("signature", signature);
-
-    const res = await fetch(CLOUDINARY_DESTROY_URL, { method: "POST", body: formData });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || data.result !== 'ok') {
-      console.warn("Cloudinary delete did not confirm removal:", data);
-    }
-  } catch (err) {
-    console.error("Cloudinary delete failed:", err);
-  }
+  if (!res.ok) throw new Error("Image upload failed.");
+  const data = await res.json();
+  return data.secure_url;
 }
 
 let currentSessionUser = null;
@@ -1147,9 +1089,32 @@ let databaseStreamPath = "";
 let transactions = [];
 let credits = [];
 let paymentModes = ["Cash", "UPI"];
-let pendingReceiptUrl = "";
-let pendingReceiptPublicId = "";
-let sheetDateMode = "all";
+let balances = {}; // persistent running balances synced from users/{userId}/balances
+let balancesLoaded = false; // guards against seeding "missing" modes before the real balances snapshot has arrived
+
+/* ===== BALANCE HELPERS (persistent, incremental — no historical replay) ===== */
+async function applyBalanceDelta(deltas) {
+  // deltas: { modeName: deltaAmount, ... } — merges onto the cached `balances` snapshot
+  const updates = {};
+  for (const [mode, delta] of Object.entries(deltas)) {
+    if (!delta) continue;
+    const current = Number(balances[mode] || 0);
+    updates[mode] = current + delta;
+  }
+  if (Object.keys(updates).length === 0) return;
+  await update(ref(db, `${databaseStreamPath}/balances`), updates);
+}
+
+// Only ever seeds a mode that's genuinely absent from a balances snapshot we've actually
+// received — never runs against the pre-load empty `{}`, so it can't clobber real data.
+function backfillMissingModeBalances() {
+  if (!balancesLoaded) return;
+  const missing = paymentModes.filter(m => balances[m] === undefined);
+  if (!missing.length) return;
+  const seed = {};
+  missing.forEach(m => { seed[m] = 0; balances[m] = 0; });
+  update(ref(db, `${databaseStreamPath}/balances`), seed).catch(() => {});
+}
 
 let CATEGORIES_EXPENSE = ["Food","Transport","Rent","Shopping","Bills","Health","Entertainment","Education","Other"];
 let CATEGORIES_INCOME = ["Salary","Freelance","Gift","Interest","Refund","Other"];
@@ -1194,12 +1159,8 @@ window.addEventListener("DOMContentLoaded", () => {
   }, 1500);
 });
 
-/* ===== THEME TOGGLE (persisted across reloads) ===== */
-const THEME_STORAGE_KEY = 'amanager-theme';
-const savedTheme = (() => {
-  try { return localStorage.getItem(THEME_STORAGE_KEY); } catch { return null; }
-})();
-document.body.classList.add(savedTheme === 'dark' ? 'theme-dark' : 'theme-light');
+/* ===== THEME TOGGLE ===== */
+document.body.classList.add('theme-light');
 
 function applyThemeToggleUI() {
   const isDark = document.body.classList.contains('theme-dark');
@@ -1212,7 +1173,6 @@ document.getElementById('themeToggleBtn').addEventListener('click', () => {
   const isDark = document.body.classList.contains('theme-dark');
   document.body.classList.toggle('theme-dark', !isDark);
   document.body.classList.toggle('theme-light', isDark);
-  try { localStorage.setItem(THEME_STORAGE_KEY, !isDark ? 'dark' : 'light'); } catch {}
   applyThemeToggleUI();
   if (typeof window.renderAll === 'function' && currentSessionUser) window.renderAll();
 });
@@ -1313,6 +1273,8 @@ function showAuthStage(id) {
 function showAuthGate() {
   currentSessionUser = null;
   databaseStreamPath = "";
+  balances = {};
+  balancesLoaded = false;
   document.getElementById("appShell").style.display = "none";
   document.getElementById("authGate").style.display = "flex";
   loginLock.reset(); signupLock.reset(); confirmLock.reset();
@@ -1453,6 +1415,7 @@ confirmLock.onComplete(async (indices) => {
     const userKey = computeRouteMangle(pendingSignupUsername);
     await set(ref(db, `users/${userKey}/profile`), { username: pendingSignupUsername, pattern: code, timestamp: Date.now() });
     await set(ref(db, `users/${userKey}/modes`), ["Cash", "UPI"]);
+    await set(ref(db, `users/${userKey}/balances`), { Cash: 0, UPI: 0 });
     showToast("Account created!");
     initializeUserSession(pendingSignupUsername, userKey);
   } catch (eX) {
@@ -1490,9 +1453,20 @@ function startSyncListeners() {
   onValue(ref(db, `${databaseStreamPath}/modes`), (snap) => {
     const val = snap.val();
     paymentModes = val ? Object.values(val) : ["Cash", "UPI"];
+    backfillMissingModeBalances();
     updatePaymentModeDropdowns();
     renderModesView();
-    if (transactions.length > 0) renderAll();
+    renderAll();
+  });
+
+  // Balances are the single source of truth for account totals — persisted directly,
+  // never recomputed by replaying transaction history.
+  onValue(ref(db, `${databaseStreamPath}/balances`), (snap) => {
+    balances = snap.val() || {};
+    balancesLoaded = true;
+    console.log('[A Manager] balances snapshot from Firebase (' + databaseStreamPath + '/balances):', balances);
+    backfillMissingModeBalances();
+    renderAll();
   });
 
   onValue(ref(db, `${databaseStreamPath}/transactions`), (snap) => {
@@ -1502,12 +1476,12 @@ function startSyncListeners() {
     renderAll();
   });
 
+  // Loans/credits are record-only from here on — they are never folded into Cash/UPI/total balances.
   onValue(ref(db, `${databaseStreamPath}/credits`), (snap) => {
     const val = snap.val();
     credits = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
     credits.sort((a,b) => b.createdAtMs - a.createdAtMs);
     renderCredits();
-    renderAll(); // credits affect the Cash balance card too
   });
 }
 
@@ -1560,10 +1534,7 @@ document.querySelectorAll('.mainNavBind button').forEach(b => { if(b.dataset.vie
 document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
 const txOverlay = document.getElementById('txOverlay');
-const txDetailOverlay = document.getElementById('txDetailOverlay');
-const lightboxOverlay = document.getElementById('lightboxOverlay');
 let txType = 'expense';
-let editingTxId = null;
 
 document.getElementById('inputInterfaceTabToggle').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if(!b) return;
@@ -1604,99 +1575,9 @@ document.getElementById('txTypeToggle').addEventListener('click', (e) => {
   setTxTypeUI();
 });
 
-/* ===== RECEIPT UPLOAD WIRING ===== */
-function resetReceiptUploadUI() {
-  // Pure UI/state reset — does NOT delete anything from Cloudinary.
-  pendingReceiptUrl = "";
-  pendingReceiptPublicId = "";
-  document.getElementById('txReceiptUrl').value = "";
-  document.getElementById('txReceiptPublicId').value = "";
-  const wrap = document.getElementById('receiptUploadWrap');
-  wrap.classList.remove('has-image');
-  wrap.innerHTML = `
-    <input type="file" id="receiptFileInput" accept="image/*" style="display:none;">
-    <div class="ru-placeholder" id="ruPlaceholder">
-      <span class="ru-icon">🕸️</span>
-      <span>Tap to attach a photo of cash / UPI receipt</span>
-    </div>
-  `;
-  bindReceiptUploadWrap();
-}
-
-function renderReceiptPreview(url, publicId) {
-  pendingReceiptUrl = url;
-  pendingReceiptPublicId = publicId || "";
-  document.getElementById('txReceiptUrl').value = url || "";
-  document.getElementById('txReceiptPublicId').value = publicId || "";
-  const wrap = document.getElementById('receiptUploadWrap');
-  if (url) {
-    wrap.classList.add('has-image');
-    wrap.innerHTML = `
-      <input type="file" id="receiptFileInput" accept="image/*" style="display:none;">
-      <img class="ru-preview" src="${escapeHTML(url)}" alt="Receipt preview">
-      <button type="button" class="ru-remove" id="ruRemoveBtn">✕</button>
-    `;
-  } else {
-    resetReceiptUploadUI();
-    return;
-  }
-  bindReceiptUploadWrap();
-}
-
-function bindReceiptUploadWrap() {
-  const wrap = document.getElementById('receiptUploadWrap');
-  const fileInput = document.getElementById('receiptFileInput');
-  const removeBtn = document.getElementById('ruRemoveBtn');
-
-  wrap.onclick = (e) => {
-    if (e.target.closest('.ru-remove')) return;
-    fileInput.click();
-  };
-  fileInput.onchange = async () => {
-    const file = fileInput.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) return showToast("Please choose an image file.");
-    if (file.size > 8 * 1024 * 1024) return showToast("Image too large (max 8MB).");
-
-    // If replacing an existing attached image, delete the old one from Cloudinary first.
-    const oldPublicId = pendingReceiptPublicId;
-
-    wrap.classList.add('has-image');
-    wrap.innerHTML = `<div class="ru-uploading"><div class="ru-spinner"></div><span>Uploading to web...</span></div>`;
-    try {
-      const { url, publicId } = await uploadReceiptImage(file);
-      renderReceiptPreview(url, publicId);
-      showToast("Receipt attached!");
-      if (oldPublicId && oldPublicId !== publicId) deleteCloudinaryImage(oldPublicId);
-    } catch (err) {
-      console.error(err);
-      showToast(err.message || "Upload failed. Check your Cloudinary keys.");
-      resetReceiptUploadUI();
-    }
-  };
-  if (removeBtn) {
-    removeBtn.onclick = async (e) => {
-      e.stopPropagation();
-      const publicIdToDelete = pendingReceiptPublicId || extractPublicIdFromUrl(pendingReceiptUrl);
-      resetReceiptUploadUI();
-      if (publicIdToDelete) {
-        showToast("Removing receipt...");
-        await deleteCloudinaryImage(publicIdToDelete);
-        showToast("Receipt removed permanently.");
-      }
-    };
-  }
-}
-bindReceiptUploadWrap();
-
-function openTxModalForCreate() {
-  editingTxId = null;
+document.getElementById('openTxModal').addEventListener('click', () => {
   document.getElementById('txForm').reset();
-  document.getElementById('txEditId').value = "";
   document.getElementById('txDate').value = todayISO();
-  document.getElementById('txSubmitBtn').textContent = "Save Entry";
-  document.getElementById('txSubmitBtn').disabled = false;
-  resetReceiptUploadUI();
   txType = 'expense';
   setTxTypeUI();
   document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
@@ -1705,39 +1586,7 @@ function openTxModalForCreate() {
   document.getElementById('aiInterfaceNode').style.display = 'block';
   resetAIInterfaceUI();
   txOverlay.classList.add('active');
-}
-
-function openTxModalForEdit(tx) {
-  editingTxId = tx.id;
-  document.getElementById('txForm').reset();
-  document.getElementById('txEditId').value = tx.id;
-  document.getElementById('txSubmitBtn').textContent = "Update Entry";
-  document.getElementById('txSubmitBtn').disabled = false;
-  txType = tx.type;
-  setTxTypeUI();
-
-  document.getElementById('txAmount').value = tx.amount;
-  document.getElementById('txDate').value = tx.date;
-  document.getElementById('txNote').value = tx.note || '';
-
-  if (tx.type === 'transfer') {
-    document.getElementById('txFromMethod').value = tx.fromMethod;
-    document.getElementById('txToMethod').value = tx.toMethod;
-  } else {
-    document.getElementById('txMethod').value = tx.method;
-    document.getElementById('txCategory').value = tx.category;
-  }
-
-  if (tx.receiptUrl) renderReceiptPreview(tx.receiptUrl, tx.receiptPublicId || extractPublicIdFromUrl(tx.receiptUrl)); else resetReceiptUploadUI();
-
-  document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
-  document.querySelector('#inputInterfaceTabToggle button[data-tab="manual"]').classList.add('sel-income');
-  document.getElementById('txForm').style.display = 'block';
-  document.getElementById('aiInterfaceNode').style.display = 'none';
-  txOverlay.classList.add('active');
-}
-
-document.getElementById('openTxModal').addEventListener('click', openTxModalForCreate);
+});
 document.getElementById('closeTxModal').addEventListener('click', () => {
   stopVoiceAudioRecording();
   txOverlay.classList.remove('active');
@@ -1745,8 +1594,6 @@ document.getElementById('closeTxModal').addEventListener('click', () => {
 
 document.getElementById('txForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const submitBtn = document.getElementById('txSubmitBtn');
-  if (submitBtn.disabled) return; // guard against double-submit creating duplicate entries
   const amount = parseFloat(document.getElementById('txAmount').value);
   if(!amount || amount <= 0) return showToast("Enter a valid amount.");
 
@@ -1754,115 +1601,51 @@ document.getElementById('txForm').addEventListener('submit', async (e) => {
     type: txType, amount,
     date: document.getElementById('txDate').value,
     note: document.getElementById('txNote').value.trim(),
-    receiptUrl: pendingReceiptUrl || null,
-    receiptPublicId: pendingReceiptPublicId || null
+    createdAtMs: Date.now()
   };
+
+  // Balance deltas to apply on top of the persisted `balances` node — additive, never a full replay.
+  const deltas = {};
 
   if(txType === 'transfer') {
     payload.fromMethod = document.getElementById('txFromMethod').value;
     payload.toMethod = document.getElementById('txToMethod').value;
     if(payload.fromMethod === payload.toMethod) return showToast("Choose different accounts.");
+    deltas[payload.fromMethod] = (deltas[payload.fromMethod] || 0) - amount;
+    deltas[payload.toMethod] = (deltas[payload.toMethod] || 0) + amount;
   } else {
     payload.method = document.getElementById('txMethod').value;
     payload.category = document.getElementById('txCategory').value;
+    deltas[payload.method] = (deltas[payload.method] || 0) + (txType === 'income' ? amount : -amount);
   }
 
-  submitBtn.disabled = true;
-  const editId = document.getElementById('txEditId').value;
-  try {
-    if (editId) {
-      // Optimistic local update — don't wait on the Firebase listener round-trip to refresh the UI.
-      const idx = transactions.findIndex(t => t.id === editId);
-      if (idx !== -1) transactions[idx] = { ...transactions[idx], ...payload };
-      transactions.sort((a,b) => b.date.localeCompare(a.date) || (b.createdAtMs||0) - (a.createdAtMs||0));
-      renderAll();
-      await update(ref(db, `${databaseStreamPath}/transactions/${editId}`), payload);
-      showToast("Entry updated.");
-    } else {
-      payload.createdAtMs = Date.now();
-      const newRef = push(ref(db, `${databaseStreamPath}/transactions`));
-      const newId = newRef.key;
-      // Optimistic local insert so the dashboard reflects it immediately.
-      transactions.unshift({ id: newId, ...payload });
-      transactions.sort((a,b) => b.date.localeCompare(a.date) || (b.createdAtMs||0) - (a.createdAtMs||0));
-      renderAll();
-      await set(newRef, payload);
-      showToast("Saved successfully.");
-    }
-  } finally {
-    submitBtn.disabled = false;
-  }
+  await push(ref(db, `${databaseStreamPath}/transactions`), payload);
+  await applyBalanceDelta(deltas);
   txOverlay.classList.remove('active');
+  showToast("Saved successfully.");
 });
 
 window.deleteTx = async (id) => {
   if(!confirm("Delete this entry permanently?")) return;
-  const tx = transactions.find(t => t.id === id);
-  // Optimistic local removal.
-  transactions = transactions.filter(t => t.id !== id);
-  renderAll();
-  await remove(ref(db, `${databaseStreamPath}/transactions/${id}`));
-  if (tx && tx.receiptUrl) {
-    const publicId = tx.receiptPublicId || extractPublicIdFromUrl(tx.receiptUrl);
-    deleteCloudinaryImage(publicId); // best-effort, don't block on this
+  const t = transactions.find(tx => tx.id === id);
+
+  if(t) {
+    const amt = Number(t.amount) || 0;
+    const reverseDeltas = {};
+    if(t.type === 'transfer') {
+      // Undo: put the amount back on the source account, take it back off the destination.
+      reverseDeltas[t.fromMethod] = (reverseDeltas[t.fromMethod] || 0) + amt;
+      reverseDeltas[t.toMethod] = (reverseDeltas[t.toMethod] || 0) - amt;
+    } else {
+      // Undo an income (increment) with a decrement; undo an expense (decrement) with an increment.
+      reverseDeltas[t.method] = (reverseDeltas[t.method] || 0) + (t.type === 'income' ? -amt : amt);
+    }
+    await applyBalanceDelta(reverseDeltas);
   }
+
+  await remove(ref(db, `${databaseStreamPath}/transactions/${id}`));
   showToast("Deleted.");
-  txDetailOverlay.classList.remove('active');
 };
-
-window.editTx = (id) => {
-  const tx = transactions.find(t => t.id === id);
-  if (!tx) return;
-  txDetailOverlay.classList.remove('active');
-  openTxModalForEdit(tx);
-};
-
-/* ===== ENTRY DETAIL MODAL ===== */
-window.openTxDetail = (id) => {
-  const tx = transactions.find(t => t.id === id);
-  if (!tx) return;
-  const body = document.getElementById('txDetailBody');
-  const isTransfer = tx.type === 'transfer';
-  const amtColor = isTransfer ? 'var(--transfer)' : (tx.type === 'income' ? 'var(--income)' : 'var(--expense)');
-  const amtSign = isTransfer ? '' : (tx.type === 'income' ? '+' : '-');
-
-  body.innerHTML = `
-    <div style="text-align:center; margin-bottom:18px;">
-      <div class="avatar avatar-lg ${isTransfer ? 'avatar-transfer' : (tx.type === 'income' ? 'avatar-income' : 'avatar-expense')}" style="margin:0 auto 10px;">
-        ${isTransfer ? '⇄' : categoryEmoji(tx.category)}
-      </div>
-      <div class="value num" style="font-size:26px; color:${amtColor};">${amtSign}${fmt(tx.amount)}</div>
-      <div style="font-size:13px; color:var(--muted); margin-top:4px; font-weight:600;">${formatDate(tx.date)}</div>
-    </div>
-    <div class="clay-inset" style="padding:14px 16px; border-radius:14px; margin-bottom:16px; font-size:13.5px; line-height:1.9;">
-      ${isTransfer
-        ? `<div><b>From:</b> ${escapeHTML(tx.fromMethod)}</div><div><b>To:</b> ${escapeHTML(tx.toMethod)}</div>`
-        : `<div><b>Category:</b> ${escapeHTML(tx.category)}</div><div><b>Paid via:</b> ${escapeHTML(tx.method)}</div>`
-      }
-      ${tx.note ? `<div><b>Note:</b> ${escapeHTML(tx.note)}</div>` : ''}
-    </div>
-    ${tx.receiptUrl ? `
-      <div class="field">
-        <label>Attached Receipt</label>
-        <img src="${escapeHTML(tx.receiptUrl)}" alt="Receipt" style="width:100%; border-radius:14px; cursor:zoom-in; border:1px solid var(--line);" onclick="openLightbox('${escapeHTML(tx.receiptUrl)}')">
-      </div>
-    ` : ''}
-    <div class="credit-actions" style="margin-top:10px;">
-      <button type="button" class="mini-btn settle" style="flex:1; text-align:center;" onclick="editTx('${tx.id}')">✏️ Edit Entry</button>
-      <button type="button" class="mini-btn del" style="flex:1; text-align:center;" onclick="deleteTx('${tx.id}')">🗑️ Delete</button>
-    </div>
-  `;
-  txDetailOverlay.classList.add('active');
-};
-document.getElementById('closeTxDetailModal').addEventListener('click', () => txDetailOverlay.classList.remove('active'));
-txDetailOverlay.addEventListener('click', (e) => { if(e.target === txDetailOverlay) txDetailOverlay.classList.remove('active'); });
-
-window.openLightbox = (url) => {
-  document.getElementById('lightboxImg').src = url;
-  lightboxOverlay.classList.add('active');
-};
-document.getElementById('lightboxClose').addEventListener('click', () => lightboxOverlay.classList.remove('active'));
-lightboxOverlay.addEventListener('click', (e) => { if(e.target === lightboxOverlay) lightboxOverlay.classList.remove('active'); });
 
 document.getElementById("addModeForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1871,6 +1654,7 @@ document.getElementById("addModeForm").addEventListener("submit", async (e) => {
   if(paymentModes.includes(name)) return showToast("Mode name already exists.");
   paymentModes.push(name);
   await set(ref(db, `${databaseStreamPath}/modes`), paymentModes);
+  await update(ref(db, `${databaseStreamPath}/balances`), { [name]: 0 });
   document.getElementById("addModeForm").reset();
   showToast("Payment account added.");
 });
@@ -1926,33 +1710,13 @@ document.getElementById('creditForm').addEventListener('submit', async (e) => {
     status: 'pending',
     createdAtMs: Date.now()
   };
-  const newRef = push(ref(db, `${databaseStreamPath}/credits`));
-  // Optimistic local insert.
-  credits.unshift({ id: newRef.key, ...payload });
-  credits.sort((a,b) => b.createdAtMs - a.createdAtMs);
-  renderCredits();
-  renderAll();
-  await set(newRef, payload);
+  await push(ref(db, `${databaseStreamPath}/credits`), payload);
   creditOverlay.classList.remove('active');
   showToast("Loan logged successfully.");
 });
 
-window.settleCredit = async (id) => {
-  const idx = credits.findIndex(c => c.id === id);
-  if (idx !== -1) credits[idx] = { ...credits[idx], status: 'paid' };
-  renderCredits();
-  renderAll();
-  await update(ref(db, `${databaseStreamPath}/credits/${id}`), { status: 'paid' });
-  showToast("Marked as paid.");
-};
-window.deleteCredit = async (id) => {
-  if(!confirm("Delete this loan record?")) return;
-  credits = credits.filter(c => c.id !== id);
-  renderCredits();
-  renderAll();
-  await remove(ref(db, `${databaseStreamPath}/credits/${id}`));
-  showToast("Removed.");
-};
+window.settleCredit = async (id) => { await update(ref(db, `${databaseStreamPath}/credits/${id}`), { status: 'paid' }); showToast("Marked as paid."); };
+window.deleteCredit = async (id) => { if(!confirm("Delete this loan record?")) return; await remove(ref(db, `${databaseStreamPath}/credits/${id}`)); showToast("Removed."); };
 
 /* ===== AI ASSISTANT ===== */
 let isVoiceRecordingActive = false;
@@ -2019,6 +1783,12 @@ async function triggerMainAIStreamPipeline() {
   const statusNode = document.getElementById('aiStatusNode');
   statusNode.textContent = 'Analyzing parameters...';
 
+  if (!currentOpenRouterKey) {
+    appendMessageToBubble('assistant', "No OpenRouter API key is set in Firebase yet (config/openRouterApiKey). Add it there and this will start working — no file update needed.");
+    statusNode.textContent = 'Missing API key';
+    return;
+  }
+
   try {
     const historicalStatsSnapshot = computeStats();
     const contextLedgerPayload = {
@@ -2056,7 +1826,7 @@ async function triggerMainAIStreamPipeline() {
 
     const openRouterResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { "Authorization": `Bearer ${OPENROUTER_SECRET_KEY}`, "Content-Type": "application/json", "HTTP-Referer": "http://localhost", "X-Title": "A Manager Smart Matrix Console" },
+      headers: { "Authorization": `Bearer ${currentOpenRouterKey}`, "Content-Type": "application/json", "HTTP-Referer": "http://localhost", "X-Title": "A Manager Smart Matrix Console" },
       body: JSON.stringify({
         model: "openrouter/free",
         messages: [ { role: "system", content: coreOmnipresentPromptSystemContext }, { role: "user", content: `User query phrase text: "${userQuery}"` } ],
@@ -2064,20 +1834,48 @@ async function triggerMainAIStreamPipeline() {
       })
     });
 
-    if(!openRouterResponse.ok) throw new Error("OpenRouter cloud API network request fault.");
+    if(!openRouterResponse.ok) {
+      const errBody = await openRouterResponse.text().catch(() => '');
+      console.error('[A Manager] OpenRouter request failed:', openRouterResponse.status, openRouterResponse.statusText, errBody);
+      const hint = openRouterResponse.status === 401
+        ? " The key in Firebase (config/openRouterApiKey) looks invalid or expired — update it there."
+        : "";
+      throw new Error(`OpenRouter request failed (HTTP ${openRouterResponse.status} ${openRouterResponse.statusText}).${hint} ${errBody ? errBody.slice(0, 200) : ''}`);
+    }
     const jsonOutput = await openRouterResponse.json();
+    if (!jsonOutput.choices || !jsonOutput.choices[0] || !jsonOutput.choices[0].message) {
+      console.error('[A Manager] Unexpected OpenRouter response shape:', jsonOutput);
+      throw new Error('OpenRouter returned an unexpected response shape — see console for the full payload.');
+    }
     let cleanRawContentString = jsonOutput.choices[0].message.content.trim();
     if(cleanRawContentString.includes("```")) {
       cleanRawContentString = cleanRawContentString.replace(/```json/g, "").replace(/```/g, "").trim();
     }
-    const aiParsedActionResponse = JSON.parse(cleanRawContentString);
+    let aiParsedActionResponse;
+    try {
+      aiParsedActionResponse = JSON.parse(cleanRawContentString);
+    } catch (parseErr) {
+      console.error('[A Manager] Model reply was not valid JSON:', cleanRawContentString);
+      throw new Error("The model's reply wasn't valid JSON — see console for the raw text it sent back.");
+    }
 
     if(aiParsedActionResponse.action === 'save_entry') {
       aiParsedActionResponse.date = todayISO();
       aiParsedActionResponse.createdAtMs = Date.now();
-      aiParsedActionResponse.receiptUrl = null;
-      aiParsedActionResponse.receiptPublicId = null;
+
+      // Mirror the manual entry form's balance-delta logic — the AI pipeline is a second
+      // write path into the same transactions node, so it must update `balances` too.
+      const aiAmt = Number(aiParsedActionResponse.amount) || 0;
+      const aiDeltas = {};
+      if (aiParsedActionResponse.type === 'transfer' && aiParsedActionResponse.fromMethod && aiParsedActionResponse.toMethod) {
+        aiDeltas[aiParsedActionResponse.fromMethod] = (aiDeltas[aiParsedActionResponse.fromMethod] || 0) - aiAmt;
+        aiDeltas[aiParsedActionResponse.toMethod] = (aiDeltas[aiParsedActionResponse.toMethod] || 0) + aiAmt;
+      } else if (aiParsedActionResponse.method) {
+        aiDeltas[aiParsedActionResponse.method] = (aiDeltas[aiParsedActionResponse.method] || 0) + (aiParsedActionResponse.type === 'income' ? aiAmt : -aiAmt);
+      }
+
       await push(ref(db, `${databaseStreamPath}/transactions`), aiParsedActionResponse);
+      await applyBalanceDelta(aiDeltas);
       appendMessageToBubble('assistant', `Understood! Logged entry of ₹${aiParsedActionResponse.amount} under ${aiParsedActionResponse.category || 'Transfer'} successfully.`);
       statusNode.textContent = 'Committed to Firebase!';
       setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
@@ -2097,8 +1895,8 @@ async function triggerMainAIStreamPipeline() {
     }
   } catch(errX) {
     statusNode.textContent = 'Loop exception logged.';
-    appendMessageToBubble('assistant', "Apologies, I encountered a minor processing fault analyzing your ledger context parameters.");
-    console.error(errX);
+    appendMessageToBubble('assistant', `Apologies, I hit an error: ${errX.message || 'unknown fault'}. Check the browser console (F12) for full details.`);
+    console.error('[A Manager] AI pipeline error:', errX);
   }
 }
 
@@ -2117,29 +1915,15 @@ function appendMessageToBubble(sender, text) {
 }
 
 /* ===== BALANCE SHEET LEDGER ===== */
-function getSheetDateRange() {
-  if (sheetDateMode === 'single') {
-    const d = document.getElementById('sheetSingleDate').value;
-    return { startDate: d || null, endDate: d || null };
-  }
-  if (sheetDateMode === 'range') {
-    return {
-      startDate: document.getElementById('sheetStartDate').value || null,
-      endDate: document.getElementById('sheetEndDate').value || null
-    };
-  }
-  return { startDate: null, endDate: null };
-}
-
 function generateAccountBalanceSheet() {
   const activeMethod = document.getElementById('sheetMethodSelect').value;
   const personFilter = document.getElementById('sheetSearchPerson').value.toLowerCase().trim();
-  const { startDate, endDate } = getSheetDateRange();
+  const startDate = document.getElementById('sheetStartDate').value;
+  const endDate = document.getElementById('sheetEndDate').value;
 
   document.getElementById('sheetAccountLabel').textContent = `Statement for: ${activeMethod}`;
   let labelText = "All-Time Running Ledger";
-  if (sheetDateMode === 'single' && startDate) labelText = `History for: ${formatDate(startDate)}`;
-  else if (sheetDateMode === 'range' && (startDate || endDate)) labelText = `History: ${startDate ? formatDate(startDate) : 'Onset'} to ${endDate ? formatDate(endDate) : 'Present'}`;
+  if(startDate || endDate) labelText = `History: ${startDate || 'Onset'} to ${endDate || 'Present'}`;
   document.getElementById('sheetDateFilterLabel').textContent = labelText;
 
   const tBody = document.getElementById('ledgerBalanceSheetBody');
@@ -2174,11 +1958,9 @@ function generateAccountBalanceSheet() {
     }
 
     matchesRowsCollected.push({
-      id: t.id,
       date: t.date,
       type: t.type === 'transfer' ? 'Transfer' : t.category,
       desc: t.type === 'transfer' ? `Transfer: ${t.fromMethod} ➔ ${t.toMethod} ${t.note ? '('+t.note+')' : ''}` : (t.note || 'Ledger entry'),
-      hasReceipt: !!t.receiptUrl,
       out: flowDirection === -1 ? fmt(amt) : '-',
       in: flowDirection === 1 ? fmt(amt) : '-',
       bal: fmt(runningBalanceVal)
@@ -2194,12 +1976,10 @@ function generateAccountBalanceSheet() {
 
   matchesRowsCollected.reverse().forEach(row => {
     const tr = document.createElement('tr');
-    tr.style.cursor = 'pointer';
-    tr.onclick = () => openTxDetail(row.id);
     tr.innerHTML = `
       <td>${formatDate(row.date)}</td>
       <td><span class="label" style="color:var(--purple); border: 1px solid rgba(230,36,41,0.25); padding: 2px 8px; border-radius:8px; font-size:11px;">${escapeHTML(row.type)}</span></td>
-      <td>${escapeHTML(row.desc)} ${row.hasReceipt ? '<span style="opacity:0.6; font-size:11px;">📎</span>' : ''}</td>
+      <td>${escapeHTML(row.desc)}</td>
       <td class="num" style="color:var(--expense); font-weight:700;">${row.out}</td>
       <td class="num" style="color:var(--income); font-weight:700;">${row.in}</td>
       <td class="num" style="font-weight:700; color:var(--purple);">${row.bal}</td>
@@ -2208,59 +1988,44 @@ function generateAccountBalanceSheet() {
   });
 }
 
-document.querySelectorAll('.date-mode-toggle button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    sheetDateMode = btn.dataset.mode;
-    document.querySelectorAll('.date-mode-toggle button').forEach(b => b.classList.toggle('active', b === btn));
-    document.getElementById('singleDateFieldWrap').classList.toggle('active', sheetDateMode === 'single');
-    document.getElementById('rangeDateFieldsWrap').classList.toggle('active', sheetDateMode === 'range');
-    generateAccountBalanceSheet();
-  });
-});
-
-['sheetMethodSelect', 'sheetStartDate', 'sheetEndDate', 'sheetSingleDate'].forEach(id => document.getElementById(id).addEventListener('change', generateAccountBalanceSheet));
+['sheetMethodSelect', 'sheetStartDate', 'sheetEndDate'].forEach(id => document.getElementById(id).addEventListener('change', generateAccountBalanceSheet));
 document.getElementById('sheetSearchPerson').addEventListener('input', generateAccountBalanceSheet);
 document.getElementById('printStatementBtn').addEventListener('click', () => window.print());
 
-/* ===== CORE MATH ENGINE ===== */
+/* ===== CORE MATH ENGINE =====
+   Balances are no longer derived here. `balances` is a persisted Firebase node
+   (users/{userId}/balances) kept current by incremental deltas applied at
+   add/delete time (see applyBalanceDelta, txForm submit handler, deleteTx).
+   This function only reads that state and separately rolls up this-month
+   income/expense for the stat cards — it never replays full transaction
+   history to reconstruct a balance, and loans/credits never touch it. */
 function computeStats() {
   const todayStringISO = todayISO();
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
-  
-  let incomeTotal = 0, expenseTotal = 0, todaySpentTotal = 0;
-  let modeBalances = {};
-  paymentModes.forEach(m => modeBalances[m] = 0);
 
-  const chronologicalTransactionStream = [...transactions].reverse();
-  chronologicalTransactionStream.forEach(t => {
+  let incomeTotal = 0, expenseTotal = 0, todaySpentTotal = 0;
+
+  transactions.forEach(t => {
+    if (t.type === 'transfer') return; // transfers don't affect income/expense totals
     const amt = Number(t.amount) || 0;
     const tDate = new Date(t.date);
-    const tMonth = tDate.getMonth();
-    const tYear = tDate.getFullYear();
-    const isCurrentMonth = tMonth === currentMonth && tYear === currentYear;
-    
-    if (t.type === 'transfer') {
-      if (modeBalances[t.fromMethod] !== undefined) modeBalances[t.fromMethod] -= amt;
-      if (modeBalances[t.toMethod] !== undefined) modeBalances[t.toMethod] += amt;
-      return;
+    const isCurrentMonth = tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
+
+    if (t.type === 'income' && isCurrentMonth) {
+      incomeTotal += amt;
+    } else if (t.type === 'expense' && isCurrentMonth) {
+      expenseTotal += amt;
+      if (t.date === todayStringISO) todaySpentTotal += amt;
     }
-    const sign = t.type === 'income' ? 1 : -1;
-    if (modeBalances[t.method] !== undefined) modeBalances[t.method] += sign * amt;
-    
-    // Count only current month income/expense
-    if (t.type === 'income' && isCurrentMonth) { incomeTotal += amt; }
-    else if (t.type === 'expense' && isCurrentMonth) { expenseTotal += amt; if (t.date === todayStringISO) todaySpentTotal += amt; }
   });
 
-  // NOTE: Loan/credit records are intentionally NOT folded into any payment-mode
-  // balance (e.g. Cash). Loans have no associated payment method in this app, and
-  // silently injecting them into "Cash" made the Cash card drift away from what
-  // transactions alone would show. Loan totals are surfaced separately on the
-  // Loans tab (People Owe You / You Owe People).
+  // Read-only: modeBalances comes straight from the persisted `balances` node.
+  const modeBalances = {};
+  paymentModes.forEach(m => modeBalances[m] = Number(balances[m] || 0));
 
-  let grandTotal = Object.values(modeBalances).reduce((a,b) => a + b, 0);
+  const grandTotal = Object.values(modeBalances).reduce((a,b) => a + b, 0);
   return { total: grandTotal, incomeTotal, expenseTotal, todaySpentTotal, modeBalances };
 }
 
@@ -2298,37 +2063,26 @@ function txListHTML(list) {
   if(!list.length) return `<div class="empty-state"><div class="avatar avatar-p0 avatar-lg" style="margin:0 auto 12px;">📭</div>No entries logged yet.</div>`;
   return list.map((t, idx) => {
     const customDelay = `style="animation-delay: ${idx * 0.04}s"`;
-    const hasReceiptClass = t.receiptUrl ? 'has-receipt' : '';
-    const receiptThumb = t.receiptUrl
-      ? `<img class="tx-receipt-thumb" src="${escapeHTML(t.receiptUrl)}" alt="receipt" onclick="event.stopPropagation(); openLightbox('${escapeHTML(t.receiptUrl)}')">`
-      : '';
-    const actionButtons = `
-      <div class="tx-actions">
-        ${receiptThumb}
-        <button class="tx-edit" onclick="event.stopPropagation(); editTx('${t.id}')" title="Edit">✏️</button>
-        <button class="tx-del" onclick="event.stopPropagation(); deleteTx('${t.id}')" title="Delete">✕</button>
-      </div>`;
-
     if(t.type === 'transfer') {
-      return `<div class="tx-row ${hasReceiptClass}" ${customDelay} onclick="openTxDetail('${t.id}')">
+      return `<div class="tx-row" ${customDelay}>
         <div class="avatar avatar-transfer">⇄</div>
         <div class="tx-main">
           <div class="cat" style="font-weight:700;">Transfer: ${escapeHTML(t.fromMethod)} ➔ ${escapeHTML(t.toMethod)}</div>
           <div class="meta">${formatDate(t.date)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
         </div>
         <div class="tx-amt transfer">${fmt(t.amount)}</div>
-        ${actionButtons}
+        <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
       </div>`;
     }
     const emo = categoryEmoji(t.category);
-    return `<div class="tx-row ${hasReceiptClass}" ${customDelay} onclick="openTxDetail('${t.id}')">
+    return `<div class="tx-row" ${customDelay}>
       <div class="avatar ${t.type === 'income' ? 'avatar-income' : 'avatar-expense'}">${emo}</div>
       <div class="tx-main">
         <div class="cat" style="font-weight:700;">${escapeHTML(t.category)}</div>
         <div class="meta">${formatDate(t.date)} • via ${escapeHTML(t.method)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
       </div>
       <div class="tx-amt ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</div>
-      ${actionButtons}
+      <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
     </div>`;
   }).join('');
 }
