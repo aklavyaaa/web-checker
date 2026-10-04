@@ -23,11 +23,11 @@
     --spidey-blue-mid: #3B6FE0;
     --spidey-web-white: #F3F6FC;
 
-    --purple-deep: #0B2A6B;      /* headings -> deep web-blue */
-    --purple: #E62429;           /* primary accent -> spidey red */
-    --purple-mid: #3B6FE0;       /* secondary accent -> web-blue */
-    --purple-soft: #F2A0A0;      /* soft accent -> faded red */
-    --lavender: #EDF1FA;         /* page tint -> pale sky/webbing */
+    --purple-deep: #0B2A6B;
+    --purple: #E62429;
+    --purple-mid: #3B6FE0;
+    --purple-soft: #F2A0A0;
+    --lavender: #EDF1FA;
     --white: #FFFFFF;
     --ink: #101B36;
     --muted: #5B6784;
@@ -111,7 +111,6 @@
     position: relative;
   }
 
-  /* ===== WEB-PATTERN BACKDROP (replaces plain bubble field) ===== */
   .bubble-field { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
   .bubble-field::before {
     content: '';
@@ -135,7 +134,6 @@
     50% { transform: translate(14px,-18px) scale(1.05); }
   }
 
-  /* corner web decorations */
   .corner-web { position: fixed; width: 180px; height: 180px; z-index: 1; pointer-events: none; opacity: 0.5; }
   .corner-web.tl { top: -10px; left: -10px; }
   .corner-web.tr { top: -10px; right: -10px; transform: scaleX(-1); }
@@ -177,7 +175,6 @@
   .grid-cards .card:nth-child(2) { animation-delay: 0.1s; }
   .grid-cards .card:nth-child(3) { animation-delay: 0.15s; }
 
-  /* ===== CLAY + GLASS PRIMITIVES (kept glassmorphic, restyled to web-blue/red) ===== */
   .clay {
     background: linear-gradient(150deg, var(--card-grad-a) 0%, var(--card-grad-b) 100%);
     border-radius: 22px;
@@ -185,7 +182,6 @@
     box-shadow: 8px 8px 18px var(--clay-lo), -8px -8px 16px var(--clay-hi);
     position: relative;
   }
-  /* subtle web-line accent stitched into every clay card's top edge */
   .clay::after {
     content: '';
     position: absolute; top: 0; left: 16px; right: 16px; height: 2px;
@@ -204,7 +200,6 @@
     border: 1px solid var(--glass-border);
   }
 
-  /* ===== AVATAR BADGES (Spidey palette) ===== */
   .avatar {
     width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
@@ -332,7 +327,7 @@
   .tx-amt.expense { color: var(--expense); }
   .tx-amt.transfer { color: var(--transfer); }
   .tx-actions { display: flex; align-items: center; gap: 4px; }
-  .tx-del, .tx-edit { opacity: 0.35; padding: 6px; font-size: 17px; line-height: 1; }
+  .tx-del, .tx-edit { opacity: 0.55; padding: 6px; font-size: 17px; line-height: 1; }
   .tx-del { color: var(--expense); }
   .tx-edit { color: var(--transfer); }
   .tx-del:hover, .tx-edit:hover { opacity: 1; transform: scale(1.2) rotate(-6deg); }
@@ -343,7 +338,6 @@
   .empty-state { padding: 36px; text-align: center; color: var(--muted); font-size: 14px; }
   .empty-state .avatar { margin: 0 auto 12px; }
 
-  /* ===== RECEIPT UPLOAD ===== */
   .receipt-upload-wrap {
     border: 2px dashed var(--line); border-radius: 16px; padding: 16px; text-align: center;
     cursor: pointer; position: relative; overflow: hidden; background: var(--inset-grad-a);
@@ -391,7 +385,6 @@
   .lightbox-close { position: fixed; top: 22px; right: 24px; color: #fff; font-size: 26px; z-index: 401; opacity: 0.8; }
   .lightbox-close:hover { opacity: 1; transform: scale(1.15); }
 
-  /* ===== date-range filter mode toggle in Statements ===== */
   .date-mode-toggle { display: flex; gap: 6px; }
   .date-mode-toggle button {
     padding: 10px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 700;
@@ -466,7 +459,6 @@
     box-shadow: 5px 5px 14px rgba(163,14,18,0.3);
   }
 
-  /* AI Assistant */
   .ai-interface-container { display: none; text-align: center; padding: 5px 0; }
   .ai-status-label { font-size: 12.5px; color: var(--purple); font-weight: 700; min-height: 18px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
   .ai-chat-history-node {
@@ -482,7 +474,6 @@
   .ai-chat-input-row input { flex: 1; padding: 11px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-grad-a); color: var(--ink); outline: none; font-size: 13.5px; }
   #aiVoiceMicBtn.recording { animation: shakeX 0.6s infinite; background: var(--expense); color: #fff; }
 
-  /* ===== AUTH / PATTERN LOCK ===== */
   .auth-gate {
     position: fixed; inset: 0; z-index: 250; display: flex; align-items: center; justify-content: center; padding: 20px;
     animation: fadeIn 0.4s ease;
@@ -990,7 +981,7 @@
   </div>
 </div>
 
-<!-- ENTRY DETAIL MODAL (view + quick actions, shows receipt image) -->
+<!-- ENTRY DETAIL MODAL -->
 <div class="overlay" id="txDetailOverlay">
   <div class="modal clay">
     <div class="modal-head">
@@ -1001,7 +992,7 @@
   </div>
 </div>
 
-<!-- LIGHTBOX for receipt image -->
+<!-- LIGHTBOX -->
 <div class="lightbox-overlay" id="lightboxOverlay">
   <button class="lightbox-close" id="lightboxClose">✕</button>
   <img id="lightboxImg" src="" alt="Receipt">
@@ -1059,9 +1050,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// OpenRouter key is no longer hardcoded — it's synced live from Firebase (config/openRouterApiKey)
-// via the listener set up right after `db` is created below. Rotating the key means updating
-// that one Firebase field; this file never needs to change again for a key rotation.
+// OpenRouter key is synced live from Firebase (config/openRouterApiKey).
 let currentOpenRouterKey = "";
 onValue(ref(db, "config/openRouterApiKey"), (snap) => {
   currentOpenRouterKey = snap.val() || "";
@@ -1069,7 +1058,7 @@ onValue(ref(db, "config/openRouterApiKey"), (snap) => {
 
 /* ===== CLOUDINARY (receipt image uploads) ===== */
 const CLOUDINARY_CLOUD_NAME = "dl1ishrkv";
-const CLOUDINARY_UPLOAD_PRESET = "the_image_data_unsigned"; // unsigned upload preset scoped to the_image_data folder
+const CLOUDINARY_UPLOAD_PRESET = "the_image_data_unsigned";
 const CLOUDINARY_FOLDER = "the_image_data";
 const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
@@ -1089,24 +1078,44 @@ let databaseStreamPath = "";
 let transactions = [];
 let credits = [];
 let paymentModes = ["Cash", "UPI"];
-let balances = {}; // persistent running balances synced from users/{userId}/balances
-let balancesLoaded = false; // guards against seeding "missing" modes before the real balances snapshot has arrived
+let balances = {};
+let balancesLoaded = false;
 
-/* ===== BALANCE HELPERS (persistent, incremental — no historical replay) ===== */
-async function applyBalanceDelta(deltas) {
-  // deltas: { modeName: deltaAmount, ... } — merges onto the cached `balances` snapshot
-  const updates = {};
-  for (const [mode, delta] of Object.entries(deltas)) {
-    if (!delta) continue;
-    const current = Number(balances[mode] || 0);
-    updates[mode] = current + delta;
+/* ===== BALANCE HELPERS (persistent, incremental) ===== */
+const round2 = (n) => Math.round(n * 100) / 100;
+
+// Signed effect of a transaction on each account (sign = -1 undoes it).
+function txDeltas(t, sign = 1) {
+  const a = (Number(t.amount) || 0) * sign, d = {};
+  if (t.type === 'transfer') {
+    d[t.fromMethod] = (d[t.fromMethod] || 0) - a;
+    d[t.toMethod]   = (d[t.toMethod]   || 0) + a;
+  } else {
+    d[t.method] = (d[t.method] || 0) + (t.type === 'income' ? a : -a);
   }
-  if (Object.keys(updates).length === 0) return;
-  await update(ref(db, `${databaseStreamPath}/balances`), updates);
+  return d;
+}
+function mergeDeltas(...list) {
+  const o = {};
+  list.forEach(d => Object.entries(d).forEach(([k, v]) => o[k] = (o[k] || 0) + v));
+  return o;
+}
+// One atomic multi-path write: transaction + balances together. payload=null deletes.
+async function commitTx(key, payload, deltas) {
+  const base = databaseStreamPath;
+  key = key || push(ref(db, `${base}/transactions`)).key;
+  const writes = { [`${base}/transactions/${key}`]: payload };
+  for (const [m, d] of Object.entries(deltas)) {
+    if (d) writes[`${base}/balances/${m}`] = round2(Number(balances[m] || 0) + d);
+  }
+  await update(ref(db), writes);
+}
+async function applyBalanceDelta(deltas) {
+  const updates = {};
+  for (const [m, d] of Object.entries(deltas)) if (d) updates[m] = round2(Number(balances[m] || 0) + d);
+  if (Object.keys(updates).length) await update(ref(db, `${databaseStreamPath}/balances`), updates);
 }
 
-// Only ever seeds a mode that's genuinely absent from a balances snapshot we've actually
-// received — never runs against the pre-load empty `{}`, so it can't clobber real data.
 function backfillMissingModeBalances() {
   if (!balancesLoaded) return;
   const missing = paymentModes.filter(m => balances[m] === undefined);
@@ -1287,7 +1296,7 @@ document.getElementById('backToUsernameFromPattern').addEventListener('click', (
 document.getElementById('backToPatternFromConfirm').addEventListener('click', () => { signupLock.reset(); showAuthStage('stagePattern'); });
 document.getElementById('clearSignupPattern').addEventListener('click', () => signupLock.reset());
 
-/* ---- LOGIN: pattern-only lookup across all users ---- */
+/* ---- LOGIN ---- */
 loginLock.onComplete(async (indices) => {
   const err = document.getElementById('loginError');
   err.style.display = 'none';
@@ -1339,7 +1348,7 @@ loginLock.onComplete(async (indices) => {
   }
 });
 
-/* ---- SIGNUP STEP 1: username ---- */
+/* ---- SIGNUP STEP 1 ---- */
 document.getElementById('usernameForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const err = document.getElementById('usernameError');
@@ -1369,7 +1378,7 @@ document.getElementById('usernameForm').addEventListener('submit', async (e) => 
   }
 });
 
-/* ---- SIGNUP STEP 2: draw pattern ---- */
+/* ---- SIGNUP STEP 2 ---- */
 signupLock.onComplete((indices) => {
   const err = document.getElementById('patternError');
   err.style.display = 'none';
@@ -1387,7 +1396,7 @@ signupLock.onComplete((indices) => {
   showAuthStage('stageConfirm');
 });
 
-/* ---- SIGNUP STEP 3: confirm pattern ---- */
+/* ---- SIGNUP STEP 3 ---- */
 confirmLock.onComplete(async (indices) => {
   const err = document.getElementById('confirmError');
   err.style.display = 'none';
@@ -1459,12 +1468,9 @@ function startSyncListeners() {
     renderAll();
   });
 
-  // Balances are the single source of truth for account totals — persisted directly,
-  // never recomputed by replaying transaction history.
   onValue(ref(db, `${databaseStreamPath}/balances`), (snap) => {
     balances = snap.val() || {};
     balancesLoaded = true;
-    console.log('[A Manager] balances snapshot from Firebase (' + databaseStreamPath + '/balances):', balances);
     backfillMissingModeBalances();
     renderAll();
   });
@@ -1472,15 +1478,14 @@ function startSyncListeners() {
   onValue(ref(db, `${databaseStreamPath}/transactions`), (snap) => {
     const val = snap.val();
     transactions = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
-    transactions.sort((a,b) => b.date.localeCompare(a.date) || b.createdAtMs - a.createdAtMs);
+    transactions.sort((a,b) => (b.date || '').localeCompare(a.date || '') || (b.createdAtMs || 0) - (a.createdAtMs || 0));
     renderAll();
   });
 
-  // Loans/credits are record-only from here on — they are never folded into Cash/UPI/total balances.
   onValue(ref(db, `${databaseStreamPath}/credits`), (snap) => {
     const val = snap.val();
     credits = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
-    credits.sort((a,b) => b.createdAtMs - a.createdAtMs);
+    credits.sort((a,b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
     renderCredits();
   });
 }
@@ -1492,6 +1497,7 @@ function updatePaymentModeDropdowns() {
   const filterSel = document.getElementById("filterMethod");
   const sheetSel = document.getElementById("sheetMethodSelect");
 
+  const prevSheet = sheetSel.value;
   const optionsHTML = paymentModes.map(m => `<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
   tSel.innerHTML = optionsHTML;
   fSel.innerHTML = optionsHTML;
@@ -1499,10 +1505,15 @@ function updatePaymentModeDropdowns() {
 
   filterSel.innerHTML = '<option value="all">All Payment Modes</option>' + paymentModes.map(m => `<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
   sheetSel.innerHTML = paymentModes.map(m => `<option value="${escapeHTML(m)}">Ledger: ${escapeHTML(m)}</option>`).join('');
+  if (prevSheet && paymentModes.includes(prevSheet)) sheetSel.value = prevSheet;
 }
 
 const fmt = (n) => "₹" + Number(n||0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
-const todayISO = () => new Date().toISOString().slice(0,10);
+// Local date (NOT toISOString, which is UTC and gives yesterday's date early morning in IST)
+const todayISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1516,7 +1527,7 @@ function formatDate(d) {
   return new Date(d+'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 function escapeHTML(s) {
-  return (s||'').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 const views = ['dashboard','transactions','statements','credits','modes'];
@@ -1577,6 +1588,9 @@ document.getElementById('txTypeToggle').addEventListener('click', (e) => {
 
 document.getElementById('openTxModal').addEventListener('click', () => {
   document.getElementById('txForm').reset();
+  document.getElementById('txEditId').value = '';
+  setReceipt('');
+  document.getElementById('txSubmitBtn').textContent = 'Save Entry';
   document.getElementById('txDate').value = todayISO();
   txType = 'expense';
   setTxTypeUI();
@@ -1592,66 +1606,141 @@ document.getElementById('closeTxModal').addEventListener('click', () => {
   txOverlay.classList.remove('active');
 });
 
+/* ===== SAVE / UPDATE ENTRY ===== */
 document.getElementById('txForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const amount = parseFloat(document.getElementById('txAmount').value);
+  const amount = round2(parseFloat(document.getElementById('txAmount').value));
   if(!amount || amount <= 0) return showToast("Enter a valid amount.");
 
-  let payload = {
+  const editId = document.getElementById('txEditId').value;
+  const old = editId ? transactions.find(t => t.id === editId) : null;
+
+  const payload = {
     type: txType, amount,
     date: document.getElementById('txDate').value,
     note: document.getElementById('txNote').value.trim(),
-    createdAtMs: Date.now()
+    createdAtMs: (old && old.createdAtMs) || Date.now()
   };
-
-  // Balance deltas to apply on top of the persisted `balances` node — additive, never a full replay.
-  const deltas = {};
+  const receipt = document.getElementById('txReceiptUrl').value;
+  if (receipt) payload.receiptUrl = receipt;
 
   if(txType === 'transfer') {
     payload.fromMethod = document.getElementById('txFromMethod').value;
     payload.toMethod = document.getElementById('txToMethod').value;
     if(payload.fromMethod === payload.toMethod) return showToast("Choose different accounts.");
-    deltas[payload.fromMethod] = (deltas[payload.fromMethod] || 0) - amount;
-    deltas[payload.toMethod] = (deltas[payload.toMethod] || 0) + amount;
   } else {
     payload.method = document.getElementById('txMethod').value;
     payload.category = document.getElementById('txCategory').value;
-    deltas[payload.method] = (deltas[payload.method] || 0) + (txType === 'income' ? amount : -amount);
   }
 
-  await push(ref(db, `${databaseStreamPath}/transactions`), payload);
-  await applyBalanceDelta(deltas);
-  txOverlay.classList.remove('active');
-  showToast("Saved successfully.");
+  // Edit = undo old entry's effect + apply new one, all in a single atomic write.
+  const deltas = mergeDeltas(old ? txDeltas(old, -1) : {}, txDeltas(payload));
+  try {
+    await commitTx(old ? editId : null, payload, deltas);
+    txOverlay.classList.remove('active');
+    showToast(old ? "Entry updated." : "Saved successfully.");
+  } catch (err) {
+    showToast("Save failed: " + err.message);
+  }
 });
 
 window.deleteTx = async (id) => {
   if(!confirm("Delete this entry permanently?")) return;
   const t = transactions.find(tx => tx.id === id);
-
-  if(t) {
-    const amt = Number(t.amount) || 0;
-    const reverseDeltas = {};
-    if(t.type === 'transfer') {
-      // Undo: put the amount back on the source account, take it back off the destination.
-      reverseDeltas[t.fromMethod] = (reverseDeltas[t.fromMethod] || 0) + amt;
-      reverseDeltas[t.toMethod] = (reverseDeltas[t.toMethod] || 0) - amt;
-    } else {
-      // Undo an income (increment) with a decrement; undo an expense (decrement) with an increment.
-      reverseDeltas[t.method] = (reverseDeltas[t.method] || 0) + (t.type === 'income' ? -amt : amt);
-    }
-    await applyBalanceDelta(reverseDeltas);
+  if(!t) return;
+  try {
+    await commitTx(id, null, txDeltas(t, -1));
+    document.getElementById('txDetailOverlay').classList.remove('active');
+    showToast("Deleted.");
+  } catch (err) {
+    showToast("Delete failed: " + err.message);
   }
-
-  await remove(ref(db, `${databaseStreamPath}/transactions/${id}`));
-  showToast("Deleted.");
 };
 
+/* ===== RECEIPT UPLOAD UI ===== */
+const ruWrap = document.getElementById('receiptUploadWrap');
+const ruInput = document.getElementById('receiptFileInput');
+const ruPh = document.getElementById('ruPlaceholder');
+const ruImg = document.createElement('img'); ruImg.className = 'ru-preview'; ruImg.style.display = 'none';
+const ruRm = document.createElement('button'); ruRm.type = 'button'; ruRm.className = 'ru-remove'; ruRm.textContent = '✕'; ruRm.style.display = 'none';
+ruWrap.append(ruImg, ruRm);
+
+function setReceipt(url) {
+  document.getElementById('txReceiptUrl').value = url || '';
+  ruImg.src = url || '';
+  ruImg.style.display = url ? 'block' : 'none';
+  ruRm.style.display = url ? 'flex' : 'none';
+  ruPh.style.display = url ? 'none' : 'flex';
+  ruWrap.classList.toggle('has-image', !!url);
+}
+ruWrap.addEventListener('click', (e) => { if (e.target === ruRm) { setReceipt(''); return; } ruInput.click(); });
+ruInput.addEventListener('click', (e) => e.stopPropagation());
+ruInput.addEventListener('change', async () => {
+  const f = ruInput.files[0]; if (!f) return;
+  const ov = document.createElement('div'); ov.className = 'ru-uploading';
+  ov.innerHTML = '<div class="ru-spinner"></div>Uploading…';
+  ruWrap.appendChild(ov);
+  try { setReceipt(await uploadReceiptImage(f)); } catch (err) { showToast(err.message); }
+  ov.remove(); ruInput.value = '';
+});
+
+/* ===== EDIT ENTRY ===== */
+window.editTx = (id) => {
+  const t = transactions.find(x => x.id === id); if (!t) return;
+  document.getElementById('txDetailOverlay').classList.remove('active');
+  document.querySelectorAll('#inputInterfaceTabToggle button').forEach(x => x.classList.remove('sel-income'));
+  document.querySelector('#inputInterfaceTabToggle button[data-tab="manual"]').classList.add('sel-income');
+  document.getElementById('txForm').style.display = 'block';
+  document.getElementById('aiInterfaceNode').style.display = 'none';
+
+  document.getElementById('txEditId').value = id;
+  txType = t.type; setTxTypeUI();
+  document.getElementById('txAmount').value = t.amount;
+  document.getElementById('txDate').value = t.date;
+  document.getElementById('txNote').value = t.note || '';
+  if (t.type === 'transfer') {
+    document.getElementById('txFromMethod').value = t.fromMethod;
+    document.getElementById('txToMethod').value = t.toMethod;
+  } else {
+    document.getElementById('txMethod').value = t.method;
+    const cs = document.getElementById('txCategory');
+    if (t.category && ![...cs.options].some(o => o.value === t.category)) cs.add(new Option(t.category, t.category));
+    cs.value = t.category;
+  }
+  setReceipt(t.receiptUrl || '');
+  document.getElementById('txSubmitBtn').textContent = 'Update Entry';
+  txOverlay.classList.add('active');
+};
+
+/* ===== DETAIL + LIGHTBOX ===== */
+window.openTxDetail = (id) => {
+  const t = transactions.find(x => x.id === id); if (!t) return;
+  const row = (l, v) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);"><span class="label">${l}</span><span style="font-weight:700;text-align:right;">${v}</span></div>`;
+  const isT = t.type === 'transfer';
+  document.getElementById('txDetailBody').innerHTML =
+    row('Type', escapeHTML(t.type)) + row('Amount', fmt(t.amount)) +
+    (isT ? row('From → To', `${escapeHTML(t.fromMethod)} ➔ ${escapeHTML(t.toMethod)}`)
+         : row('Account', escapeHTML(t.method)) + row('Category', escapeHTML(t.category))) +
+    row('Date', formatDate(t.date)) + row('Note', escapeHTML(t.note || '—')) +
+    (t.receiptUrl ? `<img src="${escapeHTML(t.receiptUrl)}" style="width:100%;max-height:200px;object-fit:cover;border-radius:14px;margin-top:14px;cursor:zoom-in;" onclick="openLightbox('${escapeHTML(t.receiptUrl)}')">` : '') +
+    `<div style="display:flex;gap:10px;margin-top:18px;">
+       <button class="btn btn-gold" style="flex:1;justify-content:center;" onclick="editTx('${t.id}')">✎ Edit</button>
+       <button class="btn btn-ghost" style="flex:1;justify-content:center;color:var(--expense);" onclick="deleteTx('${t.id}')">Delete</button>
+     </div>`;
+  document.getElementById('txDetailOverlay').classList.add('active');
+};
+document.getElementById('closeTxDetailModal').addEventListener('click', () => document.getElementById('txDetailOverlay').classList.remove('active'));
+window.openLightbox = (url) => { document.getElementById('lightboxImg').src = url; document.getElementById('lightboxOverlay').classList.add('active'); };
+document.getElementById('lightboxClose').addEventListener('click', () => document.getElementById('lightboxOverlay').classList.remove('active'));
+document.getElementById('lightboxOverlay').addEventListener('click', (e) => { if (e.target.id === 'lightboxOverlay') e.currentTarget.classList.remove('active'); });
+
+/* ===== PAYMENT MODES ===== */
 document.getElementById("addModeForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const name = document.getElementById("newModeName").value.trim();
   if(!name) return;
   if(paymentModes.includes(name)) return showToast("Mode name already exists.");
+  if(/[.#$\/\[\]]/.test(name)) return showToast("Name can't contain . # $ / [ ]");
   paymentModes.push(name);
   await set(ref(db, `${databaseStreamPath}/modes`), paymentModes);
   await update(ref(db, `${databaseStreamPath}/balances`), { [name]: 0 });
@@ -1678,6 +1767,7 @@ function renderModesView() {
   `).join('');
 }
 
+/* ===== LOANS ===== */
 const creditOverlay = document.getElementById('creditOverlay');
 let creditType = 'lent';
 
@@ -1699,7 +1789,8 @@ document.getElementById('openCreditModal').addEventListener('click', () => {
 
 document.getElementById('creditForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const amount = parseFloat(document.getElementById('creditAmount').value);
+  const amount = round2(parseFloat(document.getElementById('creditAmount').value));
+  if(!amount || amount <= 0) return showToast("Enter a valid amount.");
   const payload = {
     type: creditType,
     person: document.getElementById('creditPerson').value.trim(),
@@ -1812,7 +1903,7 @@ async function triggerMainAIStreamPipeline() {
 
     WAY 1: IF the user is telling you about a new entry they made (e.g. "spent 60 on pizza via cash", "received 500 salary in upi"), extract the fields into a flat JSON format schema.
     Strict parse format schema to return for entry matching:
-    {"action":"save_entry","type":"income/expense/transfer","amount":0.00,"method":"MatchedModeName","category":"MatchedCategoryName","note":"Context text description"}
+    {"action":"save_entry","type":"income/expense","amount":0.00,"method":"MatchedModeName","category":"MatchedCategoryName","note":"Context text description"}
 
     WAY 2: IF the user is telling you about a loan record (e.g. "lent 500 to Amit", "borrowed 1200 from Rahul cash"), extract the fields into a flat JSON format schema.
     Strict parse format schema to return for loan record matching:
@@ -1860,37 +1951,38 @@ async function triggerMainAIStreamPipeline() {
     }
 
     if(aiParsedActionResponse.action === 'save_entry') {
-      aiParsedActionResponse.date = todayISO();
-      aiParsedActionResponse.createdAtMs = Date.now();
-
-      // Mirror the manual entry form's balance-delta logic — the AI pipeline is a second
-      // write path into the same transactions node, so it must update `balances` too.
-      const aiAmt = Number(aiParsedActionResponse.amount) || 0;
-      const aiDeltas = {};
-      if (aiParsedActionResponse.type === 'transfer' && aiParsedActionResponse.fromMethod && aiParsedActionResponse.toMethod) {
-        aiDeltas[aiParsedActionResponse.fromMethod] = (aiDeltas[aiParsedActionResponse.fromMethod] || 0) - aiAmt;
-        aiDeltas[aiParsedActionResponse.toMethod] = (aiDeltas[aiParsedActionResponse.toMethod] || 0) + aiAmt;
-      } else if (aiParsedActionResponse.method) {
-        aiDeltas[aiParsedActionResponse.method] = (aiDeltas[aiParsedActionResponse.method] || 0) + (aiParsedActionResponse.type === 'income' ? aiAmt : -aiAmt);
+      const r = aiParsedActionResponse;
+      r.amount = round2(Number(r.amount));
+      if (!(r.amount > 0) || !['income','expense'].includes(r.type)) {
+        throw new Error("I couldn't read that as an income or expense. Use the Manual Entry tab for transfers.");
       }
+      r.method = paymentModes.find(m => m.toLowerCase() === String(r.method || '').toLowerCase()) || paymentModes[0];
+      const cats = r.type === 'income' ? CATEGORIES_INCOME : CATEGORIES_EXPENSE;
+      r.category = cats.find(c => c.toLowerCase() === String(r.category || '').toLowerCase()) || 'Other';
+      r.note = r.note || '';
+      r.date = todayISO();
+      r.createdAtMs = Date.now();
+      delete r.action;
 
-      await push(ref(db, `${databaseStreamPath}/transactions`), aiParsedActionResponse);
-      await applyBalanceDelta(aiDeltas);
-      appendMessageToBubble('assistant', `Understood! Logged entry of ₹${aiParsedActionResponse.amount} under ${aiParsedActionResponse.category || 'Transfer'} successfully.`);
+      await commitTx(null, r, txDeltas(r));
+      appendMessageToBubble('assistant', `Understood! Logged ${r.type} of ₹${r.amount} under ${r.category} via ${r.method}.`);
       statusNode.textContent = 'Committed to Firebase!';
       setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
     } else if (aiParsedActionResponse.action === 'save_loan') {
+      const loanType = aiParsedActionResponse.type === 'borrowed' ? 'borrowed' : 'lent';
+      const loanAmt = round2(Number(aiParsedActionResponse.amount) || 0);
+      if (!(loanAmt > 0)) throw new Error("I couldn't read a valid loan amount.");
       const loanPayload = {
-        type: aiParsedActionResponse.type, person: aiParsedActionResponse.person || 'Unknown',
-        amount: Number(aiParsedActionResponse.amount) || 0, takenDate: todayISO(), dueDate: null,
+        type: loanType, person: aiParsedActionResponse.person || 'Unknown',
+        amount: loanAmt, takenDate: todayISO(), dueDate: null,
         note: aiParsedActionResponse.note || 'Logged via AI Assistant', status: 'pending', createdAtMs: Date.now()
       };
       await push(ref(db, `${databaseStreamPath}/credits`), loanPayload);
-      appendMessageToBubble('assistant', `Loan recorded! Logged that you **${loanPayload.type === 'lent' ? 'lent money to' : 'borrowed money from'} ${loanPayload.person}** totaling ₹${loanPayload.amount}.`);
+      appendMessageToBubble('assistant', `Loan recorded! You ${loanType === 'lent' ? 'lent money to' : 'borrowed money from'} ${loanPayload.person}: ₹${loanPayload.amount}.`);
       statusNode.textContent = 'Committed to Loans!';
       setTimeout(() => { txOverlay.classList.remove('active'); }, 1400);
     } else {
-      appendMessageToBubble('assistant', aiParsedActionResponse.reply);
+      appendMessageToBubble('assistant', aiParsedActionResponse.reply || '');
       statusNode.textContent = 'Ready for queries';
     }
   } catch(errX) {
@@ -1905,7 +1997,7 @@ function appendMessageToBubble(sender, text) {
   const bubble = document.createElement('div');
   bubble.className = `ai-msg-bubble ${sender}`;
   if (sender === 'assistant') {
-    bubble.innerHTML = `<span class="bubble-avatar avatar-p0" style="display:flex;">🕷️</span><span>${text}</span>`;
+    bubble.innerHTML = `<span class="bubble-avatar avatar-p0" style="display:flex;">🕷️</span><span>${escapeHTML(text)}</span>`;
   } else {
     const av = avatarClass(currentSessionUser || 'u');
     bubble.innerHTML = `<span class="bubble-avatar ${av}" style="display:flex; color:#fff; font-weight:700;">${escapeHTML(initials(currentSessionUser || 'U'))}</span><span>${escapeHTML(text)}</span>`;
@@ -1915,104 +2007,96 @@ function appendMessageToBubble(sender, text) {
 }
 
 /* ===== BALANCE SHEET LEDGER ===== */
-function generateAccountBalanceSheet() {
-  const activeMethod = document.getElementById('sheetMethodSelect').value;
-  const personFilter = document.getElementById('sheetSearchPerson').value.toLowerCase().trim();
-  const startDate = document.getElementById('sheetStartDate').value;
-  const endDate = document.getElementById('sheetEndDate').value;
+let sheetDateMode = 'all';
 
-  document.getElementById('sheetAccountLabel').textContent = `Statement for: ${activeMethod}`;
-  let labelText = "All-Time Running Ledger";
-  if(startDate || endDate) labelText = `History: ${startDate || 'Onset'} to ${endDate || 'Present'}`;
-  document.getElementById('sheetDateFilterLabel').textContent = labelText;
+// Signed effect of one transaction on a single account.
+function effectOn(t, mode) {
+  const a = Number(t.amount) || 0;
+  if (t.type === 'transfer') return (t.toMethod === mode ? a : 0) - (t.fromMethod === mode ? a : 0);
+  return t.method === mode ? (t.type === 'income' ? a : -a) : 0;
+}
+
+function generateAccountBalanceSheet() {
+  const mode = document.getElementById('sheetMethodSelect').value;
+  const personFilter = document.getElementById('sheetSearchPerson').value.toLowerCase().trim();
+  let startDate = '', endDate = '';
+  if (sheetDateMode === 'single') startDate = endDate = document.getElementById('sheetSingleDate').value;
+  if (sheetDateMode === 'range') { startDate = document.getElementById('sheetStartDate').value; endDate = document.getElementById('sheetEndDate').value; }
+
+  document.getElementById('sheetAccountLabel').textContent = `Statement for: ${mode}`;
+  document.getElementById('sheetDateFilterLabel').textContent =
+    sheetDateMode === 'single' ? `Day: ${startDate || '—'}` :
+    (startDate || endDate) ? `History: ${startDate || 'Onset'} to ${endDate || 'Present'}` : 'All-Time Running Ledger';
 
   const tBody = document.getElementById('ledgerBalanceSheetBody');
   tBody.innerHTML = '';
 
-  let runningBalanceVal = 0;
-  let matchesRowsCollected = [];
-  const sequentialTimelineList = [...transactions].reverse();
+  // Opening balance = persisted balance minus all recorded effects, so this sheet ties to the dashboard.
+  const totalEffect = transactions.reduce((s, t) => s + effectOn(t, mode), 0);
+  let running = round2(Number(balances[mode] || 0) - totalEffect);
+  let closing = running;
+  const rows = [];
 
-  sequentialTimelineList.forEach(t => {
-    let affectsThisAccount = false;
-    let flowDirection = 0;
-
-    if(t.type === 'transfer') {
-      if(t.fromMethod === activeMethod) { affectsThisAccount = true; flowDirection = -1; }
-      if(t.toMethod === activeMethod) { affectsThisAccount = true; flowDirection = 1; }
-    } else {
-      if(t.method === activeMethod) { affectsThisAccount = true; flowDirection = t.type === 'income' ? 1 : -1; }
-    }
-    if (!affectsThisAccount) return;
-
-    const amt = Number(t.amount) || 0;
-    runningBalanceVal += (flowDirection * amt);
-
-    if(startDate && t.date < startDate) return;
-    if(endDate && t.date > endDate) return;
-
-    if(personFilter) {
-      const noteStr = (t.note || '').toLowerCase();
-      const catStr = (t.category || '').toLowerCase();
-      if(!noteStr.includes(personFilter) && !catStr.includes(personFilter)) return;
-    }
-
-    matchesRowsCollected.push({
-      date: t.date,
-      type: t.type === 'transfer' ? 'Transfer' : t.category,
-      desc: t.type === 'transfer' ? `Transfer: ${t.fromMethod} ➔ ${t.toMethod} ${t.note ? '('+t.note+')' : ''}` : (t.note || 'Ledger entry'),
-      out: flowDirection === -1 ? fmt(amt) : '-',
-      in: flowDirection === 1 ? fmt(amt) : '-',
-      bal: fmt(runningBalanceVal)
+  [...transactions].reverse().forEach(t => {
+    const eff = effectOn(t, mode);
+    if (!eff) return;
+    running = round2(running + eff);
+    if (!endDate || t.date <= endDate) closing = running;
+    if (startDate && t.date < startDate) return;
+    if (endDate && t.date > endDate) return;
+    if (personFilter && !(t.note || '').toLowerCase().includes(personFilter) && !(t.category || '').toLowerCase().includes(personFilter)) return;
+    const isT = t.type === 'transfer';
+    rows.push({
+      date: t.date, type: isT ? 'Transfer' : t.category,
+      desc: isT ? `Transfer: ${t.fromMethod} ➔ ${t.toMethod}${t.note ? ' (' + t.note + ')' : ''}` : (t.note || 'Ledger entry'),
+      out: eff < 0 ? fmt(-eff) : '-', in: eff > 0 ? fmt(eff) : '-', bal: fmt(running)
     });
   });
 
-  document.getElementById('sheetClosingBalance').textContent = fmt(runningBalanceVal);
+  document.getElementById('sheetClosingBalance').textContent = fmt(closing);
 
-  if(!matchesRowsCollected.length) {
+  if(!rows.length) {
     tBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:30px;">No statement entries found for selection parameters.</td></tr>`;
     return;
   }
 
-  matchesRowsCollected.reverse().forEach(row => {
+  rows.reverse().forEach(r => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${formatDate(row.date)}</td>
-      <td><span class="label" style="color:var(--purple); border: 1px solid rgba(230,36,41,0.25); padding: 2px 8px; border-radius:8px; font-size:11px;">${escapeHTML(row.type)}</span></td>
-      <td>${escapeHTML(row.desc)}</td>
-      <td class="num" style="color:var(--expense); font-weight:700;">${row.out}</td>
-      <td class="num" style="color:var(--income); font-weight:700;">${row.in}</td>
-      <td class="num" style="font-weight:700; color:var(--purple);">${row.bal}</td>
+      <td>${formatDate(r.date)}</td>
+      <td><span class="label" style="color:var(--purple); border: 1px solid rgba(230,36,41,0.25); padding: 2px 8px; border-radius:8px; font-size:11px;">${escapeHTML(r.type)}</span></td>
+      <td>${escapeHTML(r.desc)}</td>
+      <td class="num" style="color:var(--expense); font-weight:700;">${r.out}</td>
+      <td class="num" style="color:var(--income); font-weight:700;">${r.in}</td>
+      <td class="num" style="font-weight:700; color:var(--purple);">${r.bal}</td>
     `;
     tBody.appendChild(tr);
   });
 }
 
-['sheetMethodSelect', 'sheetStartDate', 'sheetEndDate'].forEach(id => document.getElementById(id).addEventListener('change', generateAccountBalanceSheet));
+document.querySelectorAll('.date-mode-toggle button').forEach(b => b.addEventListener('click', () => {
+  sheetDateMode = b.dataset.mode;
+  document.querySelectorAll('.date-mode-toggle button').forEach(x => x.classList.toggle('active', x === b));
+  document.getElementById('singleDateFieldWrap').classList.toggle('active', sheetDateMode === 'single');
+  document.getElementById('rangeDateFieldsWrap').classList.toggle('active', sheetDateMode === 'range');
+  generateAccountBalanceSheet();
+}));
+['sheetMethodSelect','sheetSingleDate','sheetStartDate','sheetEndDate'].forEach(id =>
+  document.getElementById(id).addEventListener('change', generateAccountBalanceSheet));
 document.getElementById('sheetSearchPerson').addEventListener('input', generateAccountBalanceSheet);
 document.getElementById('printStatementBtn').addEventListener('click', () => window.print());
 
-/* ===== CORE MATH ENGINE =====
-   Balances are no longer derived here. `balances` is a persisted Firebase node
-   (users/{userId}/balances) kept current by incremental deltas applied at
-   add/delete time (see applyBalanceDelta, txForm submit handler, deleteTx).
-   This function only reads that state and separately rolls up this-month
-   income/expense for the stat cards — it never replays full transaction
-   history to reconstruct a balance, and loans/credits never touch it. */
+/* ===== CORE MATH ENGINE ===== */
 function computeStats() {
   const todayStringISO = todayISO();
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
+  const ym = todayStringISO.slice(0, 7); // "YYYY-MM" — string compare avoids UTC/timezone date-parsing drift
 
   let incomeTotal = 0, expenseTotal = 0, todaySpentTotal = 0;
 
   transactions.forEach(t => {
-    if (t.type === 'transfer') return; // transfers don't affect income/expense totals
+    if (t.type === 'transfer') return;
     const amt = Number(t.amount) || 0;
-    const tDate = new Date(t.date);
-    const isCurrentMonth = tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
-
+    const isCurrentMonth = (t.date || '').startsWith(ym);
     if (t.type === 'income' && isCurrentMonth) {
       incomeTotal += amt;
     } else if (t.type === 'expense' && isCurrentMonth) {
@@ -2021,12 +2105,11 @@ function computeStats() {
     }
   });
 
-  // Read-only: modeBalances comes straight from the persisted `balances` node.
   const modeBalances = {};
   paymentModes.forEach(m => modeBalances[m] = Number(balances[m] || 0));
 
   const grandTotal = Object.values(modeBalances).reduce((a,b) => a + b, 0);
-  return { total: grandTotal, incomeTotal, expenseTotal, todaySpentTotal, modeBalances };
+  return { total: round2(grandTotal), incomeTotal: round2(incomeTotal), expenseTotal: round2(expenseTotal), todaySpentTotal: round2(todaySpentTotal), modeBalances };
 }
 
 function mergeAllState() {
@@ -2053,7 +2136,6 @@ function mergeAllState() {
   if(document.getElementById('view-statements').classList.contains('active')) generateAccountBalanceSheet();
   renderCharts(s);
 
-  // Keep dashboard title showing the user's name if we're on that view
   if(document.getElementById('view-dashboard').classList.contains('active') && currentSessionUser) {
     document.getElementById('viewTitle').textContent = `Hi, ${currentSessionUser}`;
   }
@@ -2062,27 +2144,19 @@ function mergeAllState() {
 function txListHTML(list) {
   if(!list.length) return `<div class="empty-state"><div class="avatar avatar-p0 avatar-lg" style="margin:0 auto 12px;">📭</div>No entries logged yet.</div>`;
   return list.map((t, idx) => {
-    const customDelay = `style="animation-delay: ${idx * 0.04}s"`;
-    if(t.type === 'transfer') {
-      return `<div class="tx-row" ${customDelay}>
-        <div class="avatar avatar-transfer">⇄</div>
-        <div class="tx-main">
-          <div class="cat" style="font-weight:700;">Transfer: ${escapeHTML(t.fromMethod)} ➔ ${escapeHTML(t.toMethod)}</div>
-          <div class="meta">${formatDate(t.date)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
-        </div>
-        <div class="tx-amt transfer">${fmt(t.amount)}</div>
-        <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
-      </div>`;
-    }
-    const emo = categoryEmoji(t.category);
-    return `<div class="tx-row" ${customDelay}>
-      <div class="avatar ${t.type === 'income' ? 'avatar-income' : 'avatar-expense'}">${emo}</div>
-      <div class="tx-main">
-        <div class="cat" style="font-weight:700;">${escapeHTML(t.category)}</div>
-        <div class="meta">${formatDate(t.date)} • via ${escapeHTML(t.method)} ${t.note ? '• ' + escapeHTML(t.note) : ''}</div>
+    const isT = t.type === 'transfer';
+    const title = isT ? `Transfer: ${escapeHTML(t.fromMethod)} ➔ ${escapeHTML(t.toMethod)}` : escapeHTML(t.category);
+    const meta = `${formatDate(t.date)}${isT ? '' : ' • via ' + escapeHTML(t.method)}${t.note ? ' • ' + escapeHTML(t.note) : ''}`;
+    const av = isT ? 'avatar-transfer' : (t.type === 'income' ? 'avatar-income' : 'avatar-expense');
+    const sign = isT ? '' : (t.type === 'income' ? '+' : '-');
+    return `<div class="tx-row ${t.receiptUrl ? 'has-receipt' : ''}" style="animation-delay:${idx*0.04}s" onclick="openTxDetail('${t.id}')">
+      <div class="avatar ${av}">${isT ? '⇄' : categoryEmoji(t.category)}</div>
+      <div class="tx-main"><div class="cat" style="font-weight:700;">${title}</div><div class="meta">${meta}</div></div>
+      <div class="tx-amt ${t.type}">${sign}${fmt(t.amount)}</div>
+      <div class="tx-actions">
+        <button class="tx-edit" title="Edit" onclick="event.stopPropagation();editTx('${t.id}')">✎</button>
+        <button class="tx-del" title="Delete" onclick="event.stopPropagation();deleteTx('${t.id}')">✕</button>
       </div>
-      <div class="tx-amt ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</div>
-      <button class="tx-del" onclick="deleteTx('${t.id}')">✕</button>
     </div>`;
   }).join('');
 }
@@ -2113,8 +2187,8 @@ function renderCredits() {
   const totalLent = lent.filter(c => c.status === 'pending').reduce((a,b) => a + Number(b.amount||0), 0);
   const totalBorrowed = borrowed.filter(c => c.status === 'pending').reduce((a,b) => a + Number(b.amount||0), 0);
 
-  document.getElementById('statLent').textContent = fmt(totalLent);
-  document.getElementById('statBorrowed').textContent = fmt(totalBorrowed);
+  document.getElementById('statLent').textContent = fmt(round2(totalLent));
+  document.getElementById('statBorrowed').textContent = fmt(round2(totalBorrowed));
 
   document.getElementById('lentList').innerHTML = creditListHTML(lent);
   document.getElementById('borrowedList').innerHTML = creditListHTML(borrowed);
@@ -2132,7 +2206,7 @@ function creditListHTML(list) {
         <div class="credit-amt ${c.type}">${fmt(c.amount)}</div>
       </div>
       <div class="credit-meta">
-        <span style="font-weight:800; color:var(--purple);">${c.status.toUpperCase()}</span>
+        <span style="font-weight:800; color:var(--purple);">${escapeHTML((c.status || '').toUpperCase())}</span>
         ${c.dueDate ? '• Due: '+formatDate(c.dueDate) : ''}
         ${c.note ? '• '+escapeHTML(c.note) : ''}
       </div>
@@ -2148,13 +2222,17 @@ function renderCharts(stats) {
   const ctxFlow = document.getElementById('chartFlow');
   const ctxCat = document.getElementById('chartCatMini');
 
+  // Year-aware month buckets; setDate(1) avoids month-overflow bugs (e.g. on the 31st).
   const months = Array.from({length: 6}, (_, i) => {
-    const d = new Date(); d.setMonth(d.getMonth() - i);
-    return { label: d.toLocaleString('en-IN', {month: 'short'}), m: d.getMonth(), y: d.getFullYear() };
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i);
+    return { label: d.toLocaleString('en-IN', {month: 'short'}), key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` };
   }).reverse();
 
-  const flowIn = months.map(m => transactions.filter(t => t.type === 'income' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
-  const flowOut = months.map(m => transactions.filter(t => t.type === 'expense' && new Date(t.date).getMonth() === m.m).reduce((a,b)=>a+Number(b.amount), 0));
+  const sumMonth = (type, key) => transactions
+    .filter(t => t.type === type && (t.date || '').startsWith(key))
+    .reduce((a,b) => a + Number(b.amount || 0), 0);
+  const flowIn = months.map(m => round2(sumMonth('income', m.key)));
+  const flowOut = months.map(m => round2(sumMonth('expense', m.key)));
 
   const isDarkTheme = document.body.classList.contains('theme-dark');
   const textModeColor = isDarkTheme ? "#E8ECFA" : "#101B36";
