@@ -419,6 +419,10 @@
   .cat-add input { flex: 1; min-width: 0; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,.45); backdrop-filter: blur(10px); font-weight: 600; outline: none; color: var(--ink); }
   body.theme-dark .cat-add input { background: rgba(255,255,255,.07); }
   .user-badge, #topbarAvatar { cursor: pointer; }
+  .vno { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; margin-right: 8px; letter-spacing: .02em; vertical-align: middle; }
+  .vno-P { color: var(--expense); background: rgba(230,36,41,.12); border: 1px solid rgba(230,36,41,.3); }
+  .vno-R { color: var(--income); background: rgba(22,163,74,.12); border: 1px solid rgba(22,163,74,.3); }
+  .vno-T { color: var(--transfer); background: rgba(29,78,216,.12); border: 1px solid rgba(29,78,216,.3); }
 </style>
 </head>
 <body>
@@ -645,12 +649,13 @@
             <option value="transfer">Transfers Only</option>
           </select>
           <select id="filterMethod"><option value="all">All Payment Modes</option></select>
-          <input type="text" id="filterSearch" placeholder="Search name, note, date...">
+          <input type="text" id="filterSearch" placeholder="Search voucher (P0001), name, note, date...">
         </div>
         <div class="filters">
           <select id="sortBy">
             <option value="date">Sort: Date</option>
             <option value="amount">Sort: Amount</option>
+            <option value="voucher">Sort: Voucher No</option>
             <option value="name">Sort: Name / Category</option>
             <option value="note">Sort: Note (A–Z)</option>
             <option value="method">Sort: Account</option>
@@ -707,7 +712,7 @@
           <div class="ledger-table-wrap">
             <table class="ledger-table">
               <thead>
-                <tr><th>Date</th><th>Category/Type</th><th>Description / Details</th><th>Flow Out</th><th>Flow In</th><th>Running Balance</th></tr>
+                <tr><th>Date</th><th>Voucher</th><th>Category/Type</th><th>Description / Details</th><th>Flow Out</th><th>Flow In</th><th>Running Balance</th></tr>
               </thead>
               <tbody id="ledgerBalanceSheetBody"></tbody>
             </table>
@@ -926,7 +931,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, update, set, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, push, onValue, remove, update, set, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDTAqJaAabAlAfIuXa7BVs9kXBSUuLz_-Q",
@@ -994,10 +999,12 @@ function mergeDeltas(...list) {
   list.forEach(d => Object.entries(d).forEach(([k, v]) => o[k] = (o[k] || 0) + v));
   return o;
 }
-async function commitTx(key, payload, deltas) {
+async function commitTx(key, payload, deltas, removeKey) {
   const base = databaseStreamPath;
-  key = key || push(ref(db, `${base}/transactions`)).key;
+  key = key || await nextVoucher(payload.type);
+  if (payload && /^[PRT]\d+$/.test(key)) payload.voucherNo = key;
   const writes = { [`${base}/transactions/${key}`]: payload };
+  if (removeKey) writes[`${base}/transactions/${removeKey}`] = null;
   for (const [m, d] of Object.entries(deltas)) {
     if (d) writes[`${base}/balances/${m}`] = round2(Number(balances[m] || 0) + d);
   }
@@ -1375,6 +1382,7 @@ function startSyncListeners() {
     const val = snap.val();
     transactions = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
     transactions.sort((a,b) => (b.date || '').localeCompare(a.date || '') || (b.createdAtMs || 0) - (a.createdAtMs || 0));
+    txLoadedFor = myPath;
     renderAll();
   });
 
@@ -1533,7 +1541,8 @@ document.getElementById('txForm').addEventListener('submit', async (e) => {
 
   const deltas = mergeDeltas(old ? txDeltas(old, -1) : {}, txDeltas(payload));
   try {
-    await commitTx(old ? editId : null, payload, deltas);
+    const typeChanged = old && (PREFIX[old.type] || 'P') !== (PREFIX[payload.type] || 'P');
+    await commitTx(old && !typeChanged ? editId : null, payload, deltas, typeChanged ? editId : null);
     txOverlay.classList.remove('active');
     showToast(old ? "Entry updated." : "Saved successfully.");
   } catch (err) {
@@ -1616,7 +1625,7 @@ window.openTxDetail = (id) => {
   const row = (l, v) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);"><span class="label" style="font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:800;">${l}</span><span style="font-weight:700;text-align:right;">${v}</span></div>`;
   const isT = t.type === 'transfer';
   document.getElementById('txDetailBody').innerHTML =
-    row('Type', escapeHTML(t.type)) + row('Amount', fmt(t.amount)) +
+    row('Voucher No', escapeHTML(t.voucherNo || '—')) + row('Type', escapeHTML(t.type)) + row('Amount', fmt(t.amount)) +
     (isT ? row('From → To', `${escapeHTML(t.fromMethod)} ➔ ${escapeHTML(t.toMethod)}`)
          : row('Account', escapeHTML(t.method)) + row('Category', escapeHTML(t.category))) +
     row('Date', formatDate(t.date)) + row('Note', escapeHTML(t.note || '—')) +
@@ -1786,7 +1795,7 @@ async function triggerMainAIStreamPipeline() {
       calculatedRunningBalances: historicalStatsSnapshot.modeBalances,
       grandTotalLedgerBalance: historicalStatsSnapshot.total,
       rawTransactionDatabaseRecords: transactions.map(t => ({
-        type: t.type, amount: t.amount, date: t.date, method: t.method || 'transfer',
+        voucher: t.voucherNo || null, type: t.type, amount: t.amount, date: t.date, method: t.method || 'transfer',
         from: t.fromMethod || null, to: t.toMethod || null, category: t.category || null, note: t.note || ''
       })),
       availableExpenseCategories: CATEGORIES_EXPENSE, availableIncomeCategories: CATEGORIES_INCOME, activeCreditsAndLoansRecords: credits.map(c => ({ type: c.type, person: c.person, amount: c.amount, status: c.status, note: c.note || '' }))
@@ -1940,13 +1949,13 @@ function generateAccountBalanceSheet() {
     if (!endDate || t.date <= endDate) closing = running;
     if (startDate && t.date < startDate) return;
     if (endDate && t.date > endDate) return;
-    if (personFilter && !(t.note || '').toLowerCase().includes(personFilter) && !(t.category || '').toLowerCase().includes(personFilter)) return;
+    if (personFilter && !(t.note || '').toLowerCase().includes(personFilter) && !(t.category || '').toLowerCase().includes(personFilter) && !(t.voucherNo || '').toLowerCase().includes(personFilter)) return;
     const isT = t.type === 'transfer';
     rows.push({
       date: t.date, type: isT ? 'Transfer' : t.category,
       desc: isT ? `Transfer: ${t.fromMethod} ➔ ${t.toMethod}${t.note ? ' (' + t.note + ')' : ''}` : (t.note || 'Ledger entry'),
       out: eff < 0 ? fmt(-eff) : '-', in: eff > 0 ? fmt(eff) : '-', bal: fmt(running),
-      o: eff < 0 ? -eff : 0, i: eff > 0 ? eff : 0, b: running
+      o: eff < 0 ? -eff : 0, i: eff > 0 ? eff : 0, b: running, v: t.voucherNo || ''
     });
   });
 
@@ -1954,7 +1963,7 @@ function generateAccountBalanceSheet() {
   lastSheet = { mode, closing, label: document.getElementById('sheetDateFilterLabel').textContent, rows: [...rows].reverse() };
 
   if(!rows.length) {
-    tBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:30px;">No statement entries found for selection parameters.</td></tr>`;
+    tBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:30px;">No statement entries found for selection parameters.</td></tr>`;
     return;
   }
 
@@ -1962,6 +1971,7 @@ function generateAccountBalanceSheet() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${formatDate(r.date)}</td>
+      <td class="num" style="font-weight:700;">${escapeHTML(r.v)}</td>
       <td><span class="label" style="color:var(--purple); border: 1px solid rgba(230,36,41,0.25); padding: 2px 8px; border-radius:8px; font-size:11px; font-weight:700;">${escapeHTML(r.type)}</span></td>
       <td>${escapeHTML(r.desc)}</td>
       <td class="num" style="color:var(--expense); font-weight:700;">${r.out}</td>
@@ -2151,7 +2161,7 @@ function countTo(el, to) {
   el._r = requestAnimationFrame(step);
 }
 const _origRender = window.renderAll; let _firstRender = true;
-window.renderAll = () => { if (_firstRender && currentSessionUser) { _firstRender = false; pulseAnim(); } _origRender(); if (!editingCat) renderProfile(); };
+window.renderAll = () => { if (_firstRender && currentSessionUser) { _firstRender = false; pulseAnim(); } _origRender(); if (!editingCat) renderProfile(); maybeMigrateVouchers(); };
 document.querySelectorAll('.logOutActionBtn').forEach(b => b.addEventListener('click', () => { _firstRender = true; }));
 document.querySelectorAll('.mainNavBind button').forEach(b => b.addEventListener('click', pulseAnim));
 
@@ -2193,7 +2203,7 @@ const csvBlob = (rows) => new Blob([toCSV(rows)], { type: 'text/csv;charset=utf-
 
 $('exportCsvBtn').addEventListener('click', () => {
   if (!lastSheet) return showToast('Open a statement first.');
-  const rows = [['Date', 'Type', 'Details', 'Out', 'In', 'Balance'], ...lastSheet.rows.map(r => [r.date, r.type, r.desc, r.o || '', r.i || '', r.b])];
+  const rows = [['Date', 'Voucher', 'Type', 'Details', 'Out', 'In', 'Balance'], ...lastSheet.rows.map(r => [r.date, r.v, r.type, r.desc, r.o || '', r.i || '', r.b])];
   saveFile(csvBlob(rows), `statement-${lastSheet.mode}-${todayISO()}.csv`);
 });
 $('exportPdfBtn').addEventListener('click', () => {
@@ -2206,9 +2216,9 @@ $('exportPdfBtn').addEventListener('click', () => {
   doc.text(`Closing balance: Rs. ${numFmt(lastSheet.closing)}   |   Generated ${new Date().toLocaleDateString('en-IN')}`, 40, 80);
   doc.autoTable({
     startY: 96, styles: { fontSize: 8.5 }, headStyles: { fillColor: [230, 36, 41] },
-    head: [['Date', 'Type', 'Details', 'Out', 'In', 'Balance']],
-    body: lastSheet.rows.map(r => [formatDate(r.date), r.type, r.desc, r.o ? numFmt(r.o) : '-', r.i ? numFmt(r.i) : '-', numFmt(r.b)]),
-    columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } }
+    head: [['Date', 'Voucher', 'Type', 'Details', 'Out', 'In', 'Balance']],
+    body: lastSheet.rows.map(r => [formatDate(r.date), r.v, r.type, r.desc, r.o ? numFmt(r.o) : '-', r.i ? numFmt(r.i) : '-', numFmt(r.b)]),
+    columnStyles: { 4: { halign: 'right' }, 5: { halign: 'right' }, 6: { halign: 'right' } }
   });
   saveFile(doc.output('blob'), `statement-${lastSheet.mode}-${todayISO()}.pdf`);
 });
@@ -2226,11 +2236,11 @@ function getFilteredTx() {
     }
     if (from && (t.date || '') < from) return false;
     if (to && (t.date || '') > to) return false;
-    if (q && !(t.note || '').toLowerCase().includes(q) && !nameOf(t).toLowerCase().includes(q) && !(t.date || '').includes(q)) return false;
+    if (q && !(t.note || '').toLowerCase().includes(q) && !nameOf(t).toLowerCase().includes(q) && !(t.date || '').includes(q) && !(t.voucherNo || '').toLowerCase().includes(q)) return false;
     return true;
   });
   const keyFn = {
-    date: t => t.date || '', amount: t => Number(t.amount) || 0, name: t => nameOf(t).toLowerCase(),
+    date: t => t.date || '', voucher: t => t.voucherNo || '', amount: t => Number(t.amount) || 0, name: t => nameOf(t).toLowerCase(),
     note: t => (t.note || '').toLowerCase(), method: t => (t.method || t.fromMethod || '').toLowerCase()
   }[sortKey];
   const m = sortDir === 'asc' ? 1 : -1;
@@ -2250,7 +2260,7 @@ function txListHTML(list, selectable = false) {
     return `<div class="tx-row ${t.receiptUrl ? 'has-receipt' : ''} ${selectable ? 'sel' : ''} ${picked ? 'picked' : ''}" style="animation-delay:${Math.min(idx, 12) * 0.04}s" onclick="${selectable ? `toggleSel('${t.id}')` : `openTxDetail('${t.id}')`}">
       ${selectable ? `<label class="chk" onclick="event.stopPropagation()"><input type="checkbox" ${picked ? 'checked' : ''} onchange="toggleSel('${t.id}',this.checked)"><span></span></label>` : ''}
       <div class="avatar ${av}">${isT ? '⇄' : categoryEmoji(t.category)}</div>
-      <div class="tx-main"><div class="cat">${title}</div><div class="meta">${meta}</div></div>
+      <div class="tx-main"><div class="cat">${t.voucherNo ? `<span class="vno vno-${PREFIX[t.type] || 'P'}">${escapeHTML(t.voucherNo)}</span>` : ''}${title}</div><div class="meta">${meta}</div></div>
       <div class="tx-amt ${t.type}">${sign}${fmt(t.amount)}</div>
       <div class="tx-actions">
         <button class="tx-edit" title="Edit" onclick="event.stopPropagation();editTx('${t.id}')">✎</button>
@@ -2296,8 +2306,8 @@ $('selectAllChk').addEventListener('change', (e) => {
 });
 $('bulkCsvBtn').addEventListener('click', () => {
   const list = getFilteredTx().filter(t => !selected.size || selected.has(t.id));
-  const rows = [['Date', 'Type', 'Category', 'Account', 'Amount', 'Note'],
-    ...list.map(t => [t.date, t.type, t.category || 'Transfer', t.type === 'transfer' ? `${t.fromMethod} -> ${t.toMethod}` : t.method, t.amount, t.note || ''])];
+  const rows = [['Voucher', 'Date', 'Type', 'Category', 'Account', 'Amount', 'Note'],
+    ...list.map(t => [t.voucherNo || '', t.date, t.type, t.category || 'Transfer', t.type === 'transfer' ? `${t.fromMethod} -> ${t.toMethod}` : t.method, t.amount, t.note || ''])];
   saveFile(csvBlob(rows), `entries-${todayISO()}.csv`);
 });
 $('bulkDeleteBtn').addEventListener('click', async () => {
@@ -2321,6 +2331,7 @@ function resetCategoriesToDefaults() {
   CATEGORIES_EXPENSE = [...DEFAULT_CATS.expense];
   CATEGORIES_INCOME = [...DEFAULT_CATS.income];
   editingCat = null;
+  transactions = []; credits = []; txLoadedFor = '';
 }
 
 function startCategoryListener() {
@@ -2413,6 +2424,57 @@ $('resetCatsBtn').addEventListener('click', async () => {
 });
 document.querySelector('.user-badge').addEventListener('click', () => goTo('profile'));
 $('topbarAvatar').addEventListener('click', () => goTo('profile'));
+
+/* ===================== v4: SEQUENTIAL VOUCHER NUMBERS ===================== */
+/* P0001.. = payments (expense), R0001.. = receipts (income), T0001.. = transfers. Counters are per user. */
+const PREFIX = { income: 'R', expense: 'P', transfer: 'T' };
+let txLoadedFor = '', _migrating = false;
+const vnoFmt = (p, n) => p + String(n).padStart(4, '0');
+
+async function nextVoucher(type) {
+  const p = PREFIX[type] || 'P';
+  const r = await runTransaction(ref(db, `${databaseStreamPath}/counters/${p}`), (c) => (Number(c) || 0) + 1);
+  return vnoFmt(p, r.snapshot.val());
+}
+
+/* One-time: number older entries oldest-first and move them to their series key. */
+async function maybeMigrateVouchers() {
+  if (_migrating || !currentSessionUser || txLoadedFor !== databaseStreamPath) return;
+  const legacy = transactions.filter(t => !t.voucherNo);
+  if (!legacy.length) return;
+  _migrating = true;
+  const base = databaseStreamPath;
+  const lockRef = ref(db, `${base}/meta/voucherMigration`);
+  try {
+    const claim = await runTransaction(lockRef, (v) => (v && Date.now() - v < 120000) ? undefined : Date.now());
+    if (!claim.committed) { _migrating = false; return; }
+    try {
+      const sorted = [...legacy].sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAtMs || 0) - (b.createdAtMs || 0));
+      const need = { P: 0, R: 0, T: 0 };
+      sorted.forEach(t => need[PREFIX[t.type] || 'P']++);
+      const res = await runTransaction(ref(db, `${base}/counters`), (c) => {
+        c = c || {};
+        for (const p in need) if (need[p]) c[p] = (Number(c[p]) || 0) + need[p];
+        return c;
+      });
+      const end = res.snapshot.val() || {}, next = {};
+      for (const p in need) next[p] = (Number(end[p]) || 0) - need[p] + 1;
+      const writes = {};
+      sorted.forEach(t => {
+        const p = PREFIX[t.type] || 'P', v = vnoFmt(p, next[p]++);
+        const { id, ...data } = t; data.voucherNo = v;
+        writes[`${base}/transactions/${v}`] = data;
+        writes[`${base}/transactions/${id}`] = null;
+      });
+      await update(ref(db), writes);
+      _migrating = false;
+      showToast(`${sorted.length} older entries numbered.`);
+    } finally {
+      await set(lockRef, null).catch(() => {});
+    }
+  } catch (e) { console.error('[A Manager] voucher migration failed:', e); }
+}
 </script>
 </body>
 </html>
+  
