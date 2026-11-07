@@ -400,6 +400,25 @@
     .tx-row { padding: 12px 14px; gap: 10px; }
     .bulk-bar { top: 80px; }
   }
+
+  /* ===== v3: profile + categories ===== */
+  .profile-hero { display: flex; align-items: center; gap: 16px; padding: 22px; margin-bottom: 8px; }
+  .profile-hero .pname-big { font-family: 'Baloo 2', sans-serif; font-size: 24px; font-weight: 700; background: linear-gradient(90deg, var(--spidey-red), var(--spidey-blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .profile-hero .pmeta { color: var(--muted); font-size: 13px; font-weight: 600; margin-top: 2px; }
+  .cat-hint { color: var(--muted); font-size: 13px; font-weight: 500; margin: -4px 0 16px; }
+  .cat-panel { padding: 20px; }
+  .cat-panel h3 { color: var(--purple-deep); font-size: 17px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .cat-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; margin-bottom: 8px; background: rgba(255,255,255,.30); border: 1px solid var(--glass-border); transition: transform .2s, background .2s; }
+  body.theme-dark .cat-row { background: rgba(255,255,255,.06); }
+  .cat-row:hover { transform: translateX(4px); background: rgba(230,36,41,.07); }
+  .cat-row .cat-name { flex: 1; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cat-row .cat-count { font-size: 11px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+  .cat-row input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,.5); font-weight: 600; outline: none; color: var(--ink); }
+  body.theme-dark .cat-row input { background: rgba(255,255,255,.1); }
+  .cat-add { display: flex; gap: 8px; margin-top: 14px; }
+  .cat-add input { flex: 1; min-width: 0; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,.45); backdrop-filter: blur(10px); font-weight: 600; outline: none; color: var(--ink); }
+  body.theme-dark .cat-add input { background: rgba(255,255,255,.07); }
+  .user-badge, #topbarAvatar { cursor: pointer; }
 </style>
 </head>
 <body>
@@ -542,6 +561,7 @@
       <button data-view="statements"><span class="nav-ico">🧾</span>Balance Sheets</button>
       <button data-view="credits"><span class="nav-ico">🕸️</span>Loans</button>
       <button data-view="modes"><span class="nav-ico">💳</span>Payment Modes</button>
+      <button data-view="profile"><span class="nav-ico">👤</span>Profile</button>
     </nav>
 
     <div style="margin-top:20px;">
@@ -555,6 +575,7 @@
     <button data-view="statements"><span class="nav-icon">🧾</span><span>Sheets</span></button>
     <button data-view="credits"><span class="nav-icon">🕸️</span><span>Loans</span></button>
     <button data-view="modes"><span class="nav-icon">💳</span><span>Modes</span></button>
+    <button data-view="profile"><span class="nav-icon">👤</span><span>Profile</span></button>
   </nav>
 
   <div class="main">
@@ -724,6 +745,38 @@
             <div id="borrowedList"></div>
           </div>
         </div>
+      </section>
+
+      <section class="view" id="view-profile">
+        <div class="profile-hero clay">
+          <div class="avatar avatar-lg avatar-p0" id="profileAvatar">?</div>
+          <div>
+            <div class="pname-big" id="profileName">guest</div>
+            <div class="pmeta" id="profileMeta"></div>
+          </div>
+        </div>
+
+        <div class="section-title">🏷️ My Categories</div>
+        <div class="cat-hint">These belong only to your account. Add, rename or delete them any time. Renaming also updates your existing entries.</div>
+        <div class="credit-cols">
+          <div class="cat-panel clay">
+            <h3>💸 Expense Categories</h3>
+            <div id="catListExpense"></div>
+            <form class="cat-add" data-type="expense">
+              <input type="text" maxlength="24" placeholder="New expense category" required>
+              <button type="submit" class="btn btn-primary">+ Add</button>
+            </form>
+          </div>
+          <div class="cat-panel clay">
+            <h3>💰 Income Categories</h3>
+            <div id="catListIncome"></div>
+            <form class="cat-add" data-type="income">
+              <input type="text" maxlength="24" placeholder="New income category" required>
+              <button type="submit" class="btn btn-gold">+ Add</button>
+            </form>
+          </div>
+        </div>
+        <button class="btn btn-ghost" id="resetCatsBtn" style="margin-top:18px;">↺ Reset categories to defaults</button>
       </section>
 
       <section class="view" id="view-modes">
@@ -1293,13 +1346,16 @@ function initializeUserSession(username, userKey) {
   document.getElementById("appShell").style.display = "flex";
   document.getElementById("viewTitle").textContent = `Hi, ${username}`;
 
+  resetCategoriesToDefaults();
+  startCategoryListener();
   startSyncListeners();
 }
 
 document.querySelectorAll(".logOutActionBtn").forEach(btn => btn.addEventListener("click", showAuthGate));
 
 function startSyncListeners() {
-  onValue(ref(db, `${databaseStreamPath}/modes`), (snap) => {
+  const myPath = databaseStreamPath;
+  onValue(ref(db, `${databaseStreamPath}/modes`), (snap) => { if (myPath !== databaseStreamPath) return;
     const val = snap.val();
     paymentModes = val ? Object.values(val) : ["Cash", "UPI"];
     backfillMissingModeBalances();
@@ -1308,21 +1364,21 @@ function startSyncListeners() {
     renderAll();
   });
 
-  onValue(ref(db, `${databaseStreamPath}/balances`), (snap) => {
+  onValue(ref(db, `${databaseStreamPath}/balances`), (snap) => { if (myPath !== databaseStreamPath) return;
     balances = snap.val() || {};
     balancesLoaded = true;
     backfillMissingModeBalances();
     renderAll();
   });
 
-  onValue(ref(db, `${databaseStreamPath}/transactions`), (snap) => {
+  onValue(ref(db, `${databaseStreamPath}/transactions`), (snap) => { if (myPath !== databaseStreamPath) return;
     const val = snap.val();
     transactions = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
     transactions.sort((a,b) => (b.date || '').localeCompare(a.date || '') || (b.createdAtMs || 0) - (a.createdAtMs || 0));
     renderAll();
   });
 
-  onValue(ref(db, `${databaseStreamPath}/credits`), (snap) => {
+  onValue(ref(db, `${databaseStreamPath}/credits`), (snap) => { if (myPath !== databaseStreamPath) return;
     const val = snap.val();
     credits = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
     credits.sort((a,b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
@@ -1371,14 +1427,15 @@ function escapeHTML(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-const views = ['dashboard','transactions','statements','credits','modes'];
+const views = ['dashboard','transactions','statements','credits','modes','profile'];
 function goTo(view) {
   views.forEach(v => document.getElementById('view-'+v).classList.toggle('active', v===view));
   document.querySelectorAll('.mainNavBind button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-  const titles = { dashboard: null, transactions: 'All Entries', statements: 'Account Ledgers', credits: 'Loans & Debts', modes: 'Payment Accounts' };
+  const titles = { dashboard: null, transactions: 'All Entries', statements: 'Account Ledgers', credits: 'Loans & Debts', modes: 'Payment Accounts', profile: 'My Profile' };
   const titleText = titles[view] || (currentSessionUser ? `Hi, ${currentSessionUser}` : 'Dashboard');
   document.getElementById('viewTitle').textContent = titleText;
   if(view === 'statements') generateAccountBalanceSheet();
+  if(view === 'profile') renderProfile();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 document.querySelectorAll('.mainNavBind button').forEach(b => { if(b.dataset.view) b.addEventListener('click', () => goTo(b.dataset.view)); });
@@ -1732,7 +1789,7 @@ async function triggerMainAIStreamPipeline() {
         type: t.type, amount: t.amount, date: t.date, method: t.method || 'transfer',
         from: t.fromMethod || null, to: t.toMethod || null, category: t.category || null, note: t.note || ''
       })),
-      activeCreditsAndLoansRecords: credits.map(c => ({ type: c.type, person: c.person, amount: c.amount, status: c.status, note: c.note || '' }))
+      availableExpenseCategories: CATEGORIES_EXPENSE, availableIncomeCategories: CATEGORIES_INCOME, activeCreditsAndLoansRecords: credits.map(c => ({ type: c.type, person: c.person, amount: c.amount, status: c.status, note: c.note || '' }))
     };
 
     const coreOmnipresentPromptSystemContext = `You are a dynamic personal ledger assistant system called "A Manager". You are connected to live user data arrays.
@@ -2094,7 +2151,7 @@ function countTo(el, to) {
   el._r = requestAnimationFrame(step);
 }
 const _origRender = window.renderAll; let _firstRender = true;
-window.renderAll = () => { if (_firstRender && currentSessionUser) { _firstRender = false; pulseAnim(); } _origRender(); };
+window.renderAll = () => { if (_firstRender && currentSessionUser) { _firstRender = false; pulseAnim(); } _origRender(); if (!editingCat) renderProfile(); };
 document.querySelectorAll('.logOutActionBtn').forEach(b => b.addEventListener('click', () => { _firstRender = true; }));
 document.querySelectorAll('.mainNavBind button').forEach(b => b.addEventListener('click', pulseAnim));
 
@@ -2253,6 +2310,109 @@ $('bulkDeleteBtn').addEventListener('click', async () => {
   try { await update(ref(db), writes); selected.clear(); showToast(`${ids.length} entries deleted.`); }
   catch (err) { showToast('Delete failed: ' + err.message); }
 });
+
+/* ===================== v3: PER-USER CATEGORIES + PROFILE ===================== */
+const DEFAULT_CATS = { expense: [...CATEGORIES_EXPENSE], income: [...CATEGORIES_INCOME] };
+let editingCat = null, catUnsub = null;
+const catList = (type) => type === 'income' ? CATEGORIES_INCOME : CATEGORIES_EXPENSE;
+const encName = (s) => encodeURIComponent(s).replace(/'/g, '%27');
+
+function resetCategoriesToDefaults() {
+  CATEGORIES_EXPENSE = [...DEFAULT_CATS.expense];
+  CATEGORIES_INCOME = [...DEFAULT_CATS.income];
+  editingCat = null;
+}
+
+function startCategoryListener() {
+  if (catUnsub) catUnsub();
+  const myPath = databaseStreamPath;
+  catUnsub = onValue(ref(db, `${myPath}/categories`), (snap) => {
+    if (myPath !== databaseStreamPath) return;
+    const v = snap.val() || {};
+    const clean = (x, d) => { const a = x ? Object.values(x).map(String).filter(Boolean) : []; return a.length ? a : [...d]; };
+    CATEGORIES_EXPENSE = clean(v.expense, DEFAULT_CATS.expense);
+    CATEGORIES_INCOME = clean(v.income, DEFAULT_CATS.income);
+    if (txType !== 'transfer') populateCategorySelect();
+    if (!editingCat) renderProfile();
+  });
+}
+
+async function saveCats(type, arr, extraWrites = {}) {
+  const writes = { ...extraWrites, [`${databaseStreamPath}/categories/${type}`]: arr };
+  await update(ref(db), writes);
+}
+const cleanName = (raw) => String(raw || '').trim().replace(/\s+/g, ' ');
+
+async function addCategory(type, raw) {
+  const name = cleanName(raw);
+  if (!name) return;
+  if (name.length > 24) return showToast('Max 24 characters.');
+  if (catList(type).some(c => c.toLowerCase() === name.toLowerCase())) return showToast('Category already exists.');
+  try { await saveCats(type, [...catList(type), name]); showToast('Category added.'); }
+  catch (e) { showToast('Failed: ' + e.message); }
+}
+
+async function renameCategory(type, oldName, raw) {
+  const name = cleanName(raw);
+  editingCat = null;
+  if (!name || name === oldName) return renderProfile();
+  if (name.length > 24) { showToast('Max 24 characters.'); return renderProfile(); }
+  if (catList(type).some(c => c !== oldName && c.toLowerCase() === name.toLowerCase())) { showToast('Category already exists.'); return renderProfile(); }
+  const writes = {};
+  transactions.filter(t => t.type === type && t.category === oldName).forEach(t => writes[`${databaseStreamPath}/transactions/${t.id}/category`] = name);
+  try { await saveCats(type, catList(type).map(c => c === oldName ? name : c), writes); showToast('Category renamed.'); }
+  catch (e) { showToast('Failed: ' + e.message); }
+  renderProfile();
+}
+
+async function deleteCategory(type, name) {
+  if (catList(type).length <= 1) return showToast('Keep at least one category.');
+  const used = transactions.filter(t => t.type === type && t.category === name).length;
+  if (!confirm(`Delete "${name}"?` + (used ? `\n${used} existing entries will keep this label.` : ''))) return;
+  try { await saveCats(type, catList(type).filter(c => c !== name)); showToast('Category deleted.'); }
+  catch (e) { showToast('Failed: ' + e.message); }
+}
+
+window.startCatEdit = (type, enc) => {
+  editingCat = { type, name: decodeURIComponent(enc) };
+  renderProfile();
+  const i = $('catEditInput'); if (i) { i.focus(); i.select(); }
+};
+window.cancelCatEdit = () => { editingCat = null; renderProfile(); };
+window.saveCatEdit = () => { if (editingCat) renameCategory(editingCat.type, editingCat.name, $('catEditInput').value); };
+window.removeCat = (type, enc) => deleteCategory(type, decodeURIComponent(enc));
+
+function renderProfile() {
+  if (!$('catListExpense')) return;
+  ['expense', 'income'].forEach(type => {
+    $(type === 'income' ? 'catListIncome' : 'catListExpense').innerHTML = catList(type).map(c => {
+      const n = transactions.filter(t => t.type === type && t.category === c).length;
+      if (editingCat && editingCat.type === type && editingCat.name === c) {
+        return `<div class="cat-row"><span>${categoryEmoji(c)}</span><input id="catEditInput" value="${escapeHTML(c)}" maxlength="24" onkeydown="if(event.key==='Enter')saveCatEdit();if(event.key==='Escape')cancelCatEdit()"><button class="mini-btn settle" onclick="saveCatEdit()">Save</button><button class="mini-btn del" onclick="cancelCatEdit()">✕</button></div>`;
+      }
+      return `<div class="cat-row"><span>${categoryEmoji(c)}</span><span class="cat-name">${escapeHTML(c)}</span><span class="cat-count">${n} ${n === 1 ? 'entry' : 'entries'}</span><button class="tx-edit" title="Rename" onclick="startCatEdit('${type}','${encName(c)}')">✎</button><button class="tx-del" title="Delete" onclick="removeCat('${type}','${encName(c)}')">✕</button></div>`;
+    }).join('');
+  });
+  const ini = initials(currentSessionUser || '?');
+  $('profileAvatar').className = `avatar avatar-lg ${avatarClass(currentSessionUser || '?')}`;
+  $('profileAvatar').textContent = ini;
+  $('profileName').textContent = currentSessionUser || 'guest';
+  $('profileMeta').textContent = `${transactions.length} entries • ${CATEGORIES_EXPENSE.length + CATEGORIES_INCOME.length} categories`;
+}
+
+document.querySelectorAll('.cat-add').forEach(f => f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const inp = f.querySelector('input');
+  await addCategory(f.dataset.type, inp.value);
+  inp.value = '';
+}));
+$('resetCatsBtn').addEventListener('click', async () => {
+  if (!confirm('Reset both category lists to the defaults? Existing entries keep their labels.')) return;
+  try { await update(ref(db), { [`${databaseStreamPath}/categories`]: { expense: DEFAULT_CATS.expense, income: DEFAULT_CATS.income } }); showToast('Categories reset.'); }
+  catch (e) { showToast('Failed: ' + e.message); }
+});
+document.querySelector('.user-badge').addEventListener('click', () => goTo('profile'));
+$('topbarAvatar').addEventListener('click', () => goTo('profile'));
 </script>
 </body>
 </html>
