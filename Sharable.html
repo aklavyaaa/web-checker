@@ -7,6 +7,7 @@
 <title>CloudVault — Your files, everywhere</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 <style>
 :root{color-scheme:light;--bg:#f5f7fb;--panel:#fff;--panel2:#f8fafc;--text:#172033;--muted:#778198;--line:#e7eaf1;--brand:#6258e8;--brand2:#8875ff;--soft:#efedff;--danger:#e54862;--green:#169b72;--shadow:0 18px 55px rgba(25,35,70,.08)}
@@ -96,7 +97,6 @@
 <script>
 /* CloudVault setup: use an unsigned Cloudinary upload preset. Never put an API secret in browser code. */
 const CLOUDINARY_CLOUD_NAME = "dl1ishrkv";
-const CLOUDINARY_UPLOAD_PRESET = "ADD_UNSIGNED_UPLOAD_PRESET";
 const firebaseConfig = {
  apiKey:"AIzaSyDE_Tzjwmoh-xuFTFYpT5ElGjfN6T0VEsI",
  authDomain:"sanchitution.firebaseapp.com",
@@ -143,7 +143,30 @@ function openUpload(){pickedFile=null;$("fileInput").value="";$("customName").va
 function closeModal(id){$(id).classList.add("hidden");if(id==="previewModal")$("previewArea").innerHTML="";}
 function chooseFile(file){if(!file)return;pickedFile=file;$("customName").value=file.name.replace(/\.[^.]+$/,"");$("pickedInfo").classList.remove("hidden");$("pickedInfo").innerHTML='<span style="overflow-wrap:anywhere"><b>'+esc(file.name)+'</b><br><span class="muted">'+formatBytes(file.size)+'</span></span><button type="button" class="linkbtn" id="removePicked">Remove</button>';$("removePicked").onclick=()=>{pickedFile=null;$("fileInput").value="";$("pickedInfo").classList.add("hidden");};}
 function uploadError(message){$("uploadError").textContent=message;$("uploadError").classList.remove("hidden");}
-function uploadToCloudinary(file,category){return new Promise((resolve,reject)=>{if(!CLOUDINARY_CLOUD_NAME||CLOUDINARY_UPLOAD_PRESET==="ADD_UNSIGNED_UPLOAD_PRESET"){reject(new Error("Upload is not configured yet. Add your Cloudinary unsigned upload preset in Sharable.html (CLOUDINARY_UPLOAD_PRESET)."));return;}const resource=(category==="image"||category==="video")?category:"raw";const data=new FormData();data.append("file",file);data.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);data.append("folder","vault_"+activeCode);const xhr=new XMLHttpRequest();xhr.open("POST","https://api.cloudinary.com/v1_1/"+encodeURIComponent(CLOUDINARY_CLOUD_NAME)+"/"+resource+"/upload");xhr.upload.onprogress=e=>{if(e.lengthComputable){const pct=Math.round(e.loaded/e.total*100);$("progressBar").style.width=pct+"%";$("progressPct").textContent=pct+"%";$("progressLabel").textContent="Uploading file…";}};xhr.onload=()=>{let res={};try{res=JSON.parse(xhr.responseText);}catch{}if(xhr.status>=200&&xhr.status<300&&res.secure_url)resolve(res);else reject(new Error(res.error?.message||"Cloudinary upload failed ("+xhr.status+")."));};xhr.onerror=()=>reject(new Error("Network error while uploading."));xhr.send(data);});}
+async function uploadToCloudinary(file,category){
+ const folder="vault_"+activeCode;
+ const callable=firebase.functions().httpsCallable("createCloudinarySignature");
+ const signedResponse=await callable({lockerCode:activeCode});
+ const signed=signedResponse.data||{};
+ if(!signed.signature||!signed.timestamp||!signed.apiKey||signed.folder!==folder||signed.cloudName!==CLOUDINARY_CLOUD_NAME){
+  throw new Error("The signing service returned incomplete or mismatched upload details.");
+ }
+ const resource=(category==="image"||category==="video")?category:"raw";
+ return new Promise((resolve,reject)=>{
+  const data=new FormData();
+  data.append("file",file);
+  data.append("api_key",signed.apiKey);
+  data.append("timestamp",String(signed.timestamp));
+  data.append("signature",signed.signature);
+  data.append("folder",signed.folder);
+  const xhr=new XMLHttpRequest();
+  xhr.open("POST","https://api.cloudinary.com/v1_1/"+encodeURIComponent(CLOUDINARY_CLOUD_NAME)+"/"+resource+"/upload");
+  xhr.upload.onprogress=e=>{if(e.lengthComputable){const pct=Math.round(e.loaded/e.total*100);$("progressBar").style.width=pct+"%";$("progressPct").textContent=pct+"%";$("progressLabel").textContent="Uploading file…";}};
+  xhr.onload=()=>{let res={};try{res=JSON.parse(xhr.responseText);}catch{}if(xhr.status>=200&&xhr.status<300&&res.secure_url)resolve(res);else reject(new Error(res.error?.message||"Cloudinary upload failed ("+xhr.status+")."));};
+  xhr.onerror=()=>reject(new Error("Network error while uploading."));
+  xhr.send(data);
+ });
+}
 async function handleUpload(e){e.preventDefault();if(!pickedFile){uploadError("Choose a file first.");return;}if(!activeCode){uploadError("Your locker session has expired. Log in again.");return;}const custom=$("customName").value.trim();if(!custom){uploadError("Enter a display name.");return;}const btn=$("uploadSubmit");btn.disabled=true;$("uploadError").classList.add("hidden");$("progressWrap").classList.remove("hidden");$("progressBar").style.width="0%";$("progressPct").textContent="0%";try{const category=getCategory(pickedFile);const uploaded=await uploadToCloudinary(pickedFile,category);const dot=pickedFile.name.lastIndexOf(".");const ext=dot>0?pickedFile.name.slice(dot):"";const display=custom.toLowerCase().endsWith(ext.toLowerCase())?custom:custom+ext;const record={custom_name:display,original_name:pickedFile.name,file_type:category,mime_type:pickedFile.type||"application/octet-stream",size:pickedFile.size,url:uploaded.secure_url,cloudinary_public_id:uploaded.public_id,resource_type:uploaded.resource_type||category,uploaded_at:new Date().toISOString()};await db.ref("lockers/"+activeCode+"/files").push(record);closeModal("uploadModal");notify("File uploaded successfully.");}catch(err){uploadError(err.message);btn.disabled=false;} }
 function openPreview(id){const f=files.find(x=>x.id===id);if(!f)return;const url=safeUrl(f.url);if(!url){notify("This file has an invalid link.");return;}$("previewTitle").textContent=f.custom_name||f.original_name||"File preview";$("previewMeta").textContent=formatBytes(f.size)+" · "+formatDate(f.uploaded_at);$("previewDownload").href=downloadUrl(f);$("previewDownload").setAttribute("download",f.custom_name||"download");let html="";if(f.file_type==="image")html='<img src="'+esc(url)+'" alt="'+esc(f.custom_name)+'">';else if(f.file_type==="video")html='<video controls playsinline src="'+esc(url)+'"></video>';else if(f.file_type==="audio")html='<audio controls src="'+esc(url)+'"></audio>';else if((f.mime_type||"").includes("pdf")||/\.pdf($|\?)/i.test(url))html='<iframe title="PDF preview" src="'+esc(url)+'"></iframe>';else html='<div class="empty" style="border:0"><div class="emptyicon"><i data-lucide="'+fileIcon(f.file_type)+'"></i></div><h3>Preview unavailable</h3><p>This file type cannot be previewed here. Use the download button to save it.</p></div>';$("previewArea").innerHTML=html;$("previewModal").classList.remove("hidden");icons();}
 async function deleteFile(id){const f=files.find(x=>x.id===id);if(!f||!confirm('Delete "'+(f.custom_name||f.original_name||"this file")+'" from this locker?'))return;try{await db.ref("lockers/"+activeCode+"/files/"+id).remove();notify("File removed from locker.");}catch(e){notify("Delete failed: "+e.message);}}
