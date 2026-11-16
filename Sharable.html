@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sharable - Instant File & Text Locker</title>
+  <title>Sharable - Pattern-Locked File & Text Vault</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Firebase SDKs (Compat for vanilla browser app) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <!-- CryptoJS for Cloudinary SHA-1 signing -->
@@ -32,12 +32,12 @@
   </script>
   <style>
     .glassmorphism {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.88);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
     }
     .dark .glassmorphism {
-      background: rgba(17, 24, 39, 0.85);
+      background: rgba(15, 23, 42, 0.88);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
     }
@@ -50,14 +50,40 @@
       border-radius: 9999px;
     }
     .dark .custom-scroll::-webkit-scrollbar-thumb {
-      background: #374151;
+      background: #334155;
+    }
+    #patternPad {
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
     }
   </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
 
-  <!-- TOAST NOTIFICATION -->
-  <div id="toastContainer" class="fixed bottom-5 right-5 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+  <!-- CUSTOM TOAST NOTIFICATIONS -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-[80] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- CUSTOM CONFIRMATION / ALERT DIALOG (Replaces all browser alert/confirm) -->
+  <div id="customDialogModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl transform transition-all">
+      <div class="flex items-center space-x-3 mb-3">
+        <div id="dialogIconWrap" class="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+          <i id="dialogIcon" class="fa-solid fa-triangle-exclamation text-lg"></i>
+        </div>
+        <h3 id="dialogTitle" class="text-base font-bold text-slate-900 dark:text-white">Confirm Action</h3>
+      </div>
+      <p id="dialogMessage" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-6"></p>
+      <div class="flex items-center justify-end space-x-2.5">
+        <button id="dialogCancelBtn" type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
+          Cancel
+        </button>
+        <button id="dialogConfirmBtn" type="button" class="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-md transition">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- THEME TOGGLE FLOATING (Auth Screen) -->
   <div id="floatingThemeWrap" class="fixed top-4 right-4 z-50 flex items-center space-x-2">
@@ -66,61 +92,91 @@
     </button>
   </div>
 
-  <!-- VIEW 1: AUTHENTICATION SCREEN (LOGIN / CREATE ACCOUNT) -->
+  <!-- ========================================================= -->
+  <!-- VIEW 1: PATTERN AUTHENTICATION SCREEN (LOGIN / REGISTER)  -->
+  <!-- ========================================================= -->
   <div id="authScreen" class="flex-1 flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
       <!-- Decorative Gradient Glow -->
       <div class="absolute -top-20 -left-20 w-44 h-44 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
       <div class="absolute -bottom-20 -right-20 w-44 h-44 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
-      <!-- Header -->
-      <div class="text-center mb-6 relative">
-        <div class="w-16 h-16 mx-auto mb-3 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-          <i class="fa-solid fa-share-nodes text-2xl"></i>
+      <!-- Brand Header -->
+      <div class="text-center mb-5 relative">
+        <div class="w-14 h-14 mx-auto mb-2.5 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+          <i class="fa-solid fa-share-nodes text-xl"></i>
         </div>
         <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Sharable</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Instant cross-device file & text locker</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Draw your pattern to unlock or create a vault</p>
       </div>
 
       <!-- Mode Switcher Tabs -->
-      <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6 text-sm font-medium">
-        <button id="tabLogin" onclick="switchAuthMode('login')" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition">Access Locker</button>
-        <button id="tabRegister" onclick="switchAuthMode('register')" class="flex-1 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">Create Locker</button>
+      <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-5 text-xs font-semibold">
+        <button id="tabLogin" onclick="switchAuthMode('login')" class="flex-1 py-2.5 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition">
+          Unlock Vault
+        </button>
+        <button id="tabRegister" onclick="switchAuthMode('register')" class="flex-1 py-2.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">
+          Create New User
+        </button>
       </div>
 
-      <!-- Auth Form -->
-      <form id="authForm" onsubmit="handleAuthSubmit(event)">
-        <div class="mb-4">
-          <label id="passcodeLabel" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Enter 6-Digit Passcode</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-              <i class="fa-solid fa-key"></i>
-            </span>
-            <input type="password" id="passcodeInput" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="123456" required
-              class="w-full pl-10 pr-12 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xl tracking-[0.3em] font-mono text-center font-bold text-slate-900 dark:text-white placeholder:tracking-normal placeholder:font-normal placeholder:text-sm">
-            <button type="button" onclick="togglePasscodeVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-              <i id="togglePassEye" class="fa-solid fa-eye"></i>
-            </button>
+      <!-- New User Name Input (Visible only in Create New User mode) -->
+      <div id="registerNameWrap" class="hidden mb-4">
+        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Your Name</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+            <i class="fa-solid fa-user"></i>
+          </span>
+          <input type="text" id="newUserNameInput" placeholder="Enter your name (e.g. Aklavya)"
+            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900 dark:text-white">
+        </div>
+      </div>
+
+      <!-- Step Instruction Banner -->
+      <div class="text-center mb-3">
+        <span id="patternStepBadge" class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-800/60">
+          <i class="fa-solid fa-fingerprint"></i>
+          <span id="patternInstructionText">Draw your pattern to unlock</span>
+        </span>
+      </div>
+
+      <!-- 3x3 Interactive Pattern Lock Canvas -->
+      <div class="flex flex-col items-center justify-center my-2">
+        <div id="patternPad" class="relative w-64 h-64 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-inner flex items-center justify-center cursor-pointer">
+          <svg id="patternSvg" class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 256 256">
+            <polyline id="patternLine" fill="none" stroke="#6366f1" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" points="" />
+            <line id="patternActiveLine" x1="0" y1="0" x2="0" y2="0" stroke="#818cf8" stroke-width="3" stroke-dasharray="5,5" stroke-linecap="round" class="hidden" />
+          </svg>
+          <div id="patternNodesGrid" class="grid grid-cols-3 w-full h-full p-5 place-items-center z-10">
+            <!-- Nodes 1 to 9 injected via JS -->
           </div>
-          <p id="authHelperText" class="text-xs text-slate-400 dark:text-slate-500 mt-2">Enter your existing 6-digit numeric passcode to open your locker.</p>
         </div>
 
-        <div id="authAlert" class="hidden mb-4 p-3 rounded-xl text-sm font-medium"></div>
+        <!-- Live Converted Pattern Digits & Reset -->
+        <div class="mt-3 flex items-center justify-between w-64 px-1">
+          <div class="text-xs text-slate-400 flex items-center space-x-1.5">
+            <span>Sequence:</span>
+            <span id="patternDigitsPreview" class="font-mono font-bold text-slate-700 dark:text-slate-200 tracking-widest">••••</span>
+          </div>
+          <button type="button" onclick="resetPatternFlow()" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+            Reset Pattern
+          </button>
+        </div>
+      </div>
 
-        <button type="submit" id="authSubmitBtn" class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2">
-          <i class="fa-solid fa-lock-open"></i>
-          <span>Open Sharable</span>
-        </button>
-      </form>
+      <!-- Inline Auth Status Alert -->
+      <div id="authAlert" class="hidden mt-4 p-3 rounded-xl text-xs font-medium text-center"></div>
 
-      <!-- Security Notice -->
-      <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
-        <p class="text-xs text-slate-400">Sync files & clipboard text seamlessly across any phone or PC</p>
+      <!-- Security Footer -->
+      <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+        <p class="text-[11px] text-slate-400">Connect at least 4 dots • Syncs files & texts across all devices</p>
       </div>
     </div>
   </div>
 
-  <!-- VIEW 2: DASHBOARD SCREEN -->
+  <!-- ========================================================= -->
+  <!-- VIEW 2: DASHBOARD SCREEN                                  -->
+  <!-- ========================================================= -->
   <div id="dashboardScreen" class="hidden flex-1 flex flex-col">
     <!-- Navbar -->
     <header class="glassmorphism sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800/80 px-4 lg:px-8 py-3.5">
@@ -130,12 +186,13 @@
             <i class="fa-solid fa-share-nodes"></i>
           </div>
           <div>
-            <h1 class="text-base font-bold text-slate-900 dark:text-white leading-tight">Sharable</h1>
-            <div class="flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400">
-              <span>Code:</span>
-              <span id="activeLockerBadge" class="font-mono bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">******</span>
-              <button onclick="copyLockerCode()" title="Copy Code" class="hover:text-indigo-600 transition p-0.5"><i class="fa-regular fa-copy"></i></button>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-base font-bold text-slate-900 dark:text-white leading-tight">Sharable</h1>
+              <span id="userGreetingBadge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                Vault
+              </span>
             </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Pattern-Protected Cloud Workspace</p>
           </div>
         </div>
 
@@ -159,8 +216,8 @@
           </button>
 
           <!-- Logout Button -->
-          <button onclick="logoutVault()" class="p-2 sm:px-3 sm:py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium transition flex items-center space-x-1.5" title="Exit Locker">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <button onclick="logoutVault()" class="p-2 sm:px-3 sm:py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium transition flex items-center space-x-1.5" title="Lock Vault">
+            <i class="fa-solid fa-lock"></i>
             <span class="hidden md:inline">Lock</span>
           </button>
         </div>
@@ -190,7 +247,7 @@
         </div>
       </div>
 
-      <!-- QUICK SHARED TEXT BOARD (Appears when text snippets exist or toggled) -->
+      <!-- QUICK SHARED TEXT BOARD -->
       <div id="sharedTextsSection" class="hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center space-x-2">
@@ -287,7 +344,7 @@
             <button type="button" onclick="closeQuickShareModal()" class="px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Cancel</button>
             <button type="submit" id="saveQuickTextBtn" class="px-5 py-2.5 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-500/20 transition flex items-center space-x-1.5">
               <i class="fa-solid fa-cloud-arrow-up"></i>
-              <span>Save to Locker</span>
+              <span>Save to Vault</span>
             </button>
           </div>
         </div>
@@ -319,7 +376,7 @@
             <div id="pickerEmptyState">
               <i class="fa-solid fa-folder-open text-3xl text-indigo-500 mb-2"></i>
               <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Click to pick file or drag & drop</p>
-              <p class="text-xs text-slate-400 mt-1">Supports images, documents, videos, and archives</p>
+              <p class="text-xs text-slate-400 mt-1">Supports PDFs, images, documents, videos, and archives</p>
             </div>
             <div id="pickerSelectedState" class="hidden flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-left">
               <div class="flex items-center space-x-3 overflow-hidden">
@@ -422,15 +479,56 @@
 
     // App State
     let currentVaultCode = null;
+    let currentUserName = "";
     let authMode = "login"; // "login" | "register"
+    let registerStep = 1; // 1 = Draw first time, 2 = Confirm pattern second time
+    let firstDrawnPattern = "";
     let userFiles = [];
     let userTexts = [];
     let currentViewMode = "grid"; // "grid" | "list"
     let pickedFileObj = null;
 
     // ==========================================
-    // 2. TOAST & THEME SWITCHER
+    // 2. CUSTOM DIALOG & TOAST SYSTEM (NO CHROME POPUPS)
     // ==========================================
+    function showCustomConfirm({ title, message, confirmText = "Confirm", isDanger = true }) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById("customDialogModal");
+        const titleEl = document.getElementById("dialogTitle");
+        const msgEl = document.getElementById("dialogMessage");
+        const confirmBtn = document.getElementById("dialogConfirmBtn");
+        const cancelBtn = document.getElementById("dialogCancelBtn");
+        const iconWrap = document.getElementById("dialogIconWrap");
+        const icon = document.getElementById("dialogIcon");
+
+        titleEl.innerText = title;
+        msgEl.innerText = message;
+        confirmBtn.innerText = confirmText;
+
+        if (isDanger) {
+          iconWrap.className = "w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0";
+          icon.className = "fa-solid fa-trash-can text-base";
+          confirmBtn.className = "px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-md transition";
+        } else {
+          iconWrap.className = "w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0";
+          icon.className = "fa-solid fa-circle-info text-base";
+          confirmBtn.className = "px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md transition";
+        }
+
+        modal.classList.remove("hidden");
+
+        const cleanup = (result) => {
+          modal.classList.add("hidden");
+          confirmBtn.onclick = null;
+          cancelBtn.onclick = null;
+          resolve(result);
+        };
+
+        confirmBtn.onclick = () => cleanup(true);
+        cancelBtn.onclick = () => cleanup(false);
+      });
+    }
+
     function showToast(message, type = "info") {
       const container = document.getElementById("toastContainer");
       const toast = document.createElement("div");
@@ -451,9 +549,12 @@
       setTimeout(() => {
         toast.classList.add("opacity-0", "translate-y-2");
         setTimeout(() => toast.remove(), 300);
-      }, 3000);
+      }, 3200);
     }
 
+    // ==========================================
+    // 3. THEME SWITCHER
+    // ==========================================
     function initTheme() {
       const savedTheme = localStorage.getItem("sharable_theme") || "dark";
       applyThemeUI(savedTheme === "dark");
@@ -479,110 +580,337 @@
       applyThemeUI(isDark);
     }
 
-    function togglePasscodeVisibility() {
-      const input = document.getElementById("passcodeInput");
-      const icon = document.getElementById("togglePassEye");
-      if (input.type === "password") {
-        input.type = "text";
-        icon.className = "fa-solid fa-eye-slash";
+    // ==========================================
+    // 4. INTERACTIVE 3x3 PATTERN LOCK ENGINE
+    // ==========================================
+    let isDrawingPattern = false;
+    let selectedNodes = [];
+
+    function initPatternPad() {
+      const grid = document.getElementById("patternNodesGrid");
+      grid.innerHTML = "";
+      for (let i = 1; i <= 9; i++) {
+        const cell = document.createElement("div");
+        cell.className = "w-full h-full flex items-center justify-center";
+        cell.innerHTML = `
+          <div data-node="${i}" class="pattern-node w-11 h-11 rounded-full flex items-center justify-center transition-transform duration-150">
+            <div class="node-ring w-9 h-9 rounded-full border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center transition-all duration-150">
+              <div class="node-core w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-600 transition-all duration-150"></div>
+            </div>
+          </div>
+        `;
+        grid.appendChild(cell);
+      }
+
+      const pad = document.getElementById("patternPad");
+      pad.addEventListener("pointerdown", onPatternStart);
+      window.addEventListener("pointermove", onPatternMove);
+      window.addEventListener("pointerup", onPatternEnd);
+    }
+
+    function getNodeCenter(nodeNum) {
+      const padRect = document.getElementById("patternPad").getBoundingClientRect();
+      const nodeEl = document.querySelector(`.pattern-node[data-node="${nodeNum}"]`);
+      const nodeRect = nodeEl.getBoundingClientRect();
+      const scaleX = 256 / padRect.width;
+      const scaleY = 256 / padRect.height;
+      return {
+        x: (nodeRect.left + nodeRect.width / 2 - padRect.left) * scaleX,
+        y: (nodeRect.top + nodeRect.height / 2 - padRect.top) * scaleY
+      };
+    }
+
+    function activateNode(num) {
+      if (selectedNodes.includes(num)) return;
+      selectedNodes.push(num);
+
+      const nodeEl = document.querySelector(`.pattern-node[data-node="${num}"]`);
+      nodeEl.classList.add("scale-110");
+      const ring = nodeEl.querySelector(".node-ring");
+      const core = nodeEl.querySelector(".node-core");
+      ring.className = "node-ring w-10 h-10 rounded-full border-2 border-indigo-500 bg-indigo-500/15 flex items-center justify-center transition-all duration-150";
+      core.className = "node-core w-3.5 h-3.5 rounded-full bg-indigo-600 dark:bg-indigo-400 transition-all duration-150";
+
+      updatePatternLines();
+      document.getElementById("patternDigitsPreview").innerText = selectedNodes.join("");
+    }
+
+    function updatePatternLines(pointerPos = null) {
+      const polyline = document.getElementById("patternLine");
+      const activeLine = document.getElementById("patternActiveLine");
+
+      if (selectedNodes.length === 0) {
+        polyline.setAttribute("points", "");
+        activeLine.classList.add("hidden");
+        return;
+      }
+
+      const pts = selectedNodes.map(n => {
+        const c = getNodeCenter(n);
+        return `${c.x},${c.y}`;
+      });
+      polyline.setAttribute("points", pts.join(" "));
+
+      if (pointerPos && isDrawingPattern) {
+        const lastCenter = getNodeCenter(selectedNodes[selectedNodes.length - 1]);
+        activeLine.setAttribute("x1", lastCenter.x);
+        activeLine.setAttribute("y1", lastCenter.y);
+        activeLine.setAttribute("x2", pointerPos.x);
+        activeLine.setAttribute("y2", pointerPos.y);
+        activeLine.classList.remove("hidden");
       } else {
-        input.type = "password";
-        icon.className = "fa-solid fa-eye";
+        activeLine.classList.add("hidden");
+      }
+    }
+
+    function detectHitNode(clientX, clientY) {
+      const nodes = document.querySelectorAll(".pattern-node");
+      for (const node of nodes) {
+        const rect = node.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dist = Math.hypot(clientX - cx, clientY - cy);
+        if (dist <= 26) {
+          return parseInt(node.getAttribute("data-node"), 10);
+        }
+      }
+      return null;
+    }
+
+    function onPatternStart(e) {
+      if (document.getElementById("authScreen").classList.contains("hidden")) return;
+      e.preventDefault();
+      clearPatternVisuals();
+      isDrawingPattern = true;
+      const hit = detectHitNode(e.clientX, e.clientY);
+      if (hit) activateNode(hit);
+    }
+
+    function onPatternMove(e) {
+      if (!isDrawingPattern) return;
+      const hit = detectHitNode(e.clientX, e.clientY);
+      if (hit) activateNode(hit);
+
+      const padRect = document.getElementById("patternPad").getBoundingClientRect();
+      const scaleX = 256 / padRect.width;
+      const scaleY = 256 / padRect.height;
+      updatePatternLines({
+        x: (e.clientX - padRect.left) * scaleX,
+        y: (e.clientY - padRect.top) * scaleY
+      });
+    }
+
+    function onPatternEnd() {
+      if (!isDrawingPattern) return;
+      isDrawingPattern = false;
+      updatePatternLines(null);
+
+      if (selectedNodes.length > 0) {
+        const numericCode = selectedNodes.join("");
+        processPatternSubmission(numericCode);
+      }
+    }
+
+    function clearPatternVisuals() {
+      selectedNodes = [];
+      document.getElementById("patternDigitsPreview").innerText = "••••";
+      document.getElementById("patternLine").setAttribute("points", "");
+      document.getElementById("patternActiveLine").classList.add("hidden");
+      document.querySelectorAll(".pattern-node").forEach(nodeEl => {
+        nodeEl.classList.remove("scale-110");
+        nodeEl.querySelector(".node-ring").className = "node-ring w-9 h-9 rounded-full border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center transition-all duration-150";
+        nodeEl.querySelector(".node-core").className = "node-core w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-600 transition-all duration-150";
+      });
+    }
+
+    function setPatternColorState(state) {
+      const line = document.getElementById("patternLine");
+      if (state === "error") {
+        line.setAttribute("stroke", "#f43f5e");
+      } else if (state === "success") {
+        line.setAttribute("stroke", "#10b981");
+      } else {
+        line.setAttribute("stroke", "#6366f1");
       }
     }
 
     // ==========================================
-    // 3. AUTHENTICATION & LOCKER FLOW
+    // 5. PATTERN LOGIN & 2-STEP VAULT CREATION
     // ==========================================
     function switchAuthMode(mode) {
       authMode = mode;
+      registerStep = 1;
+      firstDrawnPattern = "";
+      clearPatternVisuals();
+      setPatternColorState("default");
+      document.getElementById("authAlert").classList.add("hidden");
+
       const tabLogin = document.getElementById("tabLogin");
       const tabRegister = document.getElementById("tabRegister");
-      const btn = document.getElementById("authSubmitBtn");
-      const helper = document.getElementById("authHelperText");
-      const label = document.getElementById("passcodeLabel");
-      const alertBox = document.getElementById("authAlert");
-      alertBox.classList.add("hidden");
+      const nameWrap = document.getElementById("registerNameWrap");
+      const instruction = document.getElementById("patternInstructionText");
 
       if (mode === "login") {
-        tabLogin.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
-        tabRegister.className = "flex-1 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
-        label.innerText = "Enter 6-Digit Passcode";
-        btn.innerHTML = `<i class="fa-solid fa-lock-open"></i><span>Open Sharable</span>`;
-        helper.innerText = "Enter your existing 6-digit numeric passcode to open your locker.";
+        tabLogin.className = "flex-1 py-2.5 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
+        tabRegister.className = "flex-1 py-2.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
+        nameWrap.classList.add("hidden");
+        instruction.innerText = "Draw your pattern to unlock";
       } else {
-        tabRegister.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
-        tabLogin.className = "flex-1 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
-        label.innerText = "Create New 6-Digit Passcode";
-        btn.innerHTML = `<i class="fa-solid fa-plus-circle"></i><span>Create New Locker</span>`;
-        helper.innerText = "Pick any unique 6-digit code. You will use this code to access your files on other devices.";
+        tabRegister.className = "flex-1 py-2.5 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
+        tabLogin.className = "flex-1 py-2.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
+        nameWrap.classList.remove("hidden");
+        instruction.innerText = "Step 1 of 2: Draw your new pattern";
+        setTimeout(() => document.getElementById("newUserNameInput").focus(), 100);
       }
-      document.getElementById("passcodeInput").value = "";
-      document.getElementById("passcodeInput").focus();
     }
 
-    function showAuthAlert(msg, isError = true) {
+    function resetPatternFlow() {
+      registerStep = 1;
+      firstDrawnPattern = "";
+      clearPatternVisuals();
+      setPatternColorState("default");
+      document.getElementById("authAlert").classList.add("hidden");
+      document.getElementById("patternInstructionText").innerText =
+        authMode === "login" ? "Draw your pattern to unlock" : "Step 1 of 2: Draw your new pattern";
+    }
+
+    function showAuthAlert(msg, type = "error") {
       const el = document.getElementById("authAlert");
-      el.className = isError 
-        ? "mb-4 p-3 rounded-xl text-sm font-medium bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
-        : "mb-4 p-3 rounded-xl text-sm font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800";
+      if (type === "error") {
+        el.className = "mt-4 p-3 rounded-xl text-xs font-semibold text-center bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800";
+      } else if (type === "success") {
+        el.className = "mt-4 p-3 rounded-xl text-xs font-semibold text-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800";
+      } else {
+        el.className = "mt-4 p-3 rounded-xl text-xs font-semibold text-center bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800";
+      }
       el.innerText = msg;
       el.classList.remove("hidden");
     }
 
-    async function handleAuthSubmit(e) {
-      e.preventDefault();
-      const code = document.getElementById("passcodeInput").value.trim();
-      if (!/^[0-9]{6}$/.test(code)) {
-        showAuthAlert("Passcode must be exactly 6 numeric digits (e.g., 556677).");
+    async function processPatternSubmission(patternDigits) {
+      if (patternDigits.length < 4) {
+        setPatternColorState("error");
+        showAuthAlert("Connect at least 4 dots for a valid pattern.", "error");
+        setTimeout(() => {
+          clearPatternVisuals();
+          setPatternColorState("default");
+        }, 750);
         return;
       }
 
-      const submitBtn = document.getElementById("authSubmitBtn");
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i><span>Checking Locker...</span>`;
-
-      try {
-        const vaultRef = db.ref("lockers/" + code);
-        const snapshot = await vaultRef.once("value");
-        const exists = snapshot.exists();
-
-        if (authMode === "register") {
-          if (exists) {
-            showAuthAlert("This 6-digit code is already taken. Please enter another code or log in.");
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<i class="fa-solid fa-plus-circle"></i><span>Create New Locker</span>`;
+      if (authMode === "login") {
+        showAuthAlert("Verifying pattern...", "info");
+        try {
+          const vaultRef = db.ref("lockers/" + patternDigits);
+          const snapshot = await vaultRef.once("value");
+          if (!snapshot.exists()) {
+            setPatternColorState("error");
+            showAuthAlert("Pattern not recognized. Try again or switch to 'Create New User'.", "error");
+            setTimeout(() => {
+              clearPatternVisuals();
+              setPatternColorState("default");
+            }, 900);
             return;
           }
-          await vaultRef.set({
-            created_at: new Date().toISOString(),
-            files_count: 0
-          });
-        } else {
-          if (!exists) {
-            showAuthAlert("Locker not found with this code. Click 'Create Locker' above to set it up!");
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<i class="fa-solid fa-lock-open"></i><span>Open Sharable</span>`;
-            return;
-          }
+
+          const data = snapshot.val();
+          setPatternColorState("success");
+          showAuthAlert("Unlocked! Opening " + (data.owner_name || "your") + " vault...", "success");
+          setTimeout(() => {
+            enterDashboard(patternDigits, data.owner_name || "Personal");
+          }, 450);
+        } catch (err) {
+          setPatternColorState("error");
+          showAuthAlert("Connection error: " + err.message, "error");
+        }
+      } else {
+        const ownerName = document.getElementById("newUserNameInput").value.trim();
+        if (!ownerName) {
+          setPatternColorState("error");
+          showAuthAlert("Please enter your name above before drawing your pattern.", "error");
+          document.getElementById("newUserNameInput").focus();
+          setTimeout(() => {
+            clearPatternVisuals();
+            setPatternColorState("default");
+          }, 700);
+          return;
         }
 
-        enterDashboard(code);
-      } catch (err) {
-        showAuthAlert("Connection error: " + err.message);
-      } finally {
-        submitBtn.disabled = false;
+        if (registerStep === 1) {
+          showAuthAlert("Checking pattern availability...", "info");
+          try {
+            const existing = await db.ref("lockers/" + patternDigits).once("value");
+            if (existing.exists()) {
+              setPatternColorState("error");
+              showAuthAlert("This pattern is already taken by another vault. Please draw a different pattern.", "error");
+              setTimeout(() => {
+                clearPatternVisuals();
+                setPatternColorState("default");
+              }, 950);
+              return;
+            }
+
+            firstDrawnPattern = patternDigits;
+            registerStep = 2;
+            setPatternColorState("success");
+            document.getElementById("patternInstructionText").innerText = "Step 2 of 2: Draw the same pattern again to confirm";
+            showAuthAlert("Pattern recorded! Now draw it a second time to verify.", "info");
+            setTimeout(() => {
+              clearPatternVisuals();
+              setPatternColorState("default");
+            }, 600);
+          } catch (err) {
+            showAuthAlert("Connection error: " + err.message, "error");
+          }
+        } else if (registerStep === 2) {
+          if (patternDigits !== firstDrawnPattern) {
+            setPatternColorState("error");
+            showAuthAlert("Patterns did not match! Resetting to Step 1—please draw your pattern again.", "error");
+            registerStep = 1;
+            firstDrawnPattern = "";
+            document.getElementById("patternInstructionText").innerText = "Step 1 of 2: Draw your new pattern";
+            setTimeout(() => {
+              clearPatternVisuals();
+              setPatternColorState("default");
+            }, 1000);
+            return;
+          }
+
+          showAuthAlert("Creating your encrypted Sharable vault...", "info");
+          try {
+            await db.ref("lockers/" + patternDigits).set({
+              owner_name: ownerName,
+              pattern_code: patternDigits,
+              created_at: new Date().toISOString(),
+              files_count: 0
+            });
+
+            setPatternColorState("success");
+            showAuthAlert("Vault created for " + ownerName + "!", "success");
+            setTimeout(() => {
+              enterDashboard(patternDigits, ownerName);
+            }, 500);
+          } catch (err) {
+            setPatternColorState("error");
+            showAuthAlert("Failed to create vault: " + err.message, "error");
+          }
+        }
       }
     }
 
-    function enterDashboard(code) {
+    function enterDashboard(code, ownerName = "Personal") {
       currentVaultCode = code;
+      currentUserName = ownerName;
       sessionStorage.setItem("active_locker_code", code);
-      document.getElementById("activeLockerBadge").innerText = code;
+      sessionStorage.setItem("active_locker_owner", ownerName);
+
+      document.getElementById("userGreetingBadge").innerText = ownerName + "'s Vault";
       document.getElementById("authScreen").classList.add("hidden");
       document.getElementById("floatingThemeWrap").classList.add("hidden");
       document.getElementById("dashboardScreen").classList.remove("hidden");
-      
+
+      clearPatternVisuals();
+      setPatternColorState("default");
       listenToLockerData(code);
     }
 
@@ -592,25 +920,20 @@
         db.ref("lockers/" + currentVaultCode + "/texts").off();
       }
       currentVaultCode = null;
+      currentUserName = "";
       sessionStorage.removeItem("active_locker_code");
+      sessionStorage.removeItem("active_locker_owner");
+
       document.getElementById("dashboardScreen").classList.add("hidden");
       document.getElementById("authScreen").classList.remove("hidden");
       document.getElementById("floatingThemeWrap").classList.remove("hidden");
-      document.getElementById("passcodeInput").value = "";
-      document.getElementById("authAlert").classList.add("hidden");
-    }
-
-    function copyLockerCode() {
-      if (!currentVaultCode) return;
-      navigator.clipboard.writeText(currentVaultCode);
-      showToast("Locker code " + currentVaultCode + " copied to clipboard!", "success");
+      resetPatternFlow();
     }
 
     // ==========================================
-    // 4. REALTIME DATABASE SYNC (FILES + TEXTS)
+    // 6. REALTIME DATABASE SYNC (FILES + TEXTS)
     // ==========================================
     function listenToLockerData(code) {
-      // Sync files
       db.ref("lockers/" + code + "/files").on("value", (snapshot) => {
         const val = snapshot.val();
         userFiles = [];
@@ -624,7 +947,6 @@
         applyFilters();
       });
 
-      // Sync shared texts
       db.ref("lockers/" + code + "/texts").on("value", (snapshot) => {
         const val = snapshot.val();
         userTexts = [];
@@ -660,7 +982,7 @@
     }
 
     // ==========================================
-    // 5. QUICK SHARE TEXT FEATURE
+    // 7. QUICK SHARE TEXT FEATURE
     // ==========================================
     function openQuickShareModal() {
       document.getElementById("quickShareTextarea").value = "";
@@ -686,7 +1008,7 @@
           created_at: new Date().toISOString()
         });
         closeQuickShareModal();
-        showToast("Text saved to your Sharable locker!", "success");
+        showToast("Text saved to your Sharable vault!", "success");
       } catch (err) {
         showToast("Error saving text: " + err.message, "error");
       } finally {
@@ -703,9 +1025,7 @@
       if (navigator.share) {
         try {
           await navigator.share({ title: "Shared via Sharable", text: text });
-        } catch (err) {
-          // User cancelled or failed
-        }
+        } catch (err) {}
       } else {
         navigator.clipboard.writeText(text);
         showToast("Copied text to clipboard!", "success");
@@ -732,6 +1052,14 @@
     }
 
     async function deleteSnippetText(id) {
+      const confirmed = await showCustomConfirm({
+        title: "Delete Shared Text?",
+        message: "This text snippet will be permanently removed from your vault.",
+        confirmText: "Delete Text",
+        isDanger: true
+      });
+      if (!confirmed) return;
+
       try {
         await db.ref("lockers/" + currentVaultCode + "/texts/" + id).remove();
         showToast("Text snippet removed", "info");
@@ -772,7 +1100,7 @@
     }
 
     // ==========================================
-    // 6. FILE UPLOAD & CLOUDINARY INTEGRATION
+    // 8. FILE UPLOAD & CLOUDINARY INTEGRATION
     // ==========================================
     function openUploadModal() {
       resetPickedFile();
@@ -855,10 +1183,7 @@
       submitBtn.disabled = true;
 
       const cat = getFileTypeCategory(pickedFileObj.type, pickedFileObj.name);
-      let resourceType = "auto";
-      if (cat === "document" || cat === "archive") {
-        resourceType = "raw";
-      }
+      const resourceType = "auto";
 
       const formData = new FormData();
       formData.append("file", pickedFileObj);
@@ -894,6 +1219,7 @@
             mime_type: pickedFileObj.type || "application/octet-stream",
             size: pickedFileObj.size,
             url: res.secure_url,
+            cloudinary_resource_type: res.resource_type || "image",
             cloudinary_public_id: res.public_id,
             uploaded_at: new Date().toISOString()
           };
@@ -916,13 +1242,10 @@
     }
 
     // ==========================================
-    // 7. GUARANTEED DIRECT DOWNLOAD HANDLER
+    // 9. UNIVERSAL DIRECT DOWNLOAD HANDLER
     // ==========================================
     function buildCloudinaryAttachmentUrl(url, customName) {
-      // Sanitize filename for Cloudinary fl_attachment flag (no spaces/special chars except underscore/hyphen)
       const baseName = customName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_") || "sharable_file";
-      
-      // Cloudinary supports fl_attachment:<name> on /image/upload/ and /video/upload/
       if (url.includes("/image/upload/")) {
         return url.replace("/image/upload/", `/image/upload/fl_attachment:${baseName}/`);
       }
@@ -945,12 +1268,13 @@
       const attachmentUrl = buildCloudinaryAttachmentUrl(file.url, file.custom_name);
 
       try {
-        // Method 1: Fetch into a local Blob (works for raw PDFs/ZIPs & media, forces exact filename)
         const response = await fetch(file.url, { mode: "cors" });
-        if (!response.ok) throw new Error("Fetch status " + response.status);
+        if (!response.ok) throw new Error("HTTP " + response.status);
         
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
+        const rawBlob = await response.blob();
+        const mimeType = file.mime_type || rawBlob.type || "application/octet-stream";
+        const typedBlob = new Blob([rawBlob], { type: mimeType });
+        const blobUrl = window.URL.createObjectURL(typedBlob);
         
         const tempLink = document.createElement("a");
         tempLink.style.display = "none";
@@ -963,14 +1287,23 @@
         setTimeout(() => {
           document.body.removeChild(tempLink);
           window.URL.revokeObjectURL(blobUrl);
-        }, 250);
+        }, 1500);
 
-        showToast("Download started: " + file.custom_name, "success");
+        showToast("Saved: " + file.custom_name, "success");
       } catch (err) {
-        // Method 2: Server-enforced Content-Disposition attachment download via hidden iframe (no new tab!)
-        const frame = document.getElementById("silentDownloadFrame");
-        frame.src = attachmentUrl;
-        showToast("Downloading " + file.custom_name + "...", "info");
+        if (attachmentUrl !== file.url) {
+          const frame = document.getElementById("silentDownloadFrame");
+          frame.src = attachmentUrl;
+          showToast("Downloading " + file.custom_name + "...", "info");
+        } else {
+          const a = document.createElement("a");
+          a.href = file.url;
+          a.setAttribute("download", file.custom_name || "sharable_file");
+          a.target = "_blank";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
       } finally {
         if (btnElement && originalHTML) {
           btnElement.disabled = false;
@@ -980,7 +1313,7 @@
     }
 
     // ==========================================
-    // 8. FILTERING, SEARCH & RENDERING
+    // 10. FILTERING, SEARCH & RENDERING
     // ==========================================
     function setViewMode(mode) {
       currentViewMode = mode;
@@ -1045,7 +1378,7 @@
             </div>
             <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">No files found</h3>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-              ${userFiles.length === 0 ? "Your Sharable locker is empty. Click 'Upload File' to add your first file!" : "No files match your search and filter criteria."}
+              ${userFiles.length === 0 ? "Your Sharable vault is empty. Click 'Upload File' to add your first file!" : "No files match your search and filter criteria."}
             </p>
           </div>
         `;
@@ -1079,7 +1412,7 @@
                     <i class="fa-solid fa-download"></i>
                     <span>Download</span>
                   </button>
-                  <button type="button" onclick="deleteFile('${file.id}')" class="text-slate-400 hover:text-rose-500 p-1 text-xs" title="Delete File">
+                  <button type="button" onclick="deleteFile('${file.id}', this)" class="text-slate-400 hover:text-rose-500 p-1 text-xs" title="Delete File">
                     <i class="fa-regular fa-trash-can"></i>
                   </button>
                 </div>
@@ -1109,7 +1442,7 @@
             <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
               <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white flex items-center space-x-3 cursor-pointer" onclick="openPreview('${file.id}')">
                 <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0">
-                  <i class="${getTypeIcon(file.file_type)}"></i>
+                  <i class="${getTypeIcon(file.file_type, file.custom_name)}"></i>
                 </div>
                 <span class="truncate max-w-xs md:max-w-md">${escapeHtml(file.custom_name)}</span>
               </td>
@@ -1121,7 +1454,7 @@
                   <i class="fa-solid fa-download"></i>
                   <span>Download</span>
                 </button>
-                <button type="button" onclick="deleteFile('${file.id}')" class="p-2 text-slate-400 hover:text-rose-500 rounded-lg text-xs" title="Delete">
+                <button type="button" onclick="deleteFile('${file.id}', this)" class="p-2 text-slate-400 hover:text-rose-500 rounded-lg text-xs" title="Delete">
                   <i class="fa-regular fa-trash-can"></i>
                 </button>
               </td>
@@ -1137,15 +1470,17 @@
       if (file.file_type === "image") {
         return `<img src="${file.url}" alt="${escapeHtml(file.custom_name)}" class="w-full h-full object-cover">`;
       }
+      const isPdf = (file.custom_name || "").toLowerCase().endsWith(".pdf");
       return `
         <div class="text-slate-400 flex flex-col items-center">
-          <i class="${getTypeIcon(file.file_type)} text-4xl mb-2 text-indigo-500"></i>
-          <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">${file.file_type}</span>
+          <i class="${getTypeIcon(file.file_type, file.custom_name)} text-4xl mb-2 ${isPdf ? 'text-rose-500' : 'text-indigo-500'}"></i>
+          <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">${isPdf ? 'PDF' : file.file_type}</span>
         </div>
       `;
     }
 
-    function getTypeIcon(type) {
+    function getTypeIcon(type, filename = "") {
+      if (filename.toLowerCase().endsWith(".pdf")) return "fa-solid fa-file-pdf";
       switch (type) {
         case "image": return "fa-solid fa-image";
         case "video": return "fa-solid fa-video";
@@ -1156,7 +1491,7 @@
     }
 
     // ==========================================
-    // 9. PREVIEW & ACTIONS
+    // 11. PREVIEW & PERMANENT CLOUDINARY + FIREBASE DELETE
     // ==========================================
     function openPreview(fileId) {
       const file = userFiles.find(f => f.id === fileId);
@@ -1178,17 +1513,17 @@
       } else if (file.file_type === "audio") {
         body.innerHTML = `
           <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-md text-center max-w-md w-full">
-            <i class="fa-solid fa-compact-disc text-5xl text-indigo-500 mb-4 animate-spin-slow"></i>
+            <i class="fa-solid fa-compact-disc text-5xl text-indigo-500 mb-4"></i>
             <p class="font-bold mb-4 text-slate-800 dark:text-slate-100">${escapeHtml(file.custom_name)}</p>
             <audio controls class="w-full"><source src="${file.url}"></audio>
           </div>
         `;
-      } else if (file.url.toLowerCase().endsWith(".pdf")) {
+      } else if (file.url.toLowerCase().endsWith(".pdf") || file.custom_name.toLowerCase().endsWith(".pdf")) {
         body.innerHTML = `<iframe src="${file.url}" class="w-full h-[65vh] rounded-lg border-0"></iframe>`;
       } else {
         body.innerHTML = `
           <div class="text-center p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-md max-w-sm">
-            <i class="${getTypeIcon(file.file_type)} text-5xl text-indigo-500 mb-3"></i>
+            <i class="${getTypeIcon(file.file_type, file.custom_name)} text-5xl text-indigo-500 mb-3"></i>
             <h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">${escapeHtml(file.custom_name)}</h4>
             <p class="text-xs text-slate-400 mb-4">Direct preview not supported for this file format.</p>
             <button type="button" onclick="downloadFile('${file.id}', this)" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold shadow hover:bg-indigo-700 transition inline-flex items-center space-x-1.5">
@@ -1207,13 +1542,89 @@
       document.getElementById("previewBody").innerHTML = "";
     }
 
-    async function deleteFile(fileId) {
-      if (!confirm("Are you sure you want to remove this file from Sharable?")) return;
+    function detectCloudinaryResourceType(file) {
+      if (file.cloudinary_resource_type && file.cloudinary_resource_type !== "auto") {
+        return file.cloudinary_resource_type;
+      }
+      if (file.url) {
+        if (file.url.includes("/video/upload/")) return "video";
+        if (file.url.includes("/raw/upload/")) return "raw";
+        if (file.url.includes("/image/upload/")) return "image";
+      }
+      if (file.file_type === "video" || file.file_type === "audio") return "video";
+      return "image";
+    }
+
+    async function deleteFromCloudinary(publicId, resourceType) {
+      if (!publicId) return { result: "no_public_id" };
+      const timestamp = Math.floor(Date.now() / 1000);
+      // Cloudinary destroy signature parameters sorted alphabetically: invalidate, public_id, timestamp
+      const stringToSign = `invalidate=true&public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
+      const signature = CryptoJS.SHA1(stringToSign).toString();
+
+      const formData = new FormData();
+      formData.append("public_id", publicId);
+      formData.append("api_key", CLOUDINARY_API_KEY);
+      formData.append("timestamp", timestamp);
+      formData.append("invalidate", "true");
+      formData.append("signature", signature);
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/destroy`, {
+        method: "POST",
+        body: formData
+      });
+      return res.json();
+    }
+
+    async function deleteFile(fileId, btnElement) {
+      const file = userFiles.find(f => f.id === fileId);
+      if (!file) return;
+
+      const confirmed = await showCustomConfirm({
+        title: "Permanently Delete File?",
+        message: `"${file.custom_name}" will be permanently deleted from both Sharable and Cloudinary storage. This cannot be undone.`,
+        confirmText: "Delete Permanently",
+        isDanger: true
+      });
+      if (!confirmed) return;
+
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-rose-500"></i>`;
+      }
+
       try {
+        // 1. Permanently delete asset from Cloudinary first
+        if (file.cloudinary_public_id) {
+          const primaryType = detectCloudinaryResourceType(file);
+          let cloudRes = await deleteFromCloudinary(file.cloudinary_public_id, primaryType);
+
+          // If not found under primaryType (e.g. legacy raw upload), try fallback resource types
+          if (cloudRes && cloudRes.result === "not found") {
+            const fallbacks = ["image", "raw", "video"].filter(t => t !== primaryType);
+            for (const fbType of fallbacks) {
+              const retryRes = await deleteFromCloudinary(file.cloudinary_public_id, fbType);
+              if (retryRes && retryRes.result === "ok") {
+                cloudRes = retryRes;
+                break;
+              }
+            }
+          }
+
+          if (cloudRes && cloudRes.error) {
+            throw new Error(cloudRes.error.message || "Cloudinary deletion rejected");
+          }
+        }
+
+        // 2. Remove file record from Firebase Realtime Database
         await db.ref("lockers/" + currentVaultCode + "/files/" + fileId).remove();
-        showToast("File deleted", "info");
+        showToast("Permanently deleted from Sharable & Cloudinary", "success");
       } catch (err) {
-        showToast("Failed to delete: " + err.message, "error");
+        showToast("Failed to delete from cloud: " + err.message, "error");
+        if (btnElement) {
+          btnElement.disabled = false;
+          btnElement.innerHTML = `<i class="fa-regular fa-trash-can"></i>`;
+        }
       }
     }
 
@@ -1248,9 +1659,11 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       initTheme();
+      initPatternPad();
       const savedLocker = sessionStorage.getItem("active_locker_code");
+      const savedOwner = sessionStorage.getItem("active_locker_owner") || "Personal";
       if (savedLocker) {
-        enterDashboard(savedLocker);
+        enterDashboard(savedLocker, savedOwner);
       }
     });
   </script>
