@@ -14,7 +14,7 @@ exports.createCloudinarySignature = onCall(
     const lockerCode = request.data && request.data.lockerCode;
 
     // Only allow this app's expected folder format.
-    if (typeof lockerCode !== "string" || !/^\\d{6}$/.test(lockerCode)) {
+    if (typeof lockerCode !== "string" || !/^\d{6}$/.test(lockerCode)) {
       throw new HttpsError("invalid-argument", "A valid six-digit locker code is required.");
     }
 
