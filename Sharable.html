@@ -1,999 +1,141 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CloudVault - Secure File Locker</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Firebase SDKs (Compat for vanilla browser app) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <!-- CryptoJS for Cloudinary SHA-1 signing -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    .glassmorphism {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
-    .dark .glassmorphism {
-      background: rgba(17, 24, 39, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
-    .custom-scroll::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    .custom-scroll::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 9999px;
-    }
-    .dark .custom-scroll::-webkit-scrollbar-thumb {
-      background: #374151;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>CloudVault — Your files, everywhere</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+<style>
+:root{color-scheme:light;--bg:#f5f7fb;--panel:#fff;--panel2:#f8fafc;--text:#172033;--muted:#778198;--line:#e7eaf1;--brand:#6258e8;--brand2:#8875ff;--soft:#efedff;--danger:#e54862;--green:#169b72;--shadow:0 18px 55px rgba(25,35,70,.08)}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0c1020;--panel:#141a2b;--panel2:#1b2235;--text:#edf0fa;--muted:#9ba5bd;--line:#283149;--brand:#9286ff;--brand2:#b1a8ff;--soft:#282449;--danger:#ff7187;--green:#4bd2a4;--shadow:0 18px 55px rgba(0,0,0,.25)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}.hidden{display:none!important}.muted{color:var(--muted)}.small{font-size:12px}.wrap{width:min(1180px,calc(100% - 36px));margin:auto}.topbar{height:76px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(16px);position:sticky;top:0;z-index:10}.topinner{height:100%;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:19px;letter-spacing:-.5px}.brandmark{height:42px;width:42px;border-radius:14px;background:linear-gradient(140deg,var(--brand),var(--brand2));display:grid;place-items:center;color:white;box-shadow:0 8px 20px #6258e844}.brandmark svg{width:22px}.topactions{display:flex;align-items:center;gap:10px}.iconbtn,.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:12px;padding:10px 13px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.18s}.iconbtn{width:42px;height:42px;padding:0}.btn:hover,.iconbtn:hover{transform:translateY(-1px);border-color:var(--brand)}.btn.primary{background:var(--brand);border-color:var(--brand);color:white;font-weight:700}.btn.primary:hover{background:var(--brand2)}.btn.danger{color:var(--danger)}.btn.ghost{background:transparent}.btn:focus-visible,.iconbtn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid color-mix(in srgb,var(--brand) 35%,transparent);outline-offset:2px}
+.authshell{min-height:calc(100vh - 76px);display:grid;place-items:center;padding:35px 18px}.authcard{width:min(440px,100%);padding:34px;background:var(--panel);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);position:relative;overflow:hidden}.authcard:before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:var(--soft);filter:blur(20px);right:-110px;top:-120px;pointer-events:none}.authhead{text-align:center;position:relative;margin-bottom:26px}.authlogo{width:66px;height:66px;margin:0 auto 16px;border-radius:21px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,var(--brand),var(--brand2));box-shadow:0 12px 28px #6258e833}.authlogo svg{width:30px;height:30px}.authhead h1{font-size:25px;letter-spacing:-.8px;margin:0 0 5px}.authhead p{margin:0;color:var(--muted);font-size:13px}.tabs{display:grid;grid-template-columns:1fr 1fr;padding:4px;background:var(--panel2);border-radius:13px;margin-bottom:22px}.tab{border:0;background:transparent;color:var(--muted);padding:10px;border-radius:10px;font-weight:650}.tab.active{background:var(--panel);color:var(--brand);box-shadow:0 2px 8px #10182810}.field{margin:0 0 17px}.field label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin-bottom:7px}.inputwrap{position:relative}.input{width:100%;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:13px 14px;outline:none}.input.code{font-size:23px;letter-spacing:9px;text-align:center;font-weight:800;font-family:ui-monospace,monospace}.input:focus{border-color:var(--brand)}.full{width:100%;padding:13px}.notice{margin-top:19px;padding:12px;border-radius:12px;background:var(--panel2);color:var(--muted);font-size:11px;text-align:center}.alert{padding:12px 14px;border-radius:12px;font-size:13px;margin:0 0 16px}.alert.error{background:#ffe9ed;color:#a52642}.alert.success{background:#e2f8ef;color:#08724f}
+#dashboard{padding:30px 0 60px}.welcome{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px}.welcome h1{font-size:27px;letter-spacing:-.8px;margin:0}.welcome p{margin:5px 0 0;color:var(--muted);font-size:13px}.locker-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);padding:8px 11px;border-radius:12px;font-size:12px;color:var(--muted)}.locker-pill strong{font-family:ui-monospace,monospace;color:var(--brand);letter-spacing:2px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}.stat{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:17px;min-width:0}.stathead{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:12px;font-weight:650}.staticon{width:32px;height:32px;border-radius:10px;background:var(--soft);color:var(--brand);display:grid;place-items:center}.staticon svg{width:16px}.stat strong{display:block;font-size:25px;letter-spacing:-.8px;margin-top:9px}.toolbar{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:12px;margin-bottom:19px}.search{flex:1;position:relative;min-width:150px}.search svg{position:absolute;left:13px;top:12px;width:17px;color:var(--muted)}.search input{padding-left:39px}.toolbar select,.toolbar input{height:42px}.toolbar select{max-width:170px}.viewtoggle{display:flex;padding:3px;background:var(--panel2);border-radius:11px;border:1px solid var(--line)}.viewtoggle button{border:0;background:transparent;color:var(--muted);width:35px;height:34px;border-radius:8px}.viewtoggle button.active{background:var(--panel);color:var(--brand);box-shadow:0 1px 5px #0001}.filegrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}.filecard{background:var(--panel);border:1px solid var(--line);border-radius:17px;overflow:hidden;min-width:0;transition:.2s}.filecard:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:color-mix(in srgb,var(--brand) 45%,var(--line))}.thumb{height:155px;background:var(--panel2);display:grid;place-items:center;overflow:hidden;cursor:pointer;position:relative}.thumb img{width:100%;height:100%;object-fit:cover}.thumb .fileglyph{width:55px;height:55px;border-radius:17px;background:var(--soft);color:var(--brand);display:grid;place-items:center}.thumb .fileglyph svg{width:27px;height:27px}.fileinfo{padding:13px}.filename{font-weight:750;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.filemeta{font-size:11px;color:var(--muted);margin-top:5px}.fileactions{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.linkbtn{border:0;background:transparent;color:var(--brand);font-size:12px;font-weight:750;display:inline-flex;gap:6px;align-items:center;padding:4px}.linkbtn svg{width:14px}.listwrap{overflow:auto;border:1px solid var(--line);background:var(--panel);border-radius:17px}.filetable{width:100%;border-collapse:collapse;min-width:650px}.filetable th,.filetable td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);font-size:12px}.filetable th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;background:var(--panel2)}.filetable tr:last-child td{border:0}.filetable tbody tr:hover{background:var(--panel2)}.filecell{display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700}.miniicon{width:34px;height:34px;border-radius:10px;background:var(--soft);color:var(--brand);display:grid;place-items:center}.miniicon svg{width:17px}.empty{background:var(--panel);border:1px dashed var(--line);border-radius:18px;padding:55px 20px;text-align:center}.emptyicon{margin:0 auto 13px;width:56px;height:56px;border-radius:17px;background:var(--soft);color:var(--brand);display:grid;place-items:center}.emptyicon svg{width:25px}.empty h3{margin:0 0 5px}.empty p{margin:0 auto 18px;max-width:370px;color:var(--muted);font-size:13px}
+.overlay{position:fixed;inset:0;background:#080c18b8;backdrop-filter:blur(7px);z-index:30;display:grid;place-items:center;padding:18px}.modal{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 100px #0004}.modal.wide{width:min(900px,100%)}.modalhead{padding:18px 21px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}.modalhead h2{font-size:16px;margin:0}.modalbody{padding:21px}.dropzone{border:2px dashed var(--line);background:var(--panel2);border-radius:16px;padding:29px 15px;text-align:center;cursor:pointer}.dropzone.drag{border-color:var(--brand);background:var(--soft)}.dropzone svg{width:30px;color:var(--brand);margin-bottom:8px}.dropzone strong{display:block;font-size:13px}.dropzone span{font-size:11px;color:var(--muted)}.picked{padding:12px;border:1px solid var(--line);border-radius:12px;margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px}.progress{height:8px;border-radius:20px;background:var(--panel2);overflow:hidden;margin-top:9px}.progress span{display:block;height:100%;width:0;background:var(--brand);transition:width .15s}.modalfoot{padding:0 21px 21px;display:flex;justify-content:flex-end;gap:9px}.previewarea{min-height:340px;max-height:68vh;overflow:auto;background:var(--panel2);display:grid;place-items:center;padding:16px}.previewarea img,.previewarea video{max-width:100%;max-height:65vh;object-fit:contain}.previewarea iframe{width:100%;height:65vh;border:0;background:white}.previewarea audio{width:min(440px,100%)}.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#171d30;color:white;padding:12px 17px;border-radius:12px;box-shadow:var(--shadow);z-index:80;font-size:13px;transition:.25s;max-width:calc(100% - 30px)}.toast.show{opacity:1;transform:translate(-50%,0)}.footnote{text-align:center;color:var(--muted);font-size:11px;margin-top:35px}
+@media(max-width:950px){.filegrid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:680px){.wrap{width:min(100% - 24px,1180px)}.topbar{height:66px}.brand{font-size:17px}.brandmark{width:38px;height:38px}.authshell{min-height:calc(100vh - 66px);padding:20px 12px}.authcard{padding:25px 20px}.welcome{align-items:flex-start;flex-direction:column}.welcome h1{font-size:23px}.stats{gap:9px}.stat{padding:13px}.stat strong{font-size:21px}.toolbar{flex-wrap:wrap}.search{flex-basis:100%}.toolbar select{flex:1;max-width:none}.filegrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.thumb{height:125px}.fileinfo{padding:11px}.topactions .btn span{display:none}.topactions .btn{width:42px;height:42px;padding:0}.locker-pill{font-size:11px}.modalbody{padding:16px}.modalhead{padding:15px 16px}.modalfoot{padding:0 16px 16px}}
+@media(max-width:380px){.filegrid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+</style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
-
-  <!-- THEME TOGGLE FLOATING (Always accessible) -->
-  <div class="fixed top-4 right-4 z-50 flex items-center space-x-2">
-    <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2.5 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-amber-400 hover:scale-105 transition-transform" title="Toggle Light/Dark Theme">
-      <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
-    </button>
+<body>
+<header class="topbar"><div class="wrap topinner">
+  <div class="brand"><span class="brandmark"><i data-lucide="cloud"></i></span><span>CloudVault</span></div>
+  <div class="topactions">
+    <button class="iconbtn" id="themeBtn" aria-label="Toggle theme" title="Toggle theme"><i data-lucide="moon"></i></button>
+    <button class="btn hidden" id="logoutBtn"><i data-lucide="lock"></i><span>Lock vault</span></button>
   </div>
-
-  <!-- VIEW 1: AUTHENTICATION SCREEN (LOGIN / CREATE ACCOUNT) -->
-  <div id="authScreen" class="flex-1 flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-      <!-- Decorative Gradient Glow -->
-      <div class="absolute -top-20 -left-20 w-44 h-44 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-20 -right-20 w-44 h-44 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
-      <!-- Header -->
-      <div class="text-center mb-6 relative">
-        <div class="w-16 h-16 mx-auto mb-3 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-          <i class="fa-solid fa-vault text-2xl"></i>
-        </div>
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">CloudVault Locker</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Multi-device secure file backup & sharing</p>
-      </div>
-
-      <!-- Mode Switcher Tabs -->
-      <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6 text-sm font-medium">
-        <button id="tabLogin" onclick="switchAuthMode('login')" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition">Access Vault</button>
-        <button id="tabRegister" onclick="switchAuthMode('register')" class="flex-1 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">Create Locker</button>
-      </div>
-
-      <!-- Auth Form -->
-      <form id="authForm" onsubmit="handleAuthSubmit(event)">
-        <div class="mb-4">
-          <label id="passcodeLabel" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Enter 6-Digit Passcode</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-              <i class="fa-solid fa-key"></i>
-            </span>
-            <input type="password" id="passcodeInput" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="123456" required
-              class="w-full pl-10 pr-12 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xl tracking-[0.3em] font-mono text-center font-bold text-slate-900 dark:text-white placeholder:tracking-normal placeholder:font-normal placeholder:text-sm">
-            <button type="button" onclick="togglePasscodeVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-              <i id="togglePassEye" class="fa-solid fa-eye"></i>
-            </button>
-          </div>
-          <p id="authHelperText" class="text-xs text-slate-400 dark:text-slate-500 mt-2">Enter your existing 6-digit numeric passcode to open your locker.</p>
-        </div>
-
-        <div id="authAlert" class="hidden mb-4 p-3 rounded-xl text-sm font-medium"></div>
-
-        <button type="submit" id="authSubmitBtn" class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2">
-          <i class="fa-solid fa-lock-open"></i>
-          <span>Open My Vault</span>
-        </button>
-      </form>
-
-      <!-- Security Notice -->
-      <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
-        <p class="text-xs text-slate-400">Isolated Cloudinary storage keyed directly to your passcode vault</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- VIEW 2: DASHBOARD SCREEN -->
-  <div id="dashboardScreen" class="hidden flex-1 flex flex-col">
-    <!-- Navbar -->
-    <header class="glassmorphism sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800/80 px-4 lg:px-8 py-3.5">
-      <div class="max-w-7xl mx-auto flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-            <i class="fa-solid fa-vault"></i>
-          </div>
-          <div>
-            <h1 class="text-base font-bold text-slate-900 dark:text-white leading-tight">CloudVault</h1>
-            <div class="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
-              <span>Locker:</span>
-              <span id="activeLockerBadge" class="font-mono bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">******</span>
-              <button onclick="copyLockerCode()" title="Copy Vault Code" class="hover:text-indigo-600 transition"><i class="fa-regular fa-copy"></i></button>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex items-center space-x-3">
-          <!-- Upload Button -->
-          <button onclick="openUploadModal()" class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-sm shadow-sm flex items-center space-x-2 transition">
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-            <span class="hidden sm:inline">Upload New File</span>
-            <span class="sm:hidden">Upload</span>
-          </button>
-          <!-- Logout Button -->
-          <button onclick="logoutVault()" class="p-2 sm:px-3 sm:py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium transition flex items-center space-x-1.5" title="Exit Vault">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            <span class="hidden sm:inline">Lock / Exit</span>
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <main class="max-w-7xl w-full mx-auto p-4 lg:p-8 flex-1">
-      
-      <!-- Stats & Summary Banner -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-          <p class="text-xs uppercase font-semibold text-slate-400 mb-1">Total Files</p>
-          <h3 id="statTotalFiles" class="text-2xl font-bold text-slate-900 dark:text-white">0</h3>
-        </div>
-        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-          <p class="text-xs uppercase font-semibold text-slate-400 mb-1">Total Size</p>
-          <h3 id="statTotalSize" class="text-2xl font-bold text-slate-900 dark:text-white">0 MB</h3>
-        </div>
-        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-          <p class="text-xs uppercase font-semibold text-slate-400 mb-1">Images & Media</p>
-          <h3 id="statMediaFiles" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">0</h3>
-        </div>
-        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-          <p class="text-xs uppercase font-semibold text-slate-400 mb-1">Documents & Other</p>
-          <h3 id="statDocFiles" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">0</h3>
-        </div>
-      </div>
-
-      <!-- Controls: Search, Date Filter, File Type Filter, View Switcher -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 mb-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <!-- Search Bar -->
-        <div class="relative flex-1">
-          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-            <i class="fa-solid fa-magnifying-glass"></i>
-          </span>
-          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search files by custom name, tag, or extension..."
-            class="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400">
-        </div>
-
-        <!-- Filter Controls -->
-        <div class="flex flex-wrap items-center gap-2.5">
-          <!-- Date Filter -->
-          <div class="flex items-center space-x-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1.5 rounded-xl text-xs">
-            <i class="fa-regular fa-calendar text-slate-400"></i>
-            <input type="date" id="dateFilterInput" onchange="applyFilters()" class="bg-transparent border-0 text-slate-700 dark:text-slate-200 focus:outline-none text-xs">
-            <button onclick="clearDateFilter()" id="clearDateBtn" class="hidden text-slate-400 hover:text-rose-500" title="Clear Date"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-
-          <!-- Type Filter -->
-          <select id="typeFilterSelect" onchange="applyFilters()" class="bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="all">All File Types</option>
-            <option value="image">Images</option>
-            <option value="document">Documents & PDFs</option>
-            <option value="video">Videos</option>
-            <option value="audio">Audio</option>
-            <option value="archive">Archives & Zips</option>
-          </select>
-
-          <!-- View Layout Toggle -->
-          <div class="bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl flex items-center border border-slate-200 dark:border-slate-700">
-            <button id="viewGridBtn" onclick="setViewMode('grid')" class="p-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition" title="Grid Gallery View">
-              <i class="fa-solid fa-table-cells"></i>
-            </button>
-            <button id="viewListBtn" onclick="setViewMode('list')" class="p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition" title="List Table View">
-              <i class="fa-solid fa-list"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Gallery / Files View Container -->
-      <div id="filesContainer" class="min-h-[300px]">
-        <!-- Dynamic injected gallery/list items here -->
-      </div>
-    </main>
-  </div>
-
-  <!-- CUSTOM MODAL: UPLOAD FILE -->
-  <div id="uploadModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-      <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-        <div class="flex items-center space-x-2.5">
-          <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-          </div>
-          <h2 class="font-bold text-slate-900 dark:text-white">Upload File to Vault</h2>
-        </div>
-        <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-      </div>
-
-      <form id="fileUploadForm" onsubmit="handleFileUpload(event)" class="p-6 space-y-4">
-        <!-- File Picker Drag & Drop / Mobile selector -->
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Select File from Device (Phone or PC)</label>
-          <div id="dropZone" onclick="document.getElementById('actualFileInput').click()" class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 rounded-2xl p-6 text-center cursor-pointer bg-slate-50/50 dark:bg-slate-800/40 transition">
-            <input type="file" id="actualFileInput" onchange="onFilePicked(this)" class="hidden">
-            <div id="pickerEmptyState">
-              <i class="fa-solid fa-folder-open text-3xl text-indigo-500 mb-2"></i>
-              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Click to pick file or drag & drop</p>
-              <p class="text-xs text-slate-400 mt-1">Supports images, documents, videos, and archives</p>
-            </div>
-            <div id="pickerSelectedState" class="hidden flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-left">
-              <div class="flex items-center space-x-3 overflow-hidden">
-                <i id="selectedFileIcon" class="fa-solid fa-file text-2xl text-indigo-500 flex-shrink-0"></i>
-                <div class="truncate">
-                  <p id="selectedFileOriginalName" class="text-sm font-semibold truncate text-slate-900 dark:text-white"></p>
-                  <p id="selectedFileSize" class="text-xs text-slate-400"></p>
-                </div>
-              </div>
-              <button type="button" onclick="event.stopPropagation(); resetPickedFile()" class="p-1.5 text-slate-400 hover:text-rose-500"><i class="fa-solid fa-trash-can"></i></button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Custom File Name Field -->
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Custom File Name</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-              <i class="fa-solid fa-tag"></i>
-            </span>
-            <input type="text" id="customFileNameInput" placeholder="e.g. My_Important_Document" required
-              class="w-full pl-10 pr-20 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100">
-            <span id="detectedExtBadge" class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-mono font-bold text-slate-400"></span>
-          </div>
-          <p class="text-[11px] text-slate-400 mt-1">This will be the display title and download name for this file.</p>
-        </div>
-
-        <!-- Upload Progress indicator -->
-        <div id="uploadProgressContainer" class="hidden space-y-1.5">
-          <div class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-            <span id="uploadStatusText">Uploading to locker...</span>
-            <span id="uploadPercent">0%</span>
-          </div>
-          <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-            <div id="uploadProgressBar" class="bg-indigo-600 h-full w-0 transition-all duration-150"></div>
-          </div>
-        </div>
-
-        <!-- Modal Action Buttons -->
-        <div class="flex items-center justify-end space-x-3 pt-3">
-          <button type="button" onclick="closeUploadModal()" class="px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Cancel</button>
-          <button type="submit" id="startUploadBtn" class="px-5 py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md shadow-indigo-500/20 transition flex items-center space-x-2">
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-            <span>Upload Now</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- FILE PREVIEW MODAL -->
-  <div id="previewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-      <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-        <div class="truncate mr-4">
-          <h3 id="previewTitle" class="font-bold text-slate-900 dark:text-white truncate"></h3>
-          <p id="previewMeta" class="text-xs text-slate-400 mt-0.5"></p>
-        </div>
-        <div class="flex items-center space-x-2">
-          <a id="previewDownloadLink" href="#" target="_blank" download class="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition" title="Direct Download">
-            <i class="fa-solid fa-download"></i>
-          </a>
-          <button onclick="closePreviewModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
-            <i class="fa-solid fa-xmark text-lg"></i>
-          </button>
-        </div>
-      </div>
-      <div id="previewBody" class="flex-1 overflow-auto p-4 flex items-center justify-center bg-slate-100 dark:bg-slate-950 min-h-[350px]">
-        <!-- Injected media viewer / iframe / placeholder -->
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // ==========================================
-    // 1. CREDENTIALS & INITIALIZATION
-    // ==========================================
-    const CLOUDINARY_CLOUD_NAME = "dl1ishrkv";
-    const CLOUDINARY_API_KEY = "433163499287729";
-    const CLOUDINARY_API_SECRET = "2rP00sgy0FGPVsKYDEG0GH-k5mo";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDE_Tzjwmoh-xuFTFYpT5ElGjfN6T0VEsI",
-      authDomain: "sanchitution.firebaseapp.com",
-      databaseURL: "https://sanchitution-default-rtdb.firebaseio.com",
-      projectId: "sanchitution",
-      storageBucket: "sanchitution.firebasestorage.app",
-      messagingSenderId: "349272071034",
-      appId: "1:349272071034:web:e06bb9e9218a93741314c3",
-      measurementId: "G-HM1LLDNN2R"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // App State
-    let currentVaultCode = null;
-    let authMode = "login"; // "login" | "register"
-    let userFiles = [];
-    let currentViewMode = "grid"; // "grid" | "list"
-    let pickedFileObj = null;
-
-    // ==========================================
-    // 2. THEME SWITCHER (Light / Dark)
-    // ==========================================
-    function initTheme() {
-      const savedTheme = localStorage.getItem("cloudvault_theme") || "dark";
-      if (savedTheme === "dark") {
-        document.documentElement.classList.add("dark");
-        document.getElementById("themeIcon").className = "fa-solid fa-sun text-amber-400 text-lg";
-      } else {
-        document.documentElement.classList.remove("dark");
-        document.getElementById("themeIcon").className = "fa-solid fa-moon text-slate-700 text-lg";
-      }
-    }
-
-    function toggleTheme() {
-      const isDark = document.documentElement.classList.toggle("dark");
-      localStorage.setItem("cloudvault_theme", isDark ? "dark" : "light");
-      document.getElementById("themeIcon").className = isDark 
-        ? "fa-solid fa-sun text-amber-400 text-lg" 
-        : "fa-solid fa-moon text-slate-700 text-lg";
-    }
-
-    function togglePasscodeVisibility() {
-      const input = document.getElementById("passcodeInput");
-      const icon = document.getElementById("togglePassEye");
-      if (input.type === "password") {
-        input.type = "text";
-        icon.className = "fa-solid fa-eye-slash";
-      } else {
-        input.type = "password";
-        icon.className = "fa-solid fa-eye";
-      }
-    }
-
-    // ==========================================
-    // 3. AUTHENTICATION & LOCKER FLOW
-    // ==========================================
-    function switchAuthMode(mode) {
-      authMode = mode;
-      const tabLogin = document.getElementById("tabLogin");
-      const tabRegister = document.getElementById("tabRegister");
-      const btn = document.getElementById("authSubmitBtn");
-      const helper = document.getElementById("authHelperText");
-      const label = document.getElementById("passcodeLabel");
-      const alertBox = document.getElementById("authAlert");
-      alertBox.classList.add("hidden");
-
-      if (mode === "login") {
-        tabLogin.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
-        tabRegister.className = "flex-1 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
-        label.innerText = "Enter 6-Digit Passcode";
-        btn.innerHTML = `<i class="fa-solid fa-lock-open"></i><span>Open My Vault</span>`;
-        helper.innerText = "Enter your existing 6-digit numeric passcode to open your locker.";
-      } else {
-        tabRegister.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
-        tabLogin.className = "flex-1 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
-        label.innerText = "Create New 6-Digit Passcode";
-        btn.innerHTML = `<i class="fa-solid fa-plus-circle"></i><span>Create New Locker</span>`;
-        helper.innerText = "Pick any unique 6-digit code. You will use this code to access your files on other devices.";
-      }
-      document.getElementById("passcodeInput").value = "";
-      document.getElementById("passcodeInput").focus();
-    }
-
-    function showAuthAlert(msg, isError = true) {
-      const el = document.getElementById("authAlert");
-      el.className = isError 
-        ? "mb-4 p-3 rounded-xl text-sm font-medium bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
-        : "mb-4 p-3 rounded-xl text-sm font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800";
-      el.innerText = msg;
-      el.classList.remove("hidden");
-    }
-
-    async function handleAuthSubmit(e) {
-      e.preventDefault();
-      const code = document.getElementById("passcodeInput").value.trim();
-      if (!/^[0-9]{6}$/.test(code)) {
-        showAuthAlert("Passcode must be exactly 6 numeric digits (e.g., 556677).");
-        return;
-      }
-
-      const submitBtn = document.getElementById("authSubmitBtn");
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i><span>Checking Vault...</span>`;
-
-      try {
-        const vaultRef = db.ref("lockers/" + code);
-        const snapshot = await vaultRef.once("value");
-        const exists = snapshot.exists();
-
-        if (authMode === "register") {
-          if (exists) {
-            showAuthAlert("This 6-digit code is already taken. Please enter another code or log in.");
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<i class="fa-solid fa-plus-circle"></i><span>Create New Locker</span>`;
-            return;
-          }
-          // Register new locker
-          await vaultRef.set({
-            created_at: new Date().toISOString(),
-            files_count: 0
-          });
-        } else {
-          // Login mode
-          if (!exists) {
-            showAuthAlert("Locker not found with this code. Click 'Create Locker' above to set it up!");
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<i class="fa-solid fa-lock-open"></i><span>Open My Vault</span>`;
-            return;
-          }
-        }
-
-        // Successfully authenticated
-        enterDashboard(code);
-      } catch (err) {
-        showAuthAlert("Connection error: " + err.message);
-      } finally {
-        submitBtn.disabled = false;
-      }
-    }
-
-    function enterDashboard(code) {
-      currentVaultCode = code;
-      sessionStorage.setItem("active_locker_code", code);
-      document.getElementById("activeLockerBadge").innerText = code;
-      document.getElementById("authScreen").classList.add("hidden");
-      document.getElementById("dashboardScreen").classList.remove("hidden");
-      
-      // Start real-time sync of files for this vault code
-      listenToLockerFiles(code);
-    }
-
-    function logoutVault() {
-      if (currentVaultCode) {
-        db.ref("lockers/" + currentVaultCode + "/files").off();
-      }
-      currentVaultCode = null;
-      sessionStorage.removeItem("active_locker_code");
-      document.getElementById("dashboardScreen").classList.add("hidden");
-      document.getElementById("authScreen").classList.remove("hidden");
-      document.getElementById("passcodeInput").value = "";
-      document.getElementById("authAlert").classList.add("hidden");
-    }
-
-    function copyLockerCode() {
-      if (!currentVaultCode) return;
-      navigator.clipboard.writeText(currentVaultCode);
-      alert("Locker code copied: " + currentVaultCode + "\nUse this 6-digit code on any phone or PC to access these files!");
-    }
-
-    // ==========================================
-    // 4. REALTIME DATABASE SYNC
-    // ==========================================
-    function listenToLockerFiles(code) {
-      const filesRef = db.ref("lockers/" + code + "/files");
-      filesRef.on("value", (snapshot) => {
-        const val = snapshot.val();
-        userFiles = [];
-        if (val) {
-          Object.keys(val).forEach(key => {
-            userFiles.push({ id: key, ...val[key] });
-          });
-          // Sort newest first
-          userFiles.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-        }
-        updateStats();
-        applyFilters();
-      });
-    }
-
-    function updateStats() {
-      const total = userFiles.length;
-      document.getElementById("statTotalFiles").innerText = total;
-
-      let totalBytes = 0;
-      let mediaCount = 0;
-      let docCount = 0;
-
-      userFiles.forEach(f => {
-        totalBytes += (f.size || 0);
-        const t = (f.file_type || "").toLowerCase();
-        if (["image", "video", "audio"].includes(t)) {
-          mediaCount++;
-        } else {
-          docCount++;
-        }
-      });
-
-      const totalMb = (totalBytes / (1024 * 1024)).toFixed(2);
-      document.getElementById("statTotalSize").innerText = totalMb + " MB";
-      document.getElementById("statMediaFiles").innerText = mediaCount;
-      document.getElementById("statDocFiles").innerText = docCount;
-    }
-
-    // ==========================================
-    // 5. FILE UPLOAD & CLOUDINARY INTEGRATION
-    // ==========================================
-    function openUploadModal() {
-      resetPickedFile();
-      document.getElementById("uploadModal").classList.remove("hidden");
-    }
-
-    function closeUploadModal() {
-      document.getElementById("uploadModal").classList.add("hidden");
-      resetPickedFile();
-    }
-
-    function onFilePicked(input) {
-      if (input.files && input.files[0]) {
-        pickedFileObj = input.files[0];
-        document.getElementById("pickerEmptyState").classList.add("hidden");
-        document.getElementById("pickerSelectedState").classList.remove("hidden");
-        document.getElementById("selectedFileOriginalName").innerText = pickedFileObj.name;
-        document.getElementById("selectedFileSize").innerText = formatBytes(pickedFileObj.size);
-
-        // Pre-fill custom name with original file name (without extension)
-        const lastDot = pickedFileObj.name.lastIndexOf(".");
-        let ext = "";
-        let baseName = pickedFileObj.name;
-        if (lastDot > 0) {
-          baseName = pickedFileObj.name.substring(0, lastDot);
-          ext = pickedFileObj.name.substring(lastDot);
-        }
-        document.getElementById("customFileNameInput").value = baseName;
-        document.getElementById("detectedExtBadge").innerText = ext;
-      }
-    }
-
-    function resetPickedFile() {
-      pickedFileObj = null;
-      document.getElementById("actualFileInput").value = "";
-      document.getElementById("customFileNameInput").value = "";
-      document.getElementById("detectedExtBadge").innerText = "";
-      document.getElementById("pickerEmptyState").classList.remove("hidden");
-      document.getElementById("pickerSelectedState").classList.add("hidden");
-      document.getElementById("uploadProgressContainer").classList.add("hidden");
-      document.getElementById("uploadProgressBar").style.width = "0%";
-      document.getElementById("startUploadBtn").disabled = false;
-    }
-
-    function getFileTypeCategory(mime, filename) {
-      mime = (mime || "").toLowerCase();
-      const ext = filename.split('.').pop().toLowerCase();
-      if (mime.startsWith("image/") || ["jpg", "jpeg", "png", "webp", "gif", "svg"].includes(ext)) return "image";
-      if (mime.startsWith("video/") || ["mp4", "mkv", "mov", "webm"].includes(ext)) return "video";
-      if (mime.startsWith("audio/") || ["mp3", "wav", "m4a", "ogg"].includes(ext)) return "audio";
-      if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return "archive";
-      return "document";
-    }
-
-    async function handleFileUpload(e) {
-      e.preventDefault();
-      if (!pickedFileObj) {
-        alert("Please pick a file first from your system or phone.");
-        return;
-      }
-
-      const customName = document.getElementById("customFileNameInput").value.trim();
-      if (!customName) {
-        alert("Please provide a name for this file.");
-        return;
-      }
-
-      const folderName = "vault_" + currentVaultCode;
-      const timestamp = Math.floor(Date.now() / 1000);
-      
-      // Cloudinary signature formula: folder={folder}&timestamp={timestamp}{api_secret}
-      const stringToSign = `folder=${folderName}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
-      const signature = CryptoJS.SHA1(stringToSign).toString();
-
-      // UI Progress
-      const progressContainer = document.getElementById("uploadProgressContainer");
-      const progressBar = document.getElementById("uploadProgressBar");
-      const progressText = document.getElementById("uploadPercent");
-      const statusText = document.getElementById("uploadStatusText");
-      const submitBtn = document.getElementById("startUploadBtn");
-
-      progressContainer.classList.remove("hidden");
-      submitBtn.disabled = true;
-
-      // Determine resource_type (image / video / raw for docs & zip)
-      const cat = getFileTypeCategory(pickedFileObj.type, pickedFileObj.name);
-      let resourceType = "auto";
-      if (cat === "document" || cat === "archive") {
-        resourceType = "raw";
-      }
-
-      const formData = new FormData();
-      formData.append("file", pickedFileObj);
-      formData.append("api_key", CLOUDINARY_API_KEY);
-      formData.append("timestamp", timestamp);
-      formData.append("signature", signature);
-      formData.append("folder", folderName);
-
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`);
-
-      xhr.upload.onprogress = (evt) => {
-        if (evt.lengthComputable) {
-          const percent = Math.round((evt.loaded / evt.total) * 100);
-          progressBar.style.width = percent + "%";
-          progressText.innerText = percent + "%";
-          statusText.innerText = `Uploading: ${percent}%`;
-        }
-      };
-
-      xhr.onload = async () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          const res = JSON.parse(xhr.responseText);
-          
-          // Original extension
-          const lastDot = pickedFileObj.name.lastIndexOf(".");
-          const ext = lastDot > 0 ? pickedFileObj.name.substring(lastDot) : "";
-          const fullDisplayName = customName.endsWith(ext) ? customName : customName + ext;
-
-          // Save to Firebase locker
-          const fileRecord = {
-            custom_name: fullDisplayName,
-            original_name: pickedFileObj.name,
-            file_type: cat,
-            mime_type: pickedFileObj.type || "application/octet-stream",
-            size: pickedFileObj.size,
-            url: res.secure_url,
-            cloudinary_public_id: res.public_id,
-            uploaded_at: new Date().toISOString()
-          };
-
-          await db.ref("lockers/" + currentVaultCode + "/files").push(fileRecord);
-          closeUploadModal();
-        } else {
-          alert("Upload failed. Error: " + xhr.responseText);
-          submitBtn.disabled = false;
-        }
-      };
-
-      xhr.onerror = () => {
-        alert("Upload error. Please check your internet connection.");
-        submitBtn.disabled = false;
-      };
-
-      xhr.send(formData);
-    }
-
-    // ==========================================
-    // 6. FILTERING, SEARCH & RENDERING
-    // ==========================================
-    function setViewMode(mode) {
-      currentViewMode = mode;
-      const gridBtn = document.getElementById("viewGridBtn");
-      const listBtn = document.getElementById("viewListBtn");
-
-      if (mode === "grid") {
-        gridBtn.className = "p-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
-        listBtn.className = "p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition";
-      } else {
-        listBtn.className = "p-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
-        gridBtn.className = "p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition";
-      }
-      applyFilters();
-    }
-
-    function clearDateFilter() {
-      document.getElementById("dateFilterInput").value = "";
-      document.getElementById("clearDateBtn").classList.add("hidden");
-      applyFilters();
-    }
-
-    function applyFilters() {
-      const q = document.getElementById("searchInput").value.toLowerCase().trim();
-      const dateVal = document.getElementById("dateFilterInput").value;
-      const typeVal = document.getElementById("typeFilterSelect").value;
-      
-      const clearDateBtn = document.getElementById("clearDateBtn");
-      if (dateVal) {
-        clearDateBtn.classList.remove("hidden");
-      } else {
-        clearDateBtn.classList.add("hidden");
-      }
-
-      const filtered = userFiles.filter(item => {
-        // Query search
-        const matchName = item.custom_name.toLowerCase().includes(q) || (item.original_name && item.original_name.toLowerCase().includes(q));
-        if (!matchName) return false;
-
-        // Date search (YYYY-MM-DD)
-        if (dateVal) {
-          const itemDate = item.uploaded_at ? item.uploaded_at.substring(0, 10) : "";
-          if (itemDate !== dateVal) return false;
-        }
-
-        // Type search
-        if (typeVal !== "all" && item.file_type !== typeVal) {
-          return false;
-        }
-
-        return true;
-      });
-
-      renderFiles(filtered);
-    }
-
-    function renderFiles(files) {
-      const container = document.getElementById("filesContainer");
-
-      if (files.length === 0) {
-        container.innerHTML = `
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
-              <i class="fa-regular fa-folder-open text-2xl"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">No files found</h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-              ${userFiles.length === 0 ? "Your locker is empty. Click 'Upload New File' to add your first backup!" : "No files match your search and filter criteria."}
-            </p>
-          </div>
-        `;
-        return;
-      }
-
-      if (currentViewMode === "grid") {
-        let cards = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">`;
-        files.forEach(file => {
-          cards += `
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden group hover:border-indigo-500 dark:hover:border-indigo-500 transition-all flex flex-col shadow-sm">
-              <!-- Thumbnail / Preview Area -->
-              <div onclick="openPreview('${file.id}')" class="h-44 bg-slate-100 dark:bg-slate-950 flex items-center justify-center cursor-pointer relative overflow-hidden">
-                ${renderThumbnail(file)}
-                <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white space-x-3">
-                  <span class="p-2.5 rounded-full bg-white/20 backdrop-blur-md hover:scale-110 transition"><i class="fa-solid fa-eye text-sm"></i></span>
-                </div>
-              </div>
-
-              <!-- Metadata & Actions -->
-              <div class="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100 truncate" title="${escapeHtml(file.custom_name)}">${escapeHtml(file.custom_name)}</h4>
-                  <div class="flex items-center space-x-2 text-[11px] text-slate-400 mt-1">
-                    <span>${formatBytes(file.size)}</span>
-                    <span>•</span>
-                    <span>${formatDate(file.uploaded_at)}</span>
-                  </div>
-                </div>
-
-                <div class="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800">
-                  <a href="${escapeHtml(getDownloadUrl(file))}" download="${escapeHtml(file.custom_name)}" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1.5">
-                    <i class="fa-solid fa-download"></i>
-                    <span>Download</span>
-                  </a>
-                  <button onclick="deleteFile('${file.id}')" class="text-slate-400 hover:text-rose-500 p-1 text-xs" title="Delete File">
-                    <i class="fa-regular fa-trash-can"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-        cards += `</div>`;
-        container.innerHTML = cards;
-      } else {
-        // List Table View
-        let table = `
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-x-auto shadow-sm">
-            <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-              <thead class="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold uppercase text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th class="py-3.5 px-4">File Name</th>
-                  <th class="py-3.5 px-4">Type</th>
-                  <th class="py-3.5 px-4">Size</th>
-                  <th class="py-3.5 px-4">Date Added</th>
-                  <th class="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-        `;
-        files.forEach(file => {
-          table += `
-            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
-              <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white flex items-center space-x-3 cursor-pointer" onclick="openPreview('${file.id}')">
-                <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0">
-                  <i class="${getTypeIcon(file.file_type)}"></i>
-                </div>
-                <span class="truncate max-w-xs md:max-w-md">${escapeHtml(file.custom_name)}</span>
-              </td>
-              <td class="py-3 px-4 capitalize text-xs text-slate-400">${file.file_type}</td>
-              <td class="py-3 px-4 text-xs font-mono">${formatBytes(file.size)}</td>
-              <td class="py-3 px-4 text-xs text-slate-400">${formatDate(file.uploaded_at)}</td>
-              <td class="py-3 px-4 text-right space-x-2">
-                <a href="${escapeHtml(getDownloadUrl(file))}" download="${escapeHtml(file.custom_name)}" class="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg inline-block text-xs font-semibold" title="Download">
-                  <i class="fa-solid fa-download"></i>
-                </a>
-                <button onclick="deleteFile('${file.id}')" class="p-2 text-slate-400 hover:text-rose-500 rounded-lg text-xs" title="Delete">
-                  <i class="fa-regular fa-trash-can"></i>
-                </button>
-              </td>
-            </tr>
-          `;
-        });
-        table += `</tbody></table></div>`;
-        container.innerHTML = table;
-      }
-    }
-
-    function renderThumbnail(file) {
-      if (file.file_type === "image") {
-        return `<img src="${file.url}" alt="${escapeHtml(file.custom_name)}" class="w-full h-full object-cover">`;
-      }
-      return `
-        <div class="text-slate-400 flex flex-col items-center">
-          <i class="${getTypeIcon(file.file_type)} text-4xl mb-2 text-indigo-500"></i>
-          <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">${file.file_type}</span>
-        </div>
-      `;
-    }
-
-    // Build a Cloudinary delivery URL that forces a real file download.
-    // The HTML download attribute alone is ignored by browsers for cross-origin URLs.
-    function getDownloadUrl(file) {
-      try {
-        const url = new URL(file.url);
-        const filename = String(file.custom_name || "download")
-          .replace(/[\\/\\?%*:|"<>]/g, "_");
-        const attachmentTransform = "fl_attachment:" + encodeURIComponent(filename);
-        const marker = /\\/(image|video|raw)\\/upload\\//;
-        if (!marker.test(url.pathname)) return file.url;
-        url.pathname = url.pathname.replace(marker, "/$1/upload/" + attachmentTransform + "/");
-        return url.toString();
-      } catch (error) {
-        console.error("Could not prepare download URL:", error);
-        return file.url;
-      }
-    }
-
-    function getTypeIcon(type) {
-      switch (type) {
-        case "image": return "fa-solid fa-image";
-        case "video": return "fa-solid fa-video";
-        case "audio": return "fa-solid fa-music";
-        case "archive": return "fa-solid fa-file-zipper";
-        default: return "fa-solid fa-file-lines";
-      }
-    }
-
-    // ==========================================
-    // 7. PREVIEW & ACTIONS
-    // ==========================================
-    function openPreview(fileId) {
-      const file = userFiles.find(f => f.id === fileId);
-      if (!file) return;
-
-      document.getElementById("previewTitle").innerText = file.custom_name;
-      document.getElementById("previewMeta").innerText = `${formatBytes(file.size)} • Added on ${formatDate(file.uploaded_at)}`;
-      
-      const dl = document.getElementById("previewDownloadLink");
-      dl.href = getDownloadUrl(file);
-      dl.removeAttribute("target");
-      dl.setAttribute("download", file.custom_name);
-
-      const body = document.getElementById("previewBody");
-      body.innerHTML = "";
-
-      if (file.file_type === "image") {
-        body.innerHTML = `<img src="${file.url}" alt="${escapeHtml(file.custom_name)}" class="max-h-[70vh] max-w-full object-contain rounded-lg">`;
-      } else if (file.file_type === "video") {
-        body.innerHTML = `<video controls autoplay class="max-h-[70vh] max-w-full rounded-lg shadow-md"><source src="${file.url}"></video>`;
-      } else if (file.file_type === "audio") {
-        body.innerHTML = `
-          <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-md text-center max-w-md w-full">
-            <i class="fa-solid fa-compact-disc text-5xl text-indigo-500 mb-4 animate-spin-slow"></i>
-            <p class="font-bold mb-4 text-slate-800 dark:text-slate-100">${escapeHtml(file.custom_name)}</p>
-            <audio controls class="w-full"><source src="${file.url}"></audio>
-          </div>
-        `;
-      } else if (file.url.endsWith(".pdf")) {
-        body.innerHTML = `<iframe src="${file.url}" class="w-full h-[65vh] rounded-lg border-0"></iframe>`;
-      } else {
-        body.innerHTML = `
-          <div class="text-center p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-md max-w-sm">
-            <i class="${getTypeIcon(file.file_type)} text-5xl text-indigo-500 mb-3"></i>
-            <h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">${escapeHtml(file.custom_name)}</h4>
-            <p class="text-xs text-slate-400 mb-4">Direct preview not supported for this file format.</p>
-            <a href="${escapeHtml(getDownloadUrl(file))}" download="${escapeHtml(file.custom_name)}" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold shadow hover:bg-indigo-700 transition inline-block">
-              <i class="fa-solid fa-download mr-1.5"></i> Download File
-            </a>
-          </div>
-        `;
-      }
-
-      document.getElementById("previewModal").classList.remove("hidden");
-    }
-
-    function closePreviewModal() {
-      document.getElementById("previewModal").classList.add("hidden");
-      document.getElementById("previewBody").innerHTML = "";
-    }
-
-    async function deleteFile(fileId) {
-      if (!confirm("Are you sure you want to remove this file from your locker?")) return;
-      try {
-        await db.ref("lockers/" + currentVaultCode + "/files/" + fileId).remove();
-      } catch (err) {
-        alert("Failed to delete: " + err.message);
-      }
-    }
-
-    // ==========================================
-    // UTILITIES
-    // ==========================================
-    function formatBytes(bytes, decimals = 2) {
-      if (!+bytes) return '0 B';
-      const k = 1024;
-      const dm = decimals < 0 ? 0 : decimals;
-      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-    }
-
-    function formatDate(isoStr) {
-      if (!isoStr) return "";
-      const d = new Date(isoStr);
-      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    }
-
-    function escapeHtml(string) {
-      const entityMap = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      };
-      return String(string).replace(/[&<>"']/g, s => entityMap[s]);
-    }
-
-    // Initialize application on page load
-    window.addEventListener("DOMContentLoaded", () => {
-      initTheme();
-      const savedLocker = sessionStorage.getItem("active_locker_code");
-      if (savedLocker) {
-        enterDashboard(savedLocker);
-      }
-    });
-  </script>
+</div></header>
+<main id="authScreen" class="authshell">
+ <section class="authcard">
+  <div class="authhead"><div class="authlogo"><i data-lucide="shield-check"></i></div><h1>Your files. Always with you.</h1><p>One locker code to access your files across devices.</p></div>
+  <div class="tabs"><button class="tab active" id="loginTab" type="button">Open locker</button><button class="tab" id="registerTab" type="button">Create locker</button></div>
+  <form id="authForm">
+   <div class="field"><label id="codeLabel" for="codeInput">6-DIGIT LOCKER CODE</label><input class="input code" id="codeInput" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="••••••" required></div>
+   <div id="authAlert" class="alert hidden"></div>
+   <button class="btn primary full" id="authSubmit" type="submit"><i data-lucide="unlock"></i> Open my locker</button>
+  </form>
+  <div class="notice">Your locker code is your access key. Keep it private and do not share it with anyone you do not trust.</div>
+ </section>
+</main>
+<main id="dashboard" class="hidden">
+ <div class="wrap">
+  <div class="welcome"><div><h1>My files</h1><p>Everything you’ve saved, organized in one place.</p></div><div class="locker-pill"><i data-lucide="shield"></i> Locker <strong id="lockerCodeLabel">••••••</strong><button class="linkbtn" id="copyCodeBtn" title="Copy locker code"><i data-lucide="copy"></i></button></div></div>
+  <section class="stats">
+   <div class="stat"><div class="stathead">TOTAL FILES <span class="staticon"><i data-lucide="files"></i></span></div><strong id="totalFiles">0</strong></div>
+   <div class="stat"><div class="stathead">STORAGE USED <span class="staticon"><i data-lucide="database"></i></span></div><strong id="totalSize">0 B</strong></div>
+   <div class="stat"><div class="stathead">MEDIA FILES <span class="staticon"><i data-lucide="image"></i></span></div><strong id="mediaFiles">0</strong></div>
+   <div class="stat"><div class="stathead">DOCUMENTS & OTHERS <span class="staticon"><i data-lucide="file-text"></i></span></div><strong id="otherFiles">0</strong></div>
+  </section>
+  <section class="toolbar">
+   <div class="search"><i data-lucide="search"></i><input class="input" id="searchInput" placeholder="Search by file name..." aria-label="Search files"></div>
+   <select class="input" id="typeFilter" aria-label="Filter by type"><option value="all">All file types</option><option value="image">Images</option><option value="video">Videos</option><option value="audio">Audio</option><option value="document">Documents</option><option value="archive">Archives</option></select>
+   <input class="input" type="date" id="dateFilter" aria-label="Filter by date" title="Filter by upload date">
+   <div class="viewtoggle"><button class="active" id="gridBtn" title="Grid view"><i data-lucide="layout-grid"></i></button><button id="listBtn" title="List view"><i data-lucide="list"></i></button></div>
+   <button class="btn primary" id="uploadOpenBtn"><i data-lucide="plus"></i><span>Upload</span></button>
+  </section>
+  <section id="filesContainer"></section>
+  <div class="footnote">CloudVault · Private file space across your devices</div>
+ </div>
+</main>
+
+<div class="overlay hidden" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadTitle">
+ <section class="modal">
+  <div class="modalhead"><h2 id="uploadTitle">Upload a file</h2><button class="iconbtn" data-close="uploadModal" aria-label="Close"><i data-lucide="x"></i></button></div>
+  <form id="uploadForm">
+   <div class="modalbody">
+    <div class="field"><label>CHOOSE A FILE</label><div class="dropzone" id="dropZone"><i data-lucide="cloud-upload"></i><strong>Drop a file here or browse</strong><span>Images, videos, audio, PDFs, documents and archives</span><input type="file" id="fileInput" hidden></div><div id="pickedInfo" class="picked hidden"></div></div>
+    <div class="field"><label for="customName">DISPLAY NAME</label><input class="input" id="customName" maxlength="150" placeholder="Give your file a name" required></div>
+    <div id="uploadError" class="alert error hidden"></div>
+    <div id="progressWrap" class="hidden"><div class="small muted" style="display:flex;justify-content:space-between"><span id="progressLabel">Uploading…</span><b id="progressPct">0%</b></div><div class="progress"><span id="progressBar"></span></div></div>
+   </div>
+   <div class="modalfoot"><button class="btn" type="button" data-close="uploadModal">Cancel</button><button class="btn primary" id="uploadSubmit" type="submit"><i data-lucide="upload"></i> Upload file</button></div>
+  </form>
+ </section>
+</div>
+<div class="overlay hidden" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+ <section class="modal wide">
+  <div class="modalhead"><div style="min-width:0"><h2 id="previewTitle">Preview</h2><div id="previewMeta" class="small muted"></div></div><div style="display:flex;gap:8px"><a class="btn primary" id="previewDownload" href="#" rel="noopener"><i data-lucide="download"></i> Download</a><button class="iconbtn" data-close="previewModal" aria-label="Close"><i data-lucide="x"></i></button></div></div>
+  <div class="previewarea" id="previewArea"></div>
+ </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* CloudVault setup: use an unsigned Cloudinary upload preset. Never put an API secret in browser code. */
+const CLOUDINARY_CLOUD_NAME = "dl1ishrkv";
+const CLOUDINARY_UPLOAD_PRESET = "ADD_UNSIGNED_UPLOAD_PRESET";
+const firebaseConfig = {
+ apiKey:"AIzaSyDE_Tzjwmoh-xuFTFYpT5ElGjfN6T0VEsI",
+ authDomain:"sanchitution.firebaseapp.com",
+ databaseURL:"https://sanchitution-default-rtdb.firebaseio.com",
+ projectId:"sanchitution",
+ storageBucket:"sanchitution.firebasestorage.app",
+ messagingSenderId:"349272071034",
+ appId:"1:349272071034:web:e06bb9e9218a93741314c3"
+};
+let db, activeCode=null, authMode="login", files=[], viewMode="grid", pickedFile=null, fileListener=null, toastTimer;
+const $ = id => document.getElementById(id);
+const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const iconNames = {image:"image",video:"video",audio:"music",archive:"archive",document:"file-text"};
+function icons(){if(window.lucide)lucide.createIcons();}
+function notify(message){const t=$("toast");t.textContent=message;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),3000);}
+function formatBytes(n){if(!n)return "0 B";const units=["B","KB","MB","GB","TB"];const i=Math.min(Math.floor(Math.log(n)/Math.log(1024)),4);return (n/Math.pow(1024,i)).toFixed(i?1:0)+" "+units[i];}
+function formatDate(s){if(!s)return "Unknown date";const d=new Date(s);return isNaN(d)?"Unknown date":d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});}
+function safeUrl(value){try{const u=new URL(value);return ["https:","http:"].includes(u.protocol)?u.href:"";}catch{return "";}}
+function getCategory(file){const name=(file.name||"").toLowerCase(),mime=(file.type||"").toLowerCase(),ext=name.split(".").pop();if(mime.startsWith("image/")||["jpg","jpeg","png","gif","webp","svg","avif"].includes(ext))return "image";if(mime.startsWith("video/")||["mp4","mov","webm","mkv"].includes(ext))return "video";if(mime.startsWith("audio/")||["mp3","wav","m4a","ogg","aac"].includes(ext))return "audio";if(["zip","rar","7z","tar","gz"].includes(ext))return "archive";return "document";}
+function setTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem("cv-theme",theme);$("themeBtn").innerHTML=theme==="dark"?'<i data-lucide="sun"></i>':'<i data-lucide="moon"></i>';icons();}
+function initFirebase(){try{if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);db=firebase.database();}catch(e){showAuthAlert("Firebase could not start: "+e.message,true);}}
+function showAuthAlert(msg,error){const el=$("authAlert");el.textContent=msg;el.className="alert "+(error?"error":"success");}
+function setAuthMode(mode){authMode=mode;$("loginTab").classList.toggle("active",mode==="login");$("registerTab").classList.toggle("active",mode==="register");$("codeLabel").textContent=mode==="login"?"6-DIGIT LOCKER CODE":"CHOOSE A NEW 6-DIGIT CODE";$("authSubmit").innerHTML=mode==="login"?'<i data-lucide="unlock"></i> Open my locker':'<i data-lucide="plus-circle"></i> Create locker';$("authAlert").classList.add("hidden");$("codeInput").value="";icons();}
+async function submitAuth(e){e.preventDefault();const code=$("codeInput").value.trim();if(!/^\d{6}$/.test(code)){showAuthAlert("Please enter exactly six digits.",true);return;}const btn=$("authSubmit");btn.disabled=true;btn.textContent="Please wait…";try{const ref=db.ref("lockers/"+code);if(authMode==="register"){let created=false;const result=await ref.child("created_at").transaction(current=>{if(current===null){created=true;return new Date().toISOString();}return;});if(!result.committed||!created){showAuthAlert("That locker code is already in use. Choose another one.",true);return;}await ref.child("files_count").set(0);}else{const snap=await ref.once("value");if(!snap.exists()){showAuthAlert("No locker was found for that code. Create one first.",true);return;}}enterVault(code);}catch(err){showAuthAlert("Could not connect to Firebase: "+err.message,true);}finally{btn.disabled=false;setAuthModeButtonText();}}
+function setAuthModeButtonText(){$("authSubmit").innerHTML=authMode==="login"?'<i data-lucide="unlock"></i> Open my locker':'<i data-lucide="plus-circle"></i> Create locker';icons();}
+function enterVault(code){activeCode=code;sessionStorage.setItem("cv-active-code",code);$("authScreen").classList.add("hidden");$("dashboard").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("lockerCodeLabel").textContent=code;listenFiles();}
+function listenFiles(){if(!activeCode)return;const ref=db.ref("lockers/"+activeCode+"/files");if(fileListener)ref.off("value",fileListener);fileListener=snap=>{const data=snap.val()||{};files=Object.entries(data).map(([id,item])=>({id,...item})).sort((a,b)=>new Date(b.uploaded_at||0)-new Date(a.uploaded_at||0));render();};ref.on("value",fileListener,err=>notify("Live sync error: "+err.message));}
+function logout(){if(activeCode&&db)db.ref("lockers/"+activeCode+"/files").off();activeCode=null;files=[];sessionStorage.removeItem("cv-active-code");$("dashboard").classList.add("hidden");$("authScreen").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("codeInput").value="";$("filesContainer").innerHTML="";}
+function updateStats(){const total=files.reduce((n,f)=>n+(Number(f.size)||0),0);$("totalFiles").textContent=files.length;$("totalSize").textContent=formatBytes(total);$("mediaFiles").textContent=files.filter(f=>["image","video","audio"].includes(f.file_type)).length;$("otherFiles").textContent=files.filter(f=>!["image","video","audio"].includes(f.file_type)).length;}
+function filteredFiles(){const q=$("searchInput").value.trim().toLowerCase(),type=$("typeFilter").value,date=$("dateFilter").value;return files.filter(f=>{const name=(f.custom_name||f.original_name||"").toLowerCase();return (!q||name.includes(q)||(f.original_name||"").toLowerCase().includes(q))&&(type==="all"||f.file_type===type)&&(!date||(f.uploaded_at||"").slice(0,10)===date);});}
+function fileIcon(type){return iconNames[type]||"file";}
+function thumbnail(f){const url=safeUrl(f.url);if(f.file_type==="image"&&url)return '<img loading="lazy" src="'+esc(url)+'" alt="'+esc(f.custom_name)+'">';return '<div class="fileglyph"><i data-lucide="'+fileIcon(f.file_type)+'"></i></div>';}
+function downloadUrl(f){const original=safeUrl(f.url);if(!original)return "#";try{const u=new URL(original);const marker=/\/(image|video|raw)\/upload\//;if(marker.test(u.pathname))u.pathname=u.pathname.replace(marker,"/$1/upload/fl_attachment/");return u.href;}catch{return original;}}
+function render(){updateStats();const list=filteredFiles(),container=$("filesContainer");if(!list.length){const msg=files.length?"No files match your search or filters.":"Your locker is empty. Upload your first file to get started.";container.innerHTML='<div class="empty"><div class="emptyicon"><i data-lucide="folder-open"></i></div><h3>'+(files.length?"No matching files":"Nothing here yet")+'</h3><p>'+esc(msg)+'</p>'+(files.length?'':'<button class="btn primary" id="emptyUpload"><i data-lucide="upload"></i> Upload a file</button>')+'</div>';if($("emptyUpload"))$("emptyUpload").onclick=openUpload;icons();return;}
+if(viewMode==="grid"){container.innerHTML='<div class="filegrid">'+list.map(f=>'<article class="filecard"><div class="thumb" data-preview="'+esc(f.id)+'">'+thumbnail(f)+'</div><div class="fileinfo"><div class="filename" title="'+esc(f.custom_name)+'">'+esc(f.custom_name||f.original_name||"Untitled")+'</div><div class="filemeta">'+formatBytes(f.size)+' · '+formatDate(f.uploaded_at)+'</div><div class="fileactions"><a class="linkbtn" href="'+esc(downloadUrl(f))+'" download="'+esc(f.custom_name||"download")+'" rel="noopener"><i data-lucide="download"></i> Download</a><button class="linkbtn deleteBtn" data-delete="'+esc(f.id)+'" style="color:var(--danger)"><i data-lucide="trash-2"></i></button></div></div></article>').join("")+'</div>';}
+else{container.innerHTML='<div class="listwrap"><table class="filetable"><thead><tr><th>File</th><th>Type</th><th>Size</th><th>Uploaded</th><th>Actions</th></tr></thead><tbody>'+list.map(f=>'<tr><td><div class="filecell" data-preview="'+esc(f.id)+'"><span class="miniicon"><i data-lucide="'+fileIcon(f.file_type)+'"></i></span>'+esc(f.custom_name||f.original_name||"Untitled")+'</div></td><td>'+esc(f.file_type||"file")+'</td><td>'+formatBytes(f.size)+'</td><td>'+formatDate(f.uploaded_at)+'</td><td><a class="linkbtn" href="'+esc(downloadUrl(f))+'" download="'+esc(f.custom_name||"download")+'" rel="noopener"><i data-lucide="download"></i></a> <button class="linkbtn deleteBtn" data-delete="'+esc(f.id)+'" style="color:var(--danger)"><i data-lucide="trash-2"></i></button></td></tr>').join("")+'</tbody></table></div>';}
+icons();}
+function openUpload(){pickedFile=null;$("fileInput").value="";$("customName").value="";$("pickedInfo").classList.add("hidden");$("uploadError").classList.add("hidden");$("progressWrap").classList.add("hidden");$("uploadSubmit").disabled=false;$("uploadModal").classList.remove("hidden");}
+function closeModal(id){$(id).classList.add("hidden");if(id==="previewModal")$("previewArea").innerHTML="";}
+function chooseFile(file){if(!file)return;pickedFile=file;$("customName").value=file.name.replace(/\.[^.]+$/,"");$("pickedInfo").classList.remove("hidden");$("pickedInfo").innerHTML='<span style="overflow-wrap:anywhere"><b>'+esc(file.name)+'</b><br><span class="muted">'+formatBytes(file.size)+'</span></span><button type="button" class="linkbtn" id="removePicked">Remove</button>';$("removePicked").onclick=()=>{pickedFile=null;$("fileInput").value="";$("pickedInfo").classList.add("hidden");};}
+function uploadError(message){$("uploadError").textContent=message;$("uploadError").classList.remove("hidden");}
+function uploadToCloudinary(file,category){return new Promise((resolve,reject)=>{if(!CLOUDINARY_CLOUD_NAME||CLOUDINARY_UPLOAD_PRESET==="ADD_UNSIGNED_UPLOAD_PRESET"){reject(new Error("Upload is not configured yet. Add your Cloudinary unsigned upload preset in Sharable.html (CLOUDINARY_UPLOAD_PRESET)."));return;}const resource=(category==="image"||category==="video")?category:"raw";const data=new FormData();data.append("file",file);data.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);data.append("folder","vault_"+activeCode);const xhr=new XMLHttpRequest();xhr.open("POST","https://api.cloudinary.com/v1_1/"+encodeURIComponent(CLOUDINARY_CLOUD_NAME)+"/"+resource+"/upload");xhr.upload.onprogress=e=>{if(e.lengthComputable){const pct=Math.round(e.loaded/e.total*100);$("progressBar").style.width=pct+"%";$("progressPct").textContent=pct+"%";$("progressLabel").textContent="Uploading file…";}};xhr.onload=()=>{let res={};try{res=JSON.parse(xhr.responseText);}catch{}if(xhr.status>=200&&xhr.status<300&&res.secure_url)resolve(res);else reject(new Error(res.error?.message||"Cloudinary upload failed ("+xhr.status+")."));};xhr.onerror=()=>reject(new Error("Network error while uploading."));xhr.send(data);});}
+async function handleUpload(e){e.preventDefault();if(!pickedFile){uploadError("Choose a file first.");return;}if(!activeCode){uploadError("Your locker session has expired. Log in again.");return;}const custom=$("customName").value.trim();if(!custom){uploadError("Enter a display name.");return;}const btn=$("uploadSubmit");btn.disabled=true;$("uploadError").classList.add("hidden");$("progressWrap").classList.remove("hidden");$("progressBar").style.width="0%";$("progressPct").textContent="0%";try{const category=getCategory(pickedFile);const uploaded=await uploadToCloudinary(pickedFile,category);const dot=pickedFile.name.lastIndexOf(".");const ext=dot>0?pickedFile.name.slice(dot):"";const display=custom.toLowerCase().endsWith(ext.toLowerCase())?custom:custom+ext;const record={custom_name:display,original_name:pickedFile.name,file_type:category,mime_type:pickedFile.type||"application/octet-stream",size:pickedFile.size,url:uploaded.secure_url,cloudinary_public_id:uploaded.public_id,resource_type:uploaded.resource_type||category,uploaded_at:new Date().toISOString()};await db.ref("lockers/"+activeCode+"/files").push(record);closeModal("uploadModal");notify("File uploaded successfully.");}catch(err){uploadError(err.message);btn.disabled=false;} }
+function openPreview(id){const f=files.find(x=>x.id===id);if(!f)return;const url=safeUrl(f.url);if(!url){notify("This file has an invalid link.");return;}$("previewTitle").textContent=f.custom_name||f.original_name||"File preview";$("previewMeta").textContent=formatBytes(f.size)+" · "+formatDate(f.uploaded_at);$("previewDownload").href=downloadUrl(f);$("previewDownload").setAttribute("download",f.custom_name||"download");let html="";if(f.file_type==="image")html='<img src="'+esc(url)+'" alt="'+esc(f.custom_name)+'">';else if(f.file_type==="video")html='<video controls playsinline src="'+esc(url)+'"></video>';else if(f.file_type==="audio")html='<audio controls src="'+esc(url)+'"></audio>';else if((f.mime_type||"").includes("pdf")||/\.pdf($|\?)/i.test(url))html='<iframe title="PDF preview" src="'+esc(url)+'"></iframe>';else html='<div class="empty" style="border:0"><div class="emptyicon"><i data-lucide="'+fileIcon(f.file_type)+'"></i></div><h3>Preview unavailable</h3><p>This file type cannot be previewed here. Use the download button to save it.</p></div>';$("previewArea").innerHTML=html;$("previewModal").classList.remove("hidden");icons();}
+async function deleteFile(id){const f=files.find(x=>x.id===id);if(!f||!confirm('Delete "'+(f.custom_name||f.original_name||"this file")+'" from this locker?'))return;try{await db.ref("lockers/"+activeCode+"/files/"+id).remove();notify("File removed from locker.");}catch(e){notify("Delete failed: "+e.message);}}
+async function copyCode(){try{await navigator.clipboard.writeText(activeCode);notify("Locker code copied.");}catch{notify("Clipboard access is unavailable in this browser.");}}
+$("loginTab").onclick=()=>setAuthMode("login");$("registerTab").onclick=()=>setAuthMode("register");$("authForm").onsubmit=submitAuth;$("themeBtn").onclick=()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");$("logoutBtn").onclick=logout;$("copyCodeBtn").onclick=copyCode;$("uploadOpenBtn").onclick=openUpload;$("uploadForm").onsubmit=handleUpload;$("fileInput").onchange=e=>chooseFile(e.target.files[0]);$("dropZone").onclick=()=>$("fileInput").click();$("dropZone").ondragover=e=>{e.preventDefault();$("dropZone").classList.add("drag");};$("dropZone").ondragleave=()=>$("dropZone").classList.remove("drag");$("dropZone").ondrop=e=>{e.preventDefault();$("dropZone").classList.remove("drag");chooseFile(e.dataTransfer.files[0]);};document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));["uploadModal","previewModal"].forEach(id=>$(id).addEventListener("click",e=>{if(e.target===$(id))closeModal(id);}));$("searchInput").oninput=render;$("typeFilter").onchange=render;$("dateFilter").onchange=render;$("gridBtn").onclick=()=>{viewMode="grid";$("gridBtn").classList.add("active");$("listBtn").classList.remove("active");render();};$("listBtn").onclick=()=>{viewMode="list";$("listBtn").classList.add("active");$("gridBtn").classList.remove("active");render();};$("filesContainer").addEventListener("click",e=>{const preview=e.target.closest("[data-preview]");if(preview)openPreview(preview.dataset.preview);const del=e.target.closest("[data-delete]");if(del)deleteFile(del.dataset.delete);});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal("uploadModal");closeModal("previewModal");}});
+window.addEventListener("DOMContentLoaded",()=>{setTheme(localStorage.getItem("cv-theme")||"light");initFirebase();const saved=sessionStorage.getItem("cv-active-code");if(saved&&/^\d{6}$/.test(saved)){$("codeInput").value=saved;db.ref("lockers/"+saved).once("value").then(s=>{if(s.exists())enterVault(saved);else sessionStorage.removeItem("cv-active-code");}).catch(()=>sessionStorage.removeItem("cv-active-code"));}icons();});
+</script>
 </body>
 </html>
