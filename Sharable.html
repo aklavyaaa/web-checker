@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudVault - Secure File Locker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase SDKs (Compat for vanilla browser app) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- CryptoJS for Cloudinary SHA-1 signing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glassmorphism {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .dark .glassmorphism {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .dark .custom-scroll::-webkit-scrollbar-thumb {
+      background: #374151;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
+
+  <!-- THEME TOGGLE FLOATING (Always accessible) -->
+  <div class="fixed top-4 right-4 z-50 flex items-center space-x-2">
+    <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2.5 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-amber-400 hover:scale-105 transition-transform" title="Toggle Light/Dark Theme">
+      <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+    </button>
+  </div>
+
+  <!-- VIEW 1: AUTHENTICATION SCREEN (LOGIN / CREATE ACCOUNT) -->
+  <div id="authScreen" class="flex-1 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+      <!-- Decorative Gradient Glow -->
+      <div class="absolute -top-20 -left-20 w-44 h-44 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-20 -right-20 w-44 h-44 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Header -->
+      <div class="text-center mb-6 relative">
+        <div class="w-16 h-16 mx-auto mb-3 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+          <i class="fa-solid fa-vault text-2xl"></i>
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">CloudVault Locker</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Multi-device secure file backup & sharing</p>
+      </div>
+
+      <!-- Mode Switcher Tabs -->
+      <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6 text-sm font-medium">
+        <button id="tabLogin" onclick="switchAuthMode('login')" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition">Access Vault</button>
+        <button id="tabRegister" onclick="switchAuthMode('register')" class="flex-1 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">Create Locker</button>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="authForm" onsubmit="handleAuthSubmit(event)">
+        <div class="mb-4">
+          <label id="passcodeLabel" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Enter 6-Digit Passcode</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+              <i class="fa-solid fa-key"></i>
+            </span>
+            <input type="password" id="passcodeInput" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="123456" required
+              class="w-full pl-10 pr-12 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xl tracking-[0.3em] font-mono text-center font-bold text-slate-900 dark:text-white placeholder:tracking-normal placeholder:font-normal placeholder:text-sm">
+            <button type="button" onclick="togglePasscodeVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <i id="togglePassEye" class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <p id="authHelperText" class="text-xs text-slate-400 dark:text-slate-500 mt-2">Enter your existing 6-digit numeric passcode to open your locker.</p>
+        </div>
+
+        <div id="authAlert" class="hidden mb-4 p-3 rounded-xl text-sm font-medium"></div>
+
+        <button type="submit" id="authSubmitBtn" class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-lock-open"></i>
+          <span>Open My Vault</span>
+        </button>
+      </form>
+
+      <!-- Security Notice -->
+      <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+        <p class="text-xs text-slate-400">Isolated Cloudinary storage keyed directly to your passcode vault</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: DASHBOARD SCREEN -->
+  <div id="dashboardScreen" class="hidden flex-1 flex flex-col">
+    <!-- Navbar -->
+    <header class="glassmorphism sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800/80 px-4 lg:px-8 py-3.5">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+            <i class="fa-solid fa-vault"></i>
+          </div>
+          <div>
+            <h1 class="text-base font-bold text-slate-900 dark:text-white leading-tight">CloudVault</h1>
+            <div class="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
+              <span>Locker:</span>
+              <span id="activeLockerBadge" class="font-mono bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">******</span>
+              <button onclick="copyLockerCode()" title="Copy Vault Code" class="hover:text-indigo-600 transition"><i class="fa-regular fa-copy"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <!-- Upload Button -->
+          <button onclick="openUploadModal()" class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-sm shadow-sm flex items-center space-x-2 transition">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span class="hidden sm:inline">Upload New File</span>
+            <span class="sm:hidden">Upload</span>
+          </button>
+          <!-- Logout Button -->
+          <button onclick="logoutVault()" class="p-2 sm:px-3 sm:py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium transition flex items-center space-x-1.5" title="Exit Vault">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span class="hidden sm:inline">Lock / Exit</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl w-full mx-auto p-4 lg:p-8 flex-1">
+      
+      <!-- Stats & Summary Banner -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <p class="text-xs uppercase font-semibold text-slate-400 mb-1">Total Files</p>
+          <h3 id="statTotalFiles" class="text-2xl font-bold text-slate-900 dark:text-white">0</h3>
+        </div>
+        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <p class="text-xs uppercase font-semibold text-slate-400 mb-1">Total Size</p>
+          <h3 id="statTotalSize" class="text-2xl font-bold text-slate-900 dark:text-white">0 MB</h3>
+        </div>
+        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <p class="text-xs uppercase font-semibold text-slate-400 mb-1">Images & Media</p>
+          <h3 id="statMediaFiles" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">0</h3>
+        </div>
+        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <p class="text-xs uppercase font-semibold text-slate-400 mb-1">Documents & Other</p>
+          <h3 id="statDocFiles" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">0</h3>
+        </div>
+      </div>
+
+      <!-- Controls: Search, Date Filter, File Type Filter, View Switcher -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 mb-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Search Bar -->
+        <div class="relative flex-1">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search files by custom name, tag, or extension..."
+            class="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400">
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- Date Filter -->
+          <div class="flex items-center space-x-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1.5 rounded-xl text-xs">
+            <i class="fa-regular fa-calendar text-slate-400"></i>
+            <input type="date" id="dateFilterInput" onchange="applyFilters()" class="bg-transparent border-0 text-slate-700 dark:text-slate-200 focus:outline-none text-xs">
+            <button onclick="clearDateFilter()" id="clearDateBtn" class="hidden text-slate-400 hover:text-rose-500" title="Clear Date"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <!-- Type Filter -->
+          <select id="typeFilterSelect" onchange="applyFilters()" class="bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="all">All File Types</option>
+            <option value="image">Images</option>
+            <option value="document">Documents & PDFs</option>
+            <option value="video">Videos</option>
+            <option value="audio">Audio</option>
+            <option value="archive">Archives & Zips</option>
+          </select>
+
+          <!-- View Layout Toggle -->
+          <div class="bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl flex items-center border border-slate-200 dark:border-slate-700">
+            <button id="viewGridBtn" onclick="setViewMode('grid')" class="p-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition" title="Grid Gallery View">
+              <i class="fa-solid fa-table-cells"></i>
+            </button>
+            <button id="viewListBtn" onclick="setViewMode('list')" class="p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition" title="List Table View">
+              <i class="fa-solid fa-list"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gallery / Files View Container -->
+      <div id="filesContainer" class="min-h-[300px]">
+        <!-- Dynamic injected gallery/list items here -->
+      </div>
+    </main>
+  </div>
+
+  <!-- CUSTOM MODAL: UPLOAD FILE -->
+  <div id="uploadModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+      <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+          </div>
+          <h2 class="font-bold text-slate-900 dark:text-white">Upload File to Vault</h2>
+        </div>
+        <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="fileUploadForm" onsubmit="handleFileUpload(event)" class="p-6 space-y-4">
+        <!-- File Picker Drag & Drop / Mobile selector -->
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Select File from Device (Phone or PC)</label>
+          <div id="dropZone" onclick="document.getElementById('actualFileInput').click()" class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 rounded-2xl p-6 text-center cursor-pointer bg-slate-50/50 dark:bg-slate-800/40 transition">
+            <input type="file" id="actualFileInput" onchange="onFilePicked(this)" class="hidden">
+            <div id="pickerEmptyState">
+              <i class="fa-solid fa-folder-open text-3xl text-indigo-500 mb-2"></i>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Click to pick file or drag & drop</p>
+              <p class="text-xs text-slate-400 mt-1">Supports images, documents, videos, and archives</p>
+            </div>
+            <div id="pickerSelectedState" class="hidden flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-left">
+              <div class="flex items-center space-x-3 overflow-hidden">
+                <i id="selectedFileIcon" class="fa-solid fa-file text-2xl text-indigo-500 flex-shrink-0"></i>
+                <div class="truncate">
+                  <p id="selectedFileOriginalName" class="text-sm font-semibold truncate text-slate-900 dark:text-white"></p>
+                  <p id="selectedFileSize" class="text-xs text-slate-400"></p>
+                </div>
+              </div>
+              <button type="button" onclick="event.stopPropagation(); resetPickedFile()" class="p-1.5 text-slate-400 hover:text-rose-500"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom File Name Field -->
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Custom File Name</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+              <i class="fa-solid fa-tag"></i>
+            </span>
+            <input type="text" id="customFileNameInput" placeholder="e.g. My_Important_Document" required
+              class="w-full pl-10 pr-20 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100">
+            <span id="detectedExtBadge" class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-mono font-bold text-slate-400"></span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">This will be the display title and download name for this file.</p>
+        </div>
+
+        <!-- Upload Progress indicator -->
+        <div id="uploadProgressContainer" class="hidden space-y-1.5">
+          <div class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
+            <span id="uploadStatusText">Uploading to locker...</span>
+            <span id="uploadPercent">0%</span>
+          </div>
+          <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+            <div id="uploadProgressBar" class="bg-indigo-600 h-full w-0 transition-all duration-150"></div>
+          </div>
+        </div>
+
+        <!-- Modal Action Buttons -->
+        <div class="flex items-center justify-end space-x-3 pt-3">
+          <button type="button" onclick="closeUploadModal()" class="px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Cancel</button>
+          <button type="submit" id="startUploadBtn" class="px-5 py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md shadow-indigo-500/20 transition flex items-center space-x-2">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span>Upload Now</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FILE PREVIEW MODAL -->
+  <div id="previewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div class="truncate mr-4">
+          <h3 id="previewTitle" class="font-bold text-slate-900 dark:text-white truncate"></h3>
+          <p id="previewMeta" class="text-xs text-slate-400 mt-0.5"></p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <a id="previewDownloadLink" href="#" target="_blank" download class="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition" title="Direct Download">
+            <i class="fa-solid fa-download"></i>
+          </a>
+          <button onclick="closePreviewModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+      </div>
+      <div id="previewBody" class="flex-1 overflow-auto p-4 flex items-center justify-center bg-slate-100 dark:bg-slate-950 min-h-[350px]">
+        <!-- Injected media viewer / iframe / placeholder -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. CREDENTIALS & INITIALIZATION
+    // ==========================================
+    const CLOUDINARY_CLOUD_NAME = "dl1ishrkv";
+    const CLOUDINARY_API_KEY = "433163499287729";
+    const CLOUDINARY_API_SECRET = "2rP00sgy0FGPVsKYDEG0GH-k5mo";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDE_Tzjwmoh-xuFTFYpT5ElGjfN6T0VEsI",
+      authDomain: "sanchitution.firebaseapp.com",
+      databaseURL: "https://sanchitution-default-rtdb.firebaseio.com",
+      projectId: "sanchitution",
+      storageBucket: "sanchitution.firebasestorage.app",
+      messagingSenderId: "349272071034",
+      appId: "1:349272071034:web:e06bb9e9218a93741314c3",
+      measurementId: "G-HM1LLDNN2R"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // App State
+    let currentVaultCode = null;
+    let authMode = "login"; // "login" | "register"
+    let userFiles = [];
+    let currentViewMode = "grid"; // "grid" | "list"
+    let pickedFileObj = null;
+
+    // ==========================================
+    // 2. THEME SWITCHER (Light / Dark)
+    // ==========================================
+    function initTheme() {
+      const savedTheme = localStorage.getItem("cloudvault_theme") || "dark";
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+        document.getElementById("themeIcon").className = "fa-solid fa-sun text-amber-400 text-lg";
+      } else {
+        document.documentElement.classList.remove("dark");
+        document.getElementById("themeIcon").className = "fa-solid fa-moon text-slate-700 text-lg";
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle("dark");
+      localStorage.setItem("cloudvault_theme", isDark ? "dark" : "light");
+      document.getElementById("themeIcon").className = isDark 
+        ? "fa-solid fa-sun text-amber-400 text-lg" 
+        : "fa-solid fa-moon text-slate-700 text-lg";
+    }
+
+    function togglePasscodeVisibility() {
+      const input = document.getElementById("passcodeInput");
+      const icon = document.getElementById("togglePassEye");
+      if (input.type === "password") {
+        input.type = "text";
+        icon.className = "fa-solid fa-eye-slash";
+      } else {
+        input.type = "password";
+        icon.className = "fa-solid fa-eye";
+      }
+    }
+
+    // ==========================================
+    // 3. AUTHENTICATION & LOCKER FLOW
+    // ==========================================
+    function switchAuthMode(mode) {
+      authMode = mode;
+      const tabLogin = document.getElementById("tabLogin");
+      const tabRegister = document.getElementById("tabRegister");
+      const btn = document.getElementById("authSubmitBtn");
+      const helper = document.getElementById("authHelperText");
+      const label = document.getElementById("passcodeLabel");
+      const alertBox = document.getElementById("authAlert");
+      alertBox.classList.add("hidden");
+
+      if (mode === "login") {
+        tabLogin.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
+        tabRegister.className = "flex-1 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
+        label.innerText = "Enter 6-Digit Passcode";
+        btn.innerHTML = `<i class="fa-solid fa-lock-open"></i><span>Open My Vault</span>`;
+        helper.innerText = "Enter your existing 6-digit numeric passcode to open your locker.";
+      } else {
+        tabRegister.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
+        tabLogin.className = "flex-1 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
+        label.innerText = "Create New 6-Digit Passcode";
+        btn.innerHTML = `<i class="fa-solid fa-plus-circle"></i><span>Create New Locker</span>`;
+        helper.innerText = "Pick any unique 6-digit code. You will use this code to access your files on other devices.";
+      }
+      document.getElementById("passcodeInput").value = "";
+      document.getElementById("passcodeInput").focus();
+    }
+
+    function showAuthAlert(msg, isError = true) {
+      const el = document.getElementById("authAlert");
+      el.className = isError 
+        ? "mb-4 p-3 rounded-xl text-sm font-medium bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
+        : "mb-4 p-3 rounded-xl text-sm font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800";
+      el.innerText = msg;
+      el.classList.remove("hidden");
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const code = document.getElementById("passcodeInput").value.trim();
+      if (!/^[0-9]{6}$/.test(code)) {
+        showAuthAlert("Passcode must be exactly 6 numeric digits (e.g., 556677).");
+        return;
+      }
+
+      const submitBtn = document.getElementById("authSubmitBtn");
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i><span>Checking Vault...</span>`;
+
+      try {
+        const vaultRef = db.ref("lockers/" + code);
+        const snapshot = await vaultRef.once("value");
+        const exists = snapshot.exists();
+
+        if (authMode === "register") {
+          if (exists) {
+            showAuthAlert("This 6-digit code is already taken. Please enter another code or log in.");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i class="fa-solid fa-plus-circle"></i><span>Create New Locker</span>`;
+            return;
+          }
+          // Register new locker
+          await vaultRef.set({
+            created_at: new Date().toISOString(),
+            files_count: 0
+          });
+        } else {
+          // Login mode
+          if (!exists) {
+            showAuthAlert("Locker not found with this code. Click 'Create Locker' above to set it up!");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i class="fa-solid fa-lock-open"></i><span>Open My Vault</span>`;
+            return;
+          }
+        }
+
+        // Successfully authenticated
+        enterDashboard(code);
+      } catch (err) {
+        showAuthAlert("Connection error: " + err.message);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    }
+
+    function enterDashboard(code) {
+      currentVaultCode = code;
+      sessionStorage.setItem("active_locker_code", code);
+      document.getElementById("activeLockerBadge").innerText = code;
+      document.getElementById("authScreen").classList.add("hidden");
+      document.getElementById("dashboardScreen").classList.remove("hidden");
+      
+      // Start real-time sync of files for this vault code
+      listenToLockerFiles(code);
+    }
+
+    function logoutVault() {
+      if (currentVaultCode) {
+        db.ref("lockers/" + currentVaultCode + "/files").off();
+      }
+      currentVaultCode = null;
+      sessionStorage.removeItem("active_locker_code");
+      document.getElementById("dashboardScreen").classList.add("hidden");
+      document.getElementById("authScreen").classList.remove("hidden");
+      document.getElementById("passcodeInput").value = "";
+      document.getElementById("authAlert").classList.add("hidden");
+    }
+
+    function copyLockerCode() {
+      if (!currentVaultCode) return;
+      navigator.clipboard.writeText(currentVaultCode);
+      alert("Locker code copied: " + currentVaultCode + "\nUse this 6-digit code on any phone or PC to access these files!");
+    }
+
+    // ==========================================
+    // 4. REALTIME DATABASE SYNC
+    // ==========================================
+    function listenToLockerFiles(code) {
+      const filesRef = db.ref("lockers/" + code + "/files");
+      filesRef.on("value", (snapshot) => {
+        const val = snapshot.val();
+        userFiles = [];
+        if (val) {
+          Object.keys(val).forEach(key => {
+            userFiles.push({ id: key, ...val[key] });
+          });
+          // Sort newest first
+          userFiles.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+        }
+        updateStats();
+        applyFilters();
+      });
+    }
+
+    function updateStats() {
+      const total = userFiles.length;
+      document.getElementById("statTotalFiles").innerText = total;
+
+      let totalBytes = 0;
+      let mediaCount = 0;
+      let docCount = 0;
+
+      userFiles.forEach(f => {
+        totalBytes += (f.size || 0);
+        const t = (f.file_type || "").toLowerCase();
+        if (["image", "video", "audio"].includes(t)) {
+          mediaCount++;
+        } else {
+          docCount++;
+        }
+      });
+
+      const totalMb = (totalBytes / (1024 * 1024)).toFixed(2);
+      document.getElementById("statTotalSize").innerText = totalMb + " MB";
+      document.getElementById("statMediaFiles").innerText = mediaCount;
+      document.getElementById("statDocFiles").innerText = docCount;
+    }
+
+    // ==========================================
+    // 5. FILE UPLOAD & CLOUDINARY INTEGRATION
+    // ==========================================
+    function openUploadModal() {
+      resetPickedFile();
+      document.getElementById("uploadModal").classList.remove("hidden");
+    }
+
+    function closeUploadModal() {
+      document.getElementById("uploadModal").classList.add("hidden");
+      resetPickedFile();
+    }
+
+    function onFilePicked(input) {
+      if (input.files && input.files[0]) {
+        pickedFileObj = input.files[0];
+        document.getElementById("pickerEmptyState").classList.add("hidden");
+        document.getElementById("pickerSelectedState").classList.remove("hidden");
+        document.getElementById("selectedFileOriginalName").innerText = pickedFileObj.name;
+        document.getElementById("selectedFileSize").innerText = formatBytes(pickedFileObj.size);
+
+        // Pre-fill custom name with original file name (without extension)
+        const lastDot = pickedFileObj.name.lastIndexOf(".");
+        let ext = "";
+        let baseName = pickedFileObj.name;
+        if (lastDot > 0) {
+          baseName = pickedFileObj.name.substring(0, lastDot);
+          ext = pickedFileObj.name.substring(lastDot);
+        }
+        document.getElementById("customFileNameInput").value = baseName;
+        document.getElementById("detectedExtBadge").innerText = ext;
+      }
+    }
+
+    function resetPickedFile() {
+      pickedFileObj = null;
+      document.getElementById("actualFileInput").value = "";
+      document.getElementById("customFileNameInput").value = "";
+      document.getElementById("detectedExtBadge").innerText = "";
+      document.getElementById("pickerEmptyState").classList.remove("hidden");
+      document.getElementById("pickerSelectedState").classList.add("hidden");
+      document.getElementById("uploadProgressContainer").classList.add("hidden");
+      document.getElementById("uploadProgressBar").style.width = "0%";
+      document.getElementById("startUploadBtn").disabled = false;
+    }
+
+    function getFileTypeCategory(mime, filename) {
+      mime = (mime || "").toLowerCase();
+      const ext = filename.split('.').pop().toLowerCase();
+      if (mime.startsWith("image/") || ["jpg", "jpeg", "png", "webp", "gif", "svg"].includes(ext)) return "image";
+      if (mime.startsWith("video/") || ["mp4", "mkv", "mov", "webm"].includes(ext)) return "video";
+      if (mime.startsWith("audio/") || ["mp3", "wav", "m4a", "ogg"].includes(ext)) return "audio";
+      if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return "archive";
+      return "document";
+    }
+
+    async function handleFileUpload(e) {
+      e.preventDefault();
+      if (!pickedFileObj) {
+        alert("Please pick a file first from your system or phone.");
+        return;
+      }
+
+      const customName = document.getElementById("customFileNameInput").value.trim();
+      if (!customName) {
+        alert("Please provide a name for this file.");
+        return;
+      }
+
+      const folderName = "vault_" + currentVaultCode;
+      const timestamp = Math.floor(Date.now() / 1000);
+      
+      // Cloudinary signature formula: folder={folder}&timestamp={timestamp}{api_secret}
+      const stringToSign = `folder=${folderName}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
+      const signature = CryptoJS.SHA1(stringToSign).toString();
+
+      // UI Progress
+      const progressContainer = document.getElementById("uploadProgressContainer");
+      const progressBar = document.getElementById("uploadProgressBar");
+      const progressText = document.getElementById("uploadPercent");
+      const statusText = document.getElementById("uploadStatusText");
+      const submitBtn = document.getElementById("startUploadBtn");
+
+      progressContainer.classList.remove("hidden");
+      submitBtn.disabled = true;
+
+      // Determine resource_type (image / video / raw for docs & zip)
+      const cat = getFileTypeCategory(pickedFileObj.type, pickedFileObj.name);
+      let resourceType = "auto";
+      if (cat === "document" || cat === "archive") {
+        resourceType = "raw";
+      }
+
+      const formData = new FormData();
+      formData.append("file", pickedFileObj);
+      formData.append("api_key", CLOUDINARY_API_KEY);
+      formData.append("timestamp", timestamp);
+      formData.append("signature", signature);
+      formData.append("folder", folderName);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`);
+
+      xhr.upload.onprogress = (evt) => {
+        if (evt.lengthComputable) {
+          const percent = Math.round((evt.loaded / evt.total) * 100);
+          progressBar.style.width = percent + "%";
+          progressText.innerText = percent + "%";
+          statusText.innerText = `Uploading: ${percent}%`;
+        }
+      };
+
+      xhr.onload = async () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const res = JSON.parse(xhr.responseText);
+          
+          // Original extension
+          const lastDot = pickedFileObj.name.lastIndexOf(".");
+          const ext = lastDot > 0 ? pickedFileObj.name.substring(lastDot) : "";
+          const fullDisplayName = customName.endsWith(ext) ? customName : customName + ext;
+
+          // Save to Firebase locker
+          const fileRecord = {
+            custom_name: fullDisplayName,
+            original_name: pickedFileObj.name,
+            file_type: cat,
+            mime_type: pickedFileObj.type || "application/octet-stream",
+            size: pickedFileObj.size,
+            url: res.secure_url,
+            cloudinary_public_id: res.public_id,
+            uploaded_at: new Date().toISOString()
+          };
+
+          await db.ref("lockers/" + currentVaultCode + "/files").push(fileRecord);
+          closeUploadModal();
+        } else {
+          alert("Upload failed. Error: " + xhr.responseText);
+          submitBtn.disabled = false;
+        }
+      };
+
+      xhr.onerror = () => {
+        alert("Upload error. Please check your internet connection.");
+        submitBtn.disabled = false;
+      };
+
+      xhr.send(formData);
+    }
+
+    // ==========================================
+    // 6. FILTERING, SEARCH & RENDERING
+    // ==========================================
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      const gridBtn = document.getElementById("viewGridBtn");
+      const listBtn = document.getElementById("viewListBtn");
+
+      if (mode === "grid") {
+        gridBtn.className = "p-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
+        listBtn.className = "p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition";
+      } else {
+        listBtn.className = "p-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm transition";
+        gridBtn.className = "p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition";
+      }
+      applyFilters();
+    }
+
+    function clearDateFilter() {
+      document.getElementById("dateFilterInput").value = "";
+      document.getElementById("clearDateBtn").classList.add("hidden");
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q = document.getElementById("searchInput").value.toLowerCase().trim();
+      const dateVal = document.getElementById("dateFilterInput").value;
+      const typeVal = document.getElementById("typeFilterSelect").value;
+      
+      const clearDateBtn = document.getElementById("clearDateBtn");
+      if (dateVal) {
+        clearDateBtn.classList.remove("hidden");
+      } else {
+        clearDateBtn.classList.add("hidden");
+      }
+
+      const filtered = userFiles.filter(item => {
+        // Query search
+        const matchName = item.custom_name.toLowerCase().includes(q) || (item.original_name && item.original_name.toLowerCase().includes(q));
+        if (!matchName) return false;
+
+        // Date search (YYYY-MM-DD)
+        if (dateVal) {
+          const itemDate = item.uploaded_at ? item.uploaded_at.substring(0, 10) : "";
+          if (itemDate !== dateVal) return false;
+        }
+
+        // Type search
+        if (typeVal !== "all" && item.file_type !== typeVal) {
+          return false;
+        }
+
+        return true;
+      });
+
+      renderFiles(filtered);
+    }
+
+    function renderFiles(files) {
+      const container = document.getElementById("filesContainer");
+
+      if (files.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
+              <i class="fa-regular fa-folder-open text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">No files found</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+              ${userFiles.length === 0 ? "Your locker is empty. Click 'Upload New File' to add your first backup!" : "No files match your search and filter criteria."}
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      if (currentViewMode === "grid") {
+        let cards = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">`;
+        files.forEach(file => {
+          cards += `
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden group hover:border-indigo-500 dark:hover:border-indigo-500 transition-all flex flex-col shadow-sm">
+              <!-- Thumbnail / Preview Area -->
+              <div onclick="openPreview('${file.id}')" class="h-44 bg-slate-100 dark:bg-slate-950 flex items-center justify-center cursor-pointer relative overflow-hidden">
+                ${renderThumbnail(file)}
+                <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white space-x-3">
+                  <span class="p-2.5 rounded-full bg-white/20 backdrop-blur-md hover:scale-110 transition"><i class="fa-solid fa-eye text-sm"></i></span>
+                </div>
+              </div>
+
+              <!-- Metadata & Actions -->
+              <div class="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100 truncate" title="${escapeHtml(file.custom_name)}">${escapeHtml(file.custom_name)}</h4>
+                  <div class="flex items-center space-x-2 text-[11px] text-slate-400 mt-1">
+                    <span>${formatBytes(file.size)}</span>
+                    <span>•</span>
+                    <span>${formatDate(file.uploaded_at)}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800">
+                  <a href="${file.url}" download="${escapeHtml(file.custom_name)}" target="_blank" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1.5">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download</span>
+                  </a>
+                  <button onclick="deleteFile('${file.id}')" class="text-slate-400 hover:text-rose-500 p-1 text-xs" title="Delete File">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        cards += `</div>`;
+        container.innerHTML = cards;
+      } else {
+        // List Table View
+        let table = `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-x-auto shadow-sm">
+            <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+              <thead class="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold uppercase text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th class="py-3.5 px-4">File Name</th>
+                  <th class="py-3.5 px-4">Type</th>
+                  <th class="py-3.5 px-4">Size</th>
+                  <th class="py-3.5 px-4">Date Added</th>
+                  <th class="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+        `;
+        files.forEach(file => {
+          table += `
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+              <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white flex items-center space-x-3 cursor-pointer" onclick="openPreview('${file.id}')">
+                <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0">
+                  <i class="${getTypeIcon(file.file_type)}"></i>
+                </div>
+                <span class="truncate max-w-xs md:max-w-md">${escapeHtml(file.custom_name)}</span>
+              </td>
+              <td class="py-3 px-4 capitalize text-xs text-slate-400">${file.file_type}</td>
+              <td class="py-3 px-4 text-xs font-mono">${formatBytes(file.size)}</td>
+              <td class="py-3 px-4 text-xs text-slate-400">${formatDate(file.uploaded_at)}</td>
+              <td class="py-3 px-4 text-right space-x-2">
+                <a href="${file.url}" download="${escapeHtml(file.custom_name)}" target="_blank" class="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg inline-block text-xs font-semibold" title="Download">
+                  <i class="fa-solid fa-download"></i>
+                </a>
+                <button onclick="deleteFile('${file.id}')" class="p-2 text-slate-400 hover:text-rose-500 rounded-lg text-xs" title="Delete">
+                  <i class="fa-regular fa-trash-can"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+        table += `</tbody></table></div>`;
+        container.innerHTML = table;
+      }
+    }
+
+    function renderThumbnail(file) {
+      if (file.file_type === "image") {
+        return `<img src="${file.url}" alt="${escapeHtml(file.custom_name)}" class="w-full h-full object-cover">`;
+      }
+      return `
+        <div class="text-slate-400 flex flex-col items-center">
+          <i class="${getTypeIcon(file.file_type)} text-4xl mb-2 text-indigo-500"></i>
+          <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">${file.file_type}</span>
+        </div>
+      `;
+    }
+
+    function getTypeIcon(type) {
+      switch (type) {
+        case "image": return "fa-solid fa-image";
+        case "video": return "fa-solid fa-video";
+        case "audio": return "fa-solid fa-music";
+        case "archive": return "fa-solid fa-file-zipper";
+        default: return "fa-solid fa-file-lines";
+      }
+    }
+
+    // ==========================================
+    // 7. PREVIEW & ACTIONS
+    // ==========================================
+    function openPreview(fileId) {
+      const file = userFiles.find(f => f.id === fileId);
+      if (!file) return;
+
+      document.getElementById("previewTitle").innerText = file.custom_name;
+      document.getElementById("previewMeta").innerText = `${formatBytes(file.size)} • Added on ${formatDate(file.uploaded_at)}`;
+      
+      const dl = document.getElementById("previewDownloadLink");
+      dl.href = file.url;
+      dl.setAttribute("download", file.custom_name);
+
+      const body = document.getElementById("previewBody");
+      body.innerHTML = "";
+
+      if (file.file_type === "image") {
+        body.innerHTML = `<img src="${file.url}" alt="${escapeHtml(file.custom_name)}" class="max-h-[70vh] max-w-full object-contain rounded-lg">`;
+      } else if (file.file_type === "video") {
+        body.innerHTML = `<video controls autoplay class="max-h-[70vh] max-w-full rounded-lg shadow-md"><source src="${file.url}"></video>`;
+      } else if (file.file_type === "audio") {
+        body.innerHTML = `
+          <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-md text-center max-w-md w-full">
+            <i class="fa-solid fa-compact-disc text-5xl text-indigo-500 mb-4 animate-spin-slow"></i>
+            <p class="font-bold mb-4 text-slate-800 dark:text-slate-100">${escapeHtml(file.custom_name)}</p>
+            <audio controls class="w-full"><source src="${file.url}"></audio>
+          </div>
+        `;
+      } else if (file.url.endsWith(".pdf")) {
+        body.innerHTML = `<iframe src="${file.url}" class="w-full h-[65vh] rounded-lg border-0"></iframe>`;
+      } else {
+        body.innerHTML = `
+          <div class="text-center p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-md max-w-sm">
+            <i class="${getTypeIcon(file.file_type)} text-5xl text-indigo-500 mb-3"></i>
+            <h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">${escapeHtml(file.custom_name)}</h4>
+            <p class="text-xs text-slate-400 mb-4">Direct preview not supported for this file format.</p>
+            <a href="${file.url}" download="${escapeHtml(file.custom_name)}" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold shadow hover:bg-indigo-700 transition inline-block">
+              <i class="fa-solid fa-download mr-1.5"></i> Download File
+            </a>
+          </div>
+        `;
+      }
+
+      document.getElementById("previewModal").classList.remove("hidden");
+    }
+
+    function closePreviewModal() {
+      document.getElementById("previewModal").classList.add("hidden");
+      document.getElementById("previewBody").innerHTML = "";
+    }
+
+    async function deleteFile(fileId) {
+      if (!confirm("Are you sure you want to remove this file from your locker?")) return;
+      try {
+        await db.ref("lockers/" + currentVaultCode + "/files/" + fileId).remove();
+      } catch (err) {
+        alert("Failed to delete: " + err.message);
+      }
+    }
+
+    // ==========================================
+    // UTILITIES
+    // ==========================================
+    function formatBytes(bytes, decimals = 2) {
+      if (!+bytes) return '0 B';
+      const k = 1024;
+      const dm = decimals < 0 ? 0 : decimals;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+    }
+
+    function formatDate(isoStr) {
+      if (!isoStr) return "";
+      const d = new Date(isoStr);
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+
+    function escapeHtml(string) {
+      const entityMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      };
+      return String(string).replace(/[&<>"']/g, s => entityMap[s]);
+    }
+
+    // Initialize application on page load
+    window.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      const savedLocker = sessionStorage.getItem("active_locker_code");
+      if (savedLocker) {
+        enterDashboard(savedLocker);
+      }
+    });
+  </script>
+</body>
+</html>
